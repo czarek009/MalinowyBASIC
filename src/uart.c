@@ -26,6 +26,7 @@ void uart_send_string(char *str){
 }
 
 void uart_init(void){
+
 	uint32_t selector = get32(GPFSEL1);
 	// tx use alt5
 	selector &= ~(7 << 12);
@@ -34,12 +35,22 @@ void uart_init(void){
 	selector &= ~(7 << 15);
 	selector |= ALTFN5 << 15;
 	put32(GPFSEL1, selector);
+
+	#if RPI_VERSION == 3
+	put32(PBASE + 0x00200094, 0);
+	delay(150);
+	put32(PBASE + 0x00200098, (1<<14) | (1<<15));
+	delay(150);
+	put32(PBASE + 0x00200098, 0);
+	#elif RPI_VERSION == 4
 	// clear pud tx
 	uint32_t pu_pd = get32(GPIO_PUP_PDN_CNTRL_REG0);
 	pu_pd &= ~(3 << 28);
 	// clear pud rx
 	pu_pd &= ~(3 << 30);
 	put32(GPIO_PUP_PDN_CNTRL_REG0, pu_pd);
+	#endif
+
 	// enable uart1
 	put32(AUX_ENABLES, 1);
 	// disable TX and RX and auto flow control
@@ -50,9 +61,19 @@ void uart_init(void){
 	put32(AUX_MU_LCR_REG, 3);
 	// RTS line to be always high
 	put32(AUX_MU_MCR_REG, 0);
-	// 115200 @ 500 MHz
+
+	#if RPI_VERSION == 3
+	// 115200 @ 250 MHz (RPi 3)
+	put32(AUX_MU_BAUD_REG, 270);
+	#elif RPI_VERSION == 4
+	// 115200 @ 500 MHz (RPi 4)
 	put32(AUX_MU_BAUD_REG, 541);
+	#endif
+
 	// enable tx rx
 	put32(AUX_MU_CNTL_REG, 3);
+
+	delay(150);
+
 	return;
 }

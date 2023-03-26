@@ -2,8 +2,16 @@
 #define	_PERIPHERIALS_H
 
 /* PBASE */
+#if RPI_VERSION == 3
+#define PBASE 0x3F000000
 
+#elif RPI_VERSION == 4
 #define PBASE 0xFE000000
+
+#else
+#error PI_VERSION NOT DEFINED
+
+#endif
 
 /* GPIO */
 
