@@ -1,5 +1,5 @@
-#ifndef	_PERIPHERIALS_H
-#define	_PERIPHERIALS_H
+#ifndef  _PERIPHERIALS_H
+#define  _PERIPHERIALS_H
 
 /* PBASE */
 #if RPI_VERSION == 3
@@ -9,6 +9,7 @@
 #define PBASE 0xFE000000
 
 #else
+#define PBASE 0x00000000
 #error PI_VERSION NOT DEFINED
 
 #endif
