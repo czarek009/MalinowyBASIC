@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "printf.h"
+// #include "utils.h"
 
 
 void putc(void *p, char c) {
@@ -14,7 +15,8 @@ void main(void){
 
   printf("Hello, world!\n");
 
-  int rpiv = 0;
+  int rpiv = -1;
+  int el = get_el();
 
   #if RPI_VERSION == 3
     rpiv = 3;
@@ -23,7 +25,9 @@ void main(void){
   #endif
 
   printf("RPi version: %d\n", rpiv);
+  printf("Exception level: %d\n", el);
 
+  printf("\n");
   while (1) {
     uart_send(uart_recv());
   }

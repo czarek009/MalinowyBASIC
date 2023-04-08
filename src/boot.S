@@ -1,4 +1,5 @@
 #include "mm.h"
+#include "sysregval.h"
 
 .section ".text.boot"
 
