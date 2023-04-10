@@ -85,4 +85,18 @@ struct AuxRegisters {
 // #define AUX_OFFSET 0x00215000
 #define AUX_REGS ((struct AuxRegisters *)(PBASE + 0x00215000))
 
+/* IRQ */
+#define IRQ0_PENDING_0 (PBASE + 0x0000B200)
+#define IRQ0_PENDING_1 (PBASE + 0x0000B204)
+#define IRQ0_PENDING_2 (PBASE + 0x0000B208)
+#define FIQ_CONTROL    (PBASE + 0x0000B20C)
+#define IRQ0_ENABLE_1  (PBASE + 0x0000B210)
+#define IRQ0_ENABLE_2  (PBASE + 0x0000B214)
+#define IRQ0_ENABLE_0  (PBASE + 0x0000B218)
+#define RES            (PBASE + 0x0000B21C)
+#define IRQ0_DISABLE_1 (PBASE + 0x0000B220)
+#define IRQ0_DISABLE_2 (PBASE + 0x0000B224)
+#define IRQ0_DISABLE_0 (PBASE + 0x0000B228)
+
+
 #endif  /*_PERIPHERIALS_H */

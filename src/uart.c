@@ -58,7 +58,7 @@ void uart_init(void){
   // disable TX and RX and auto flow control
   AUX_REGS->mu_control = 0;
   // disable receive and transmit interrupts
-  AUX_REGS->mu_ier = 0;
+  AUX_REGS->mu_ier = 2;
   // enable 8 bit mode
   AUX_REGS->mu_lcr = 3;
   // RTS line to be always high
