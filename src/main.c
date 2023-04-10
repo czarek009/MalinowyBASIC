@@ -1,6 +1,6 @@
 #include "uart.h"
 #include "printf.h"
-// #include "utils.h"
+#include "irq.h"
 
 
 void putc(void *p, char c) {
@@ -13,15 +13,19 @@ void main(void){
   uart_init();
   init_printf(0, putc);
 
-  printf("Hello, world!\n");
+  irq_init_vectors();
+  enable_interrupt_controller();
+  irq_enable();
+
+  printf("MalinowyBASIC\n");
 
   int rpiv = -1;
   int el = get_el();
 
   #if RPI_VERSION == 3
-    rpiv = 3;
+  rpiv = 3;
   #elif RPI_VERSION == 4
-    rpiv = 4;
+  rpiv = 4;
   #endif
 
   printf("RPi version: %d\n", rpiv);
@@ -29,6 +33,5 @@ void main(void){
 
   printf("\n");
   while (1) {
-    uart_send(uart_recv());
   }
 }
