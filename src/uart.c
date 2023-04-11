@@ -27,6 +27,30 @@ void uart_send_string(char *str){
   }
 }
 
+void uart_aux(void){
+  // enable uart1
+  AUX_REGS->enables = 1;
+  // disable TX and RX and auto flow control
+  AUX_REGS->mu_control = 0;
+  // disable receive and transmit interrupts
+  AUX_REGS->mu_ier = 0;
+  // enable 8 bit mode
+  AUX_REGS->mu_lcr = 3;
+  // RTS line to be always high
+  AUX_REGS->mu_mcr = 0;
+
+  #if RPI_VERSION == 3
+  // 115200 @ 250 MHz (RPi 3)
+  AUX_REGS->mu_baud_rate = 270;
+  #elif RPI_VERSION == 4
+  // 115200 @ 500 MHz (RPi 4)
+  AUX_REGS->mu_baud_rate = 541;
+  #endif
+
+  // enable tx rx
+  AUX_REGS->mu_control = 3;
+}
+
 void uart_init(void){
 
   u32 selector = get32(GPFSEL1);
@@ -53,29 +77,18 @@ void uart_init(void){
   put32(GPIO_PUP_PDN_CNTRL_REG0, pu_pd);
   #endif
 
-  // enable uart1
-  AUX_REGS->enables = 1;
-  // disable TX and RX and auto flow control
-  AUX_REGS->mu_control = 0;
-  // disable receive and transmit interrupts
-  AUX_REGS->mu_ier = 0;
-  // enable 8 bit mode
-  AUX_REGS->mu_lcr = 3;
-  // RTS line to be always high
-  AUX_REGS->mu_mcr = 0;
-
-  #if RPI_VERSION == 3
-  // 115200 @ 250 MHz (RPi 3)
-  AUX_REGS->mu_baud_rate = 270;
-  #elif RPI_VERSION == 4
-  // 115200 @ 500 MHz (RPi 4)
-  AUX_REGS->mu_baud_rate = 541;
-  #endif
-
-  // enable tx rx
-  AUX_REGS->mu_control = 3;
+  uart_aux();
 
   delay(150);
 
   return;
+}
+
+void uart_init_gpio(void){
+  gpio_func_selection(TX, ALT5);
+  gpio_func_selection(RX, ALT5);
+  gpio_pull(TX, NO_RESISTOR);
+  gpio_pull(RX, NO_RESISTOR);
+  uart_aux();
+  delay(150);
 }

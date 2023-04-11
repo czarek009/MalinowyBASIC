@@ -9,7 +9,8 @@ void putc(void *p, char c) {
 }
 
 void main(void){
-  uart_init();
+  // uart_init();
+  uart_init_gpio();
   init_printf(0, putc);
 
   printf("Hello, world!\n");
