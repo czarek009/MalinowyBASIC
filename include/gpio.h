@@ -1,9 +1,8 @@
 #ifndef  _GPIO_H
 #define  _GPIO_H
 
-#include <inttypes.h>
-#include <utils.h>
 #include "peripherials.h"
+#include "types.h"
 
 typedef enum {
     INPUT = 0b000,
@@ -28,10 +27,10 @@ typedef enum {
     #endif
 } resistor;
 
-void gpio_call(uint8_t pin, uint8_t value, uint8_t field_size, uint32_t regs[]);
-void gpio_set(uint8_t pin, uint8_t set);
-void gpio_clear(uint8_t pin, uint8_t set);
-void gpio_func_selection(uint8_t pin, gpio_func func);
-void gpio_pull(uint8_t pin, resistor res);
+void gpio_call(u8 pin, u8 value, u8 field_size, reg32 regs[]);
+void gpio_set(u8 pin, u8 set);
+void gpio_clear(u8 pin, u8 set);
+void gpio_func_selection(u8 pin, gpio_func func);
+void gpio_pull(u8 pin, resistor res);
 
 #endif  /*_GPIO_H */

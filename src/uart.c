@@ -52,15 +52,14 @@ void uart_aux(void){
 }
 
 void uart_init(void){
-
-  u32 selector = get32(GPFSEL1);
+  u32 selector = GPIO_REGS->func_select[1];
   // tx use alt5
   selector &= ~(7 << 12);
   selector |= ALTFN5 << 12;
   // rx use alt5
   selector &= ~(7 << 15);
   selector |= ALTFN5 << 15;
-  put32(GPFSEL1, selector);
+  GPIO_REGS->func_select[1] = selector;
 
   #if RPI_VERSION == 3
   put32(PBASE + 0x00200094, 0);
@@ -70,11 +69,11 @@ void uart_init(void){
   put32(PBASE + 0x00200098, 0);
   #elif RPI_VERSION == 4
   // clear pud tx
-  u32 pu_pd = get32(GPIO_PUP_PDN_CNTRL_REG0);
+  u32 pu_pd = GPIO_REGS->pullup_pulldown[0];
   pu_pd &= ~(3 << 28);
   // clear pud rx
   pu_pd &= ~(3 << 30);
-  put32(GPIO_PUP_PDN_CNTRL_REG0, pu_pd);
+  GPIO_REGS->pullup_pulldown[0] = pu_pd;
   #endif
 
   uart_aux();
