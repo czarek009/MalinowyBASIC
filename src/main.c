@@ -25,6 +25,17 @@ void main(void){
 
   printf("RPi version: %d\n", rpiv);
 
+  printf("\nchecking GPIO module:\n");
+  gpio_func_selection(17, OUTPUT);
+  printf("gpio level = %u\n", gpio_level(17));
+  gpio_set(17);
+  printf("GPIO SET\n");
+  printf("gpio level = %u\n", gpio_level(17));
+  gpio_clear(17);
+  printf("GPIO CLEAR\n");
+  printf("gpio level = %u\n", gpio_level(17));
+
+  printf("\ncheck echo:\n");
   while (1) {
     uart_send(uart_recv());
   }

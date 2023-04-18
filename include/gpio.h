@@ -27,10 +27,10 @@ typedef enum {
     #endif
 } resistor;
 
-void gpio_call(u8 pin, u8 value, u8 field_size, reg32 regs[]);
-void gpio_set(u8 pin, u8 set);
-void gpio_clear(u8 pin, u8 set);
+void gpio_set(u8 pin);
+void gpio_clear(u8 pin);
 void gpio_func_selection(u8 pin, gpio_func func);
 void gpio_pull(u8 pin, resistor res);
+u8 gpio_level(u8 pin);
 
 #endif  /*_GPIO_H */
