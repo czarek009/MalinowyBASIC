@@ -86,17 +86,21 @@ struct AuxRegisters {
 #define AUX_REGS ((struct AuxRegisters *)(PBASE + 0x00215000))
 
 /* IRQ */
-#define IRQ0_PENDING_0 (PBASE + 0x0000B200)
-#define IRQ0_PENDING_1 (PBASE + 0x0000B204)
-#define IRQ0_PENDING_2 (PBASE + 0x0000B208)
-#define FIQ_CONTROL    (PBASE + 0x0000B20C)
-#define IRQ0_ENABLE_1  (PBASE + 0x0000B210)
-#define IRQ0_ENABLE_2  (PBASE + 0x0000B214)
-#define IRQ0_ENABLE_0  (PBASE + 0x0000B218)
-#define RES            (PBASE + 0x0000B21C)
-#define IRQ0_DISABLE_1 (PBASE + 0x0000B220)
-#define IRQ0_DISABLE_2 (PBASE + 0x0000B224)
-#define IRQ0_DISABLE_0 (PBASE + 0x0000B228)
 
+struct IrqRegisters {
+  reg32 irq0_pending_0;
+  reg32 irq0_pending_1;
+  reg32 irq0_pending_2;
+  reg32 fiq_control;
+  reg32 irq0_enable_1;
+  reg32 irq0_enable_2;
+  reg32 irq0_enable_0;
+  reg32 res; // according to documentation, it shouldn't be here
+  reg32 irq0_disable_1;
+  reg32 irq0_disable_2;
+  reg32 irq0_disable_0;
+};
+
+#define IRQ_REGS ((struct IrqRegisters *)(PBASE + 0x0000B200))
 
 #endif  /*_PERIPHERIALS_H */
