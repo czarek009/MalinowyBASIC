@@ -5,12 +5,10 @@
 #include "uart.h"
 
 void enable_interrupt_controller(void) {
-  // put32(IRQ0_ENABLE_1, AUX_IRQ);
   IRQ_REGS->irq0_enable_1 = AUX_IRQ;
 }
 
 void handle_irq() {
-  // unsigned int irq = get32(IRQ0_PENDING_1);
   unsigned int irq = IRQ_REGS->irq0_pending_1;
 
   while (irq) {
