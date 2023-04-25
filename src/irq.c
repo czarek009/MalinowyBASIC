@@ -5,18 +5,21 @@
 #include "uart.h"
 
 void enable_interrupt_controller(void) {
-  put32(IRQ0_ENABLE_1, AUX_IRQ);
+  // put32(IRQ0_ENABLE_1, AUX_IRQ);
+  IRQ_REGS->irq0_enable_1 = AUX_IRQ;
 }
 
 void handle_irq() {
-  unsigned int irq = get32(IRQ0_PENDING_1);
+  // unsigned int irq = get32(IRQ0_PENDING_1);
+  unsigned int irq = IRQ_REGS->irq0_pending_1;
 
   while (irq) {
     if (irq & AUX_IRQ) {
       irq &= ~AUX_IRQ;
 
-      while ((get32(AUX_MU_IIR_REG) & 4) == 4) {
-        printf("UART INTERRUPT. Recv: %c\n", uart_recv());
+      while ((AUX_REGS->mu_iir & 4) == 4) {
+        unsigned char c = uart_recv();
+        printf("UART INTERRUPT. Recv: %c   (%u)\n", c, (u8)c);
       }
     }
   }

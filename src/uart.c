@@ -1,22 +1,24 @@
+#include "peripherials.h"
+#include "utils.h"
 #include "uart.h"
 
 
-uint32_t uart_send_ready(void){
-  return (get32(AUX_MU_LSR_REG) & 0x20);
+u32 uart_send_ready(void){
+  return (AUX_REGS->mu_lsr & 0x20);
 }
 
-uint32_t uart_read_ready(void){
-  return (get32(AUX_MU_LSR_REG) & 0x01);
+u32 uart_read_ready(void){
+  return (AUX_REGS->mu_lsr & 0x01);
 }
 
 void uart_send(char c){
   while (!uart_send_ready());
-  put32(AUX_MU_IO_REG, c);
+  AUX_REGS->mu_io = c;
 }
 
 char uart_recv(void){
   while (!uart_read_ready());
-  return (get32(AUX_MU_IO_REG) & 0xFF);
+  return (AUX_REGS->mu_io & 0xFF);
 }
 
 void uart_send_string(char *str){
@@ -27,7 +29,7 @@ void uart_send_string(char *str){
 
 void uart_init(void){
 
-  uint32_t selector = get32(GPFSEL1);
+  u32 selector = get32(GPFSEL1);
   // tx use alt5
   selector &= ~(7 << 12);
   selector |= ALTFN5 << 12;
@@ -44,7 +46,7 @@ void uart_init(void){
   put32(PBASE + 0x00200098, 0);
   #elif RPI_VERSION == 4
   // clear pud tx
-  uint32_t pu_pd = get32(GPIO_PUP_PDN_CNTRL_REG0);
+  u32 pu_pd = get32(GPIO_PUP_PDN_CNTRL_REG0);
   pu_pd &= ~(3 << 28);
   // clear pud rx
   pu_pd &= ~(3 << 30);
@@ -52,26 +54,26 @@ void uart_init(void){
   #endif
 
   // enable uart1
-  put32(AUX_ENABLES, 1);
+  AUX_REGS->enables = 1;
   // disable TX and RX and auto flow control
-  put32(AUX_MU_CNTL_REG, 0);
-  // 2 = enable rx interrupt, 0 = disable interrupt
-  put32(AUX_MU_IER_REG, 2);
+  AUX_REGS->mu_control = 0;
+  // disable receive and transmit interrupts
+  AUX_REGS->mu_ier = 2;
   // enable 8 bit mode
-  put32(AUX_MU_LCR_REG, 3);
+  AUX_REGS->mu_lcr = 3;
   // RTS line to be always high
-  put32(AUX_MU_MCR_REG, 0);
+  AUX_REGS->mu_mcr = 0;
 
   #if RPI_VERSION == 3
   // 115200 @ 250 MHz (RPi 3)
-  put32(AUX_MU_BAUD_REG, 270);
+  AUX_REGS->mu_baud_rate = 270;
   #elif RPI_VERSION == 4
   // 115200 @ 500 MHz (RPi 4)
-  put32(AUX_MU_BAUD_REG, 541);
+  AUX_REGS->mu_baud_rate = 541;
   #endif
 
   // enable tx rx
-  put32(AUX_MU_CNTL_REG, 3);
+  AUX_REGS->mu_control = 3;
 
   delay(150);
 

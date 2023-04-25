@@ -1,6 +1,7 @@
 #include "uart.h"
 #include "printf.h"
 #include "irq.h"
+#include "utils.h"
 
 
 void putc(void *p, char c) {

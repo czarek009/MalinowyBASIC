@@ -5,7 +5,9 @@
 
 #ifndef __ASSEMBLER__
 
-void memzero(unsigned long src, unsigned long n);
+#include "types.h"
+
+void memzero(u64 src, u64 n);
 
 #endif
 
