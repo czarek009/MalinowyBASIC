@@ -1,6 +1,8 @@
 #ifndef  _UART_H
 #define  _UART_H
 
+#include "peripherials.h"
+#include "gpio.h"
 #include "types.h"
 
 #define TX 14
@@ -13,5 +15,7 @@ void uart_init(void);
 char uart_recv(void);
 void uart_send(char c);
 void uart_send_string(char* str);
+void uart_init_gpio(void);
+void uart_aux(void);
 
 #endif  /*_UART_H */
