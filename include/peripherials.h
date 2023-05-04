@@ -22,9 +22,43 @@
 
 /* GPIO */
 
-#define GPFSEL1 (PBASE + 0x00200004)
+#if RPI_VERSION == 3
+#define NUM_OF_GPIO 53
 
-#define GPIO_PUP_PDN_CNTRL_REG0 (PBASE + 0x002000E4) /* Pin pull-up/down for pins 15:0  */
+#elif RPI_VERSION == 4
+#define NUM_OF_GPIO 58
+
+#endif
+
+struct GpioPair {
+  reg32 reserved;
+  reg32 registers[2];
+};
+
+struct GpioRegisters {
+  reg32 func_select[6];
+  struct GpioPair set_output;
+  struct GpioPair clear_output;
+  struct GpioPair level;
+  struct GpioPair event_detect_status;
+  struct GpioPair rising_edge_detect_enable;
+  struct GpioPair falling_edge_detect_enable;
+  struct GpioPair high_level_detect_enable;
+  struct GpioPair low_level_detect_enable;
+  struct GpioPair asynchronous_rising_edge_detect_enable;
+  struct GpioPair asynchronous_falling_edge_detect_enable;
+  #if RPI_VERSION == 3
+  reg32 reserved;
+  reg32 pullup_pulldown_enable;
+  reg32 pullup_pulldown_enable_clocks[2];
+  #elif RPI_VERSION == 4
+  reg32 reserved[22];
+  reg32 pullup_pulldown[4];
+  #endif
+};
+
+#define GPIO_REGS ((struct GpioRegisters *)(PBASE + 0x00200000))
+
 
 /* AUX */
 struct AuxRegisters {

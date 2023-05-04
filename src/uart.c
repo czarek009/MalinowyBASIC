@@ -27,32 +27,7 @@ void uart_send_string(char *str){
   }
 }
 
-void uart_init(void){
-
-  u32 selector = get32(GPFSEL1);
-  // tx use alt5
-  selector &= ~(7 << 12);
-  selector |= ALTFN5 << 12;
-  // rx use alt5
-  selector &= ~(7 << 15);
-  selector |= ALTFN5 << 15;
-  put32(GPFSEL1, selector);
-
-  #if RPI_VERSION == 3
-  put32(PBASE + 0x00200094, 0);
-  delay(150);
-  put32(PBASE + 0x00200098, (1<<14) | (1<<15));
-  delay(150);
-  put32(PBASE + 0x00200098, 0);
-  #elif RPI_VERSION == 4
-  // clear pud tx
-  u32 pu_pd = get32(GPIO_PUP_PDN_CNTRL_REG0);
-  pu_pd &= ~(3 << 28);
-  // clear pud rx
-  pu_pd &= ~(3 << 30);
-  put32(GPIO_PUP_PDN_CNTRL_REG0, pu_pd);
-  #endif
-
+void uart_aux(void){
   // enable uart1
   AUX_REGS->enables = 1;
   // disable TX and RX and auto flow control
@@ -74,8 +49,45 @@ void uart_init(void){
 
   // enable tx rx
   AUX_REGS->mu_control = 3;
+}
+
+void uart_init(void){
+  u32 selector = GPIO_REGS->func_select[1];
+  // tx use alt5
+  selector &= ~(7 << 12);
+  selector |= ALTFN5 << 12;
+  // rx use alt5
+  selector &= ~(7 << 15);
+  selector |= ALTFN5 << 15;
+  GPIO_REGS->func_select[1] = selector;
+
+  #if RPI_VERSION == 3
+  put32(PBASE + 0x00200094, 0);
+  delay(150);
+  put32(PBASE + 0x00200098, (1<<14) | (1<<15));
+  delay(150);
+  put32(PBASE + 0x00200098, 0);
+  #elif RPI_VERSION == 4
+  // clear pud tx
+  u32 pu_pd = GPIO_REGS->pullup_pulldown[0];
+  pu_pd &= ~(3 << 28);
+  // clear pud rx
+  pu_pd &= ~(3 << 30);
+  GPIO_REGS->pullup_pulldown[0] = pu_pd;
+  #endif
+
+  uart_aux();
 
   delay(150);
 
   return;
+}
+
+void uart_init_gpio(void){
+  gpio_func_selection(TX, ALT5);
+  gpio_func_selection(RX, ALT5);
+  gpio_pull(TX, NO_RESISTOR);
+  gpio_pull(RX, NO_RESISTOR);
+  uart_aux();
+  delay(150);
 }
