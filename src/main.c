@@ -1,5 +1,7 @@
 #include "uart.h"
 #include "printf.h"
+#include "irq.h"
+#include "utils.h"
 
 
 void putc(void *p, char c) {
@@ -13,17 +15,24 @@ void main(void){
   uart_init_gpio();
   init_printf(0, putc);
 
-  printf("Hello, world!\n");
+  irq_init_vectors();
+  enable_interrupt_controller();
+  irq_enable();
 
-  int rpiv = 0;
+  printf("MalinowyBASIC\n");
+
+  int rpiv = -1;
+  int el = get_el();
 
   #if RPI_VERSION == 3
-    rpiv = 3;
+  rpiv = 3;
   #elif RPI_VERSION == 4
-    rpiv = 4;
+  rpiv = 4;
   #endif
 
   printf("RPi version: %d\n", rpiv);
+  printf("Exception level: %d\n", el);
+
 
   printf("\nchecking GPIO module:\n");
   gpio_func_selection(17, OUTPUT);
@@ -35,8 +44,6 @@ void main(void){
   printf("GPIO CLEAR\n");
   printf("gpio level = %u\n", gpio_level(17));
 
-  printf("\ncheck echo:\n");
   while (1) {
-    uart_send(uart_recv());
   }
 }

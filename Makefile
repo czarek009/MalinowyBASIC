@@ -7,10 +7,15 @@ ASMOPS = -Iinclude
 BUILD_DIR = build
 SRC_DIR = src
 
-all : kernel8.img
+ARMSTUB_BUILD_DIR = armstub/build
+ARMSTUB_SRC_DIR = armstub/src
+
+all : kernel8.img armstub
+
+kernel: kernel8.img
 
 clean :
-	rm -rf $(BUILD_DIR) *.d *.img
+	rm -rf $(BUILD_DIR) $(ARMSTUB_BUILD_DIR) *.d *.img *.bin
 
 screen :
 	screen /dev/ttyUSB0 115200
@@ -34,3 +39,12 @@ kernel8.img: ./linker.ld $(OBJ_FILES)
 	@echo "Building for PI version = $(value PI_VERSION)"
 	$(ARMGNU)-ld -T ./linker.ld -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES)
 	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary kernel8.img
+
+$(ARMSTUB_BUILD_DIR)/%_s.o: $(ARMSTUB_SRC_DIR)/%.S
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
+
+armstub: $(ARMSTUB_BUILD_DIR)/armstub_s.o
+	@echo "Building armstub-new.bin"
+	$(ARMGNU)-ld --section-start=.text=0 -o $(ARMSTUB_BUILD_DIR)/armstub.elf $(ARMSTUB_BUILD_DIR)/armstub_s.o
+	$(ARMGNU)-objcopy $(ARMSTUB_BUILD_DIR)/armstub.elf -O binary armstub-new.bin
