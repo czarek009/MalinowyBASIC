@@ -140,9 +140,10 @@ void ffree(void *ptr) {
         printf("6\n");
         coalesce(header, next_h);
         printf("7\n");
-        if(last_block == next_h)
+        if(last_block == next_h) {
           printf("8\n");
           last_block = header;
+        }
     }
   }
   if (first_block != header) {
