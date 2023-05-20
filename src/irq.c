@@ -10,8 +10,11 @@ void enable_interrupt_controller(void) {
 }
 
 void handle_irq() {
+  #if RPI_VERSION == 3
   unsigned int irq = IRQ_REGS->irq0_pending_1;
-
+  #elif RPI_VERSION == 4
+  unsigned int irq = IRQ_REGS->irq0_pending_0;
+  #endif
   while (irq) {
     if (irq & AUX_IRQ) {
       irq &= ~AUX_IRQ;
