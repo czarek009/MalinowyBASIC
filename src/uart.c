@@ -21,7 +21,7 @@ char uart_recv(void){
   return (AUX_REGS->mu_io & 0xFF);
 }
 
-void uart_send_string(char *str){
+void uart_send_string(const char *str){
   for (int i = 0; str[i] != '\0'; i++) {
     uart_send((char)str[i]);
   }
@@ -33,7 +33,8 @@ void uart_aux(void){
   // disable TX and RX and auto flow control
   AUX_REGS->mu_control = 0;
   // disable receive and transmit interrupts
-  AUX_REGS->mu_ier = 2;
+  // AUX_REGS->mu_ier = 2;
+  AUX_REGS->mu_ier = 0xD;
   // enable 8 bit mode
   AUX_REGS->mu_lcr = 3;
   // RTS line to be always high

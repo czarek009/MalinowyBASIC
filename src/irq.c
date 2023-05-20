@@ -3,21 +3,25 @@
 #include "irq.h"
 #include "printf.h"
 #include "uart.h"
+#include "io.h"
 
 void enable_interrupt_controller(void) {
   IRQ_REGS->irq0_enable_1 = AUX_IRQ;
 }
 
 void handle_irq() {
+  #if RPI_VERSION == 3
   unsigned int irq = IRQ_REGS->irq0_pending_1;
-
+  #elif RPI_VERSION == 4
+  unsigned int irq = IRQ_REGS->irq0_pending_0;
+  #endif
   while (irq) {
     if (irq & AUX_IRQ) {
       irq &= ~AUX_IRQ;
 
       while ((AUX_REGS->mu_iir & 4) == 4) {
         unsigned char c = uart_recv();
-        printf("UART INTERRUPT. Recv: %c   (%u)\n", c, (u8)c);
+        io_read_char(c);
       }
     }
   }

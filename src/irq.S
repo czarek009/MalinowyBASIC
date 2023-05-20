@@ -112,9 +112,9 @@ invalid_sync_el1h:
   handle_invalid_interrupt
 
 handle_el1_irq:
-  kernel_entry 
+  kernel_entry
   bl  handle_irq
-  kernel_exit 
+  kernel_exit
 
 invalid_fiq_el1h:
   handle_invalid_interrupt

@@ -2,6 +2,8 @@
 #include "printf.h"
 #include "irq.h"
 #include "utils.h"
+#include "io.h"
+#include "mm.h"
 
 
 void putc(void *p, char c) {
@@ -19,7 +21,7 @@ void main(void){
   enable_interrupt_controller();
   irq_enable();
 
-  printf("MalinowyBASIC\n");
+  printf("\n\n\nMalinowyBASIC\n");
 
   int rpiv = -1;
   int el = get_el();
@@ -33,17 +35,21 @@ void main(void){
   printf("RPi version: %d\n", rpiv);
   printf("Exception level: %d\n", el);
 
+  gpio_func_selection(16, OUTPUT);
+  for (int i = 0; i < 4; ++i) {
+    gpio_set(16);
+    delay(1000);
+    gpio_clear(16);
+    delay(1000);
+  }
 
-  printf("\nchecking GPIO module:\n");
-  gpio_func_selection(17, OUTPUT);
-  printf("gpio level = %u\n", gpio_level(17));
-  gpio_set(17);
-  printf("GPIO SET\n");
-  printf("gpio level = %u\n", gpio_level(17));
-  gpio_clear(17);
-  printf("GPIO CLEAR\n");
-  printf("gpio level = %u\n", gpio_level(17));
-
+  char buf[256];
   while (1) {
+    readline(buf, "$> ");
+
+    uart_send_string("Recv: ");
+    uart_send_string(buf);
+    uart_send_string("\\0");
+    uart_send_string("\r\n");
   }
 }

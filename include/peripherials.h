@@ -120,7 +120,6 @@ struct AuxRegisters {
 #define AUX_REGS ((struct AuxRegisters *)(PBASE + 0x00215000))
 
 /* IRQ */
-
 struct IrqRegisters {
   reg32 irq0_pending_0;
   reg32 irq0_pending_1;
