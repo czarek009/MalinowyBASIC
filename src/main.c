@@ -2,7 +2,17 @@
 #include "printf.h"
 #include "irq.h"
 #include "utils.h"
+#include "mm.h"
 
+void fun(int *main_local_addr) {
+  int fun_local;
+  if (main_local_addr < &fun_local) {
+    printf("STACK GROWS UPWARD\n");
+  }
+  else {
+    printf("STACK GROWS DOWNWARD\n");
+  }
+}
 
 void putc(void *p, char c) {
   if (c == '\n')
@@ -11,18 +21,12 @@ void putc(void *p, char c) {
 }
 
 void main(void){
-  // uart_init();
   uart_init_gpio();
   init_printf(0, putc);
-
-  irq_init_vectors();
-  enable_interrupt_controller();
-  irq_enable();
 
   printf("MalinowyBASIC\n");
 
   int rpiv = -1;
-  int el = get_el();
 
   #if RPI_VERSION == 3
   rpiv = 3;
@@ -31,18 +35,19 @@ void main(void){
   #endif
 
   printf("RPi version: %d\n", rpiv);
-  printf("Exception level: %d\n", el);
+
+  int main_local;
+  fun(&main_local);
+
+  mem_init();
+  void *p1 = mmalloc(5);
+  printf("pointer = %lu\n", (u64)p1);
+  void *p2 = mmalloc(1023);
+  printf("pointer = %lu\n", (u64)p2);
+  void *p3 = mmalloc(69);
+  printf("pointer = %lu\n", (u64)p3);
 
 
-  printf("\nchecking GPIO module:\n");
-  gpio_func_selection(17, OUTPUT);
-  printf("gpio level = %u\n", gpio_level(17));
-  gpio_set(17);
-  printf("GPIO SET\n");
-  printf("gpio level = %u\n", gpio_level(17));
-  gpio_clear(17);
-  printf("GPIO CLEAR\n");
-  printf("gpio level = %u\n", gpio_level(17));
 
   while (1) {
   }
