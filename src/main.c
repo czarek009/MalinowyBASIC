@@ -35,6 +35,10 @@ void main(void){
   printf("RPi version: %d\n", rpiv);
   printf("Exception level: %d\n", el);
 
+  float x = 17.24;
+  float y = 25.33;
+  printf("FPU: %u\n", (u32)(x+y));
+
   gpio_func_selection(16, OUTPUT);
   for (int i = 0; i < 4; ++i) {
     gpio_set(16);

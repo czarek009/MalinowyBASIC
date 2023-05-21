@@ -1,7 +1,7 @@
 ARMGNU ?= aarch64-linux-gnu
 
 PI_VERSION ?= 4
-COPS = -DRPI_VERSION=$(PI_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -mgeneral-regs-only
+COPS = -DRPI_VERSION=$(PI_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude
 ASMOPS = -Iinclude
 
 BUILD_DIR = build
