@@ -5,8 +5,6 @@
 // #define malloc(...) mmalloc(__VA_ARGS__)
 // #define free(...) ffree(__VA_ARGS__)
 
-
-
 /* STACK GROWS DOWNWARD (ADDRESSES DECREASE) */
 #define STACK_SIZE 0x400000   /*  4MB  */
 #define STACK_ADDRESS (STACK_SIZE)
@@ -15,7 +13,6 @@
 #define HEAP_ADDRESS (STACK_ADDRESS + 0x40)
 #define HEAP_END_ADDRESS (HEAP_ADDRESS + HEAP_SIZE)
 
-/* 4 byte alignment ?*/
 #define ALIGNMENT 4
 
 /*
@@ -41,6 +38,7 @@ void memzero(u64 src, u64 n);
 void mem_init(void);
 void *mmalloc(size_t size);
 void ffree(void *ptr);
+void print_memory_map(void);
 
 #endif
 

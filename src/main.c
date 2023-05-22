@@ -40,12 +40,21 @@ void main(void){
   fun(&main_local);
 
   mem_init();
+  print_memory_map();
+  delay(150);
   void *p1 = mmalloc(5);
   printf("pointer = %lu\n", (u64)p1);
+  print_memory_map();
   void *p2 = mmalloc(1023);
   printf("pointer = %lu\n", (u64)p2);
+  print_memory_map();
   void *p3 = mmalloc(69);
   printf("pointer = %lu\n", (u64)p3);
+  print_memory_map();
+  ffree(p2);
+  print_memory_map();
+  ffree(p3);
+  print_memory_map();
 
 
 
