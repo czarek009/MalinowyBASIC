@@ -15,6 +15,8 @@ proc_hang:
 
 main_cpu:
 enable_fpu:
+  mov  x0, #0x33ff
+  msr  cptr_el3, x0
   mrs  x1, cpacr_el1
   mov  x0, #(3 << 20)
   orr  x0, x1, x0
