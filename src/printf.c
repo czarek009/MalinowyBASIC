@@ -16,6 +16,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "printf.h"
 
+#define PRINTF_LONG_SUPPORT 1
+
 typedef void (*putcf) (void*,char);
 static putcf stdout_putf;
 static void* stdout_putp;
