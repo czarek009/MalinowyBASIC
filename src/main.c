@@ -68,6 +68,10 @@ void main(void){
   free(p4);
   print_memory_map();
 
+  float x = 17.24;
+  float y = 25.33;
+  printf("FPU: %u\n", (u32)(x+y));
+
   gpio_func_selection(16, OUTPUT);
   for (int i = 0; i < 4; ++i) {
     gpio_set(16);

@@ -7,11 +7,20 @@
 _start:
   mrs  x0, mpidr_el1
   and  x0, x0, #0xFF
-  cbz  x0, set_el1
+  cbz  x0, main_cpu
   b    proc_hang
 
 proc_hang:
   b   proc_hang
+
+main_cpu:
+enable_fpu:
+  mov  x0, #0x33ff
+  msr  cptr_el3, x0
+  mrs  x1, cpacr_el1
+  mov  x0, #(3 << 20)
+  orr  x0, x1, x0
+  msr  cpacr_el1, x0
 
 set_el1:
   ldr  x0, =SCTLR_VALUE_MMU_DISABLED
