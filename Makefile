@@ -1,8 +1,9 @@
 ARMGNU ?= aarch64-linux-gnu
 
 PI_VERSION ?= 4
-COPS = -DRPI_VERSION=$(PI_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude
-ASMOPS = -Iinclude
+INCLUDE = -Iinclude -Iinclude/system -Iinclude/basic
+COPS = -DRPI_VERSION=$(PI_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding $(INCLUDE)
+ASMOPS = $(INCLUDE)
 
 BUILD_DIR = build
 SRC_DIR = src
@@ -28,9 +29,18 @@ $(BUILD_DIR)/%_s.o: $(SRC_DIR)/%.S
 	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 
 C_FILES = $(wildcard $(SRC_DIR)/*.c)
+C_FILES += $(wildcard $(SRC_DIR)/system/*.c)
+C_FILES += $(wildcard $(SRC_DIR)/basic/*.c)
+
 ASM_FILES = $(wildcard $(SRC_DIR)/*.S)
+ASM_FILES += $(wildcard $(SRC_DIR)/system/*.S)
+ASM_FILES += $(wildcard $(SRC_DIR)/basic/*.S)
+
 OBJ_FILES = $(C_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%_c.o)
 OBJ_FILES += $(ASM_FILES:$(SRC_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+
+debug:
+	echo $(OBJ_FILES)
 
 DEP_FILES = $(OBJ_FILES:%.o=%.d)
 -include $(DEP_FILES)
