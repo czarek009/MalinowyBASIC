@@ -1,0 +1,5 @@
+.vscode
+build
+*.img
+*.bin
+armstub/build
