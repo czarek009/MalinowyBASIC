@@ -3,6 +3,6 @@
 
 #include "types.h"
 
-void let_instr(void* env, char* cmd, u64* pos);
+void let_instr(void* env, char* cmd, u64 pos);
 
 #endif /* _INSTRUCTIONS_H */

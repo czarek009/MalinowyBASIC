@@ -28,5 +28,5 @@ void handle_irq() {
 }
 
 void handle_invalid_irq(unsigned long esr_el1) {
-  printf("[ERROR] Caught invalid interrupt. Value of est_el1 register: %X\n", esr_el1);
+  printf("[ERROR] Caught invalid interrupt. Value of esr_el1 register: %X\n", esr_el1);
 }
