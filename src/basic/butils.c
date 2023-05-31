@@ -1,4 +1,5 @@
 #include "butils.h"
+#include "printf.h"
 
 
 bool isalpha(char c) {
@@ -13,13 +14,19 @@ bool isalphanum(char c) {
 
 size_t strlen(char* s) {
   size_t out = 0;
-  while (*s != '\0') {
+  while (s[out] != '\0') {
     ++out;
   }
 
   return out;
 }
 
+void strncpy(char *dest, const char *src, size_t n) {
+  for(int i=0; i<n; ++i) {
+    if (src[i] == 0) return;
+    dest[i] = src[i];
+  }
+}
 
 int strncmp(const char *src1, const char *src2, register size_t n) {
   register unsigned char u1, u2;

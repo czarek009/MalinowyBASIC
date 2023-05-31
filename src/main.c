@@ -5,15 +5,22 @@
 #include "io.h"
 #include "mm.h"
 #include "session.h"
+#include "interpreter.h"
 
-void fun(int *main_local_addr) {
-  int fun_local;
-  if (main_local_addr < &fun_local) {
-    printf("STACK GROWS UPWARD\n");
-  }
-  else {
-    printf("STACK GROWS DOWNWARD\n");
-  }
+void print_greetings(void) {
+  printf("\n\n\nMalinowyBASIC\n");
+  printf("MalinowyBASIC\n");
+
+  int rpiv = -1;
+
+  #if RPI_VERSION == 3
+  rpiv = 3;
+  #elif RPI_VERSION == 4
+  rpiv = 4;
+  #endif
+
+  printf("RPi version: %d\n", rpiv);
+
 }
 
 void putc(void *p, char c) {
@@ -76,18 +83,14 @@ void main(void){
   enable_interrupt_controller();
   irq_enable();
 
-  printf("\n\n\nMalinowyBASIC\n");
-  printf("MalinowyBASIC\n");
+  print_greetings();
 
-  int rpiv = -1;
+  char buf[256];
 
-  #if RPI_VERSION == 3
-  rpiv = 3;
-  #elif RPI_VERSION == 4
-  rpiv = 4;
-  #endif
+  while (1) {
+    readline(buf, "$> ");
 
-  printf("RPi version: %d\n", rpiv);
+    execute_command(NULL, buf);
 
   int main_local;
   fun(&main_local);
@@ -109,4 +112,9 @@ void main(void){
 
   session_end(s);
   print_memory_map();
+  //   uart_send_string("Recv: ");
+  //   uart_send_string(buf);
+  //   uart_send_string("\\0");
+  //   uart_send_string("\r\n");
+  }
 }
