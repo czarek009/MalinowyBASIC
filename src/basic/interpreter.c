@@ -18,6 +18,10 @@ tokenE map_str2tok(char* cmd, char* dest) {
     strncpy(dest, ";", 2);
     return TOK_SEMICOLON;
   }
+  if (!strncmp(cmd, "$", 1)) {
+    strncpy(dest, "$", 2);
+    return TOK_DOLAR;
+  }
   if (!strncmp(cmd, ",", 1)) {
     strncpy(dest, ",", 2);
     return TOK_COMMA;
@@ -43,14 +47,14 @@ tokenE map_str2tok(char* cmd, char* dest) {
 }
 
 u64 get_line_number(char* cmd) {
-  if (cmd[0] > 57 || cmd[0] < 48) {
+  if (!isdigit(cmd[0])) {
     return ~0;
   }
   u64 out = 0;
 
-  for (int i=0; cmd[i] != 0; ++i) {
+  for (int i=0; isdigit(cmd[i]); ++i) {
     out *= 10;
-    out += (u8)cmd[i]-48;
+    out += ((u8)cmd[i])-48;
   }
 
   return out;
@@ -83,6 +87,14 @@ u8 is_valid_varname(char* cmd) {
   }
   // valid varname of max length (eq 7)
   return 7;
+}
+
+u64 get_str_len(char* cmd) {
+  u64 len = 0;
+  for (int i=0; cmd[i] != '"' && cmd[i] != '\0'; ++i,++len) {
+  }
+
+  return len;
 }
 
 
@@ -129,6 +141,7 @@ void execute_command(void* env, char* cmd) {
 
   DEBUG("[*] execute_command(%s)\n", cmd);
 
+  cmd = consume_whitespaces(cmd);
   u64 ln = get_line_number(cmd);
 
   if (ln == ~0) {
@@ -136,7 +149,11 @@ void execute_command(void* env, char* cmd) {
     interprete_command(env, cmd);
     return;
   }
+  while (isdigit(*cmd)) {
+    ++cmd;
+  }
   DEBUG("    line number: %lu\n", ln);
+  DEBUG("    saved command: %s\n", cmd);
   // zapisz na linked list w środowisku
   // save_command(env, cmd, ln);
 }
