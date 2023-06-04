@@ -33,6 +33,7 @@ enum tokenE {
   TOK_COMMA,
   TOK_QUOTE,
   TOK_SEMICOLON,
+  TOK_DOLAR,
   TOK_ADD,
   TOK_SUB,
   TOK_DIV,
@@ -80,6 +81,7 @@ struct tokenS {
 
 tokenE get_next_token(char* cmd, char* dest);
 char* consume_whitespaces(char* cmd);
+u64 get_str_len(char* cmd);
 
 void execute_command(void* env, char* cmd);
 void interprete_command(void* env, char* cmd);
@@ -96,7 +98,7 @@ void interprete_command(void* env, char* cmd);
 //   {.tok_name="-",  .tok_id=TOK_SUB},
 //   {.tok_name="/",  .tok_id=TOK_DIV},
 //   {.tok_name="*",  .tok_id=TOK_MULT},
-//   {.tok_name="$",  .tok_id=TOK_AND},
+//   {.tok_name="&",  .tok_id=TOK_AND},
 //   {.tok_name="|",  .tok_id=TOK_OR},
 //   {.tok_name="(",  .tok_id=TOK_LPAREN},
 //   {.tok_name=")",  .tok_id=TOK_RPAREN},
