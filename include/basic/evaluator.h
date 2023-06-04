@@ -3,9 +3,11 @@
 
 #include "types.h"
 
-bool get_expression_type(char* expr);
-s64 eval_int(char* expr);
-float eval_float(char* expr);
+void get_expression_type(char* expr);
+s64 eval_int_expr(char* expr);
+float eval_float_expr(char* expr);
+bool eval_bool_expr(void* env, char* expr);
+void eval_expr(void*, char* expr);
 
 
 #endif /* _INTERPRETER_H */

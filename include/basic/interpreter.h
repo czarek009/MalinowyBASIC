@@ -77,6 +77,16 @@ struct tokenS {
   tokenE tok_id;
 } typedef tokenS;
 
+
+tokenE get_next_token(char* cmd, char* dest);
+char* consume_whitespaces(char* cmd);
+
+void execute_command(void* env, char* cmd);
+void interprete_command(void* env, char* cmd);
+
+
+#endif /* _INTERPRETER_H */
+
 // static const tokenS tokens[] = {
 //   /* single char */
 //   {.tok_name=",",  .tok_id=TOK_COMMA},
@@ -122,13 +132,13 @@ struct tokenS {
 //   {.tok_name="", TOK_NONE}
 // };
 
-
-tokenE get_next_token(char* cmd, u64 pos, char* dest);
-
-void execute_command(void* env, char* cmd);
-void get_variable_name(char* dest, char* cmd, u64* pos);
-void interprete_command(void* env, char* cmd);
-u64 consume_whitespaces(char* cmd, u64 pos);
-
-
-#endif /* _INTERPRETER_H */
+// for (const tokenS* t = tokens; t->tok_id != TOK_NONE; ++t) {
+  //   DEBUG(" checking token %lu %s...", t->tok_name, t->tok_name);
+  //   if (strncmp(&cmd[pos], t->tok_name, strlen(t->tok_name)) == 0) {
+  //     strncpy(dest, &cmd[pos], strlen(t->tok_name));
+  //     dest[strlen(t->tok_name)] = '\n';
+  //     DEBUG(" token read=%s\n", dest);
+  //     return t->tok_id;
+  //   }
+  //   DEBUG(" no match\n",0);
+  // }
