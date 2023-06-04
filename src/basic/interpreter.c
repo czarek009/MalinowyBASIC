@@ -4,105 +4,45 @@
 #include "butils.h"
 #include "printf.h"
 #include "mm.h"
-#include <stddef.h>
 
 
-tokenE map_str2tok(char* cmd, u64 pos, char* dest) {
-  if (!strncmp(&cmd[pos], "=", 1)) {
-    strncpy(dest, "=", 2);
+tokenE map_str2tok(char* cmd, char* dest) {
+  /* zwierzęca funkcja */
+  if (!strncmp(cmd, "=", 1)) {
+    // strncpy(dest, "=", 2);
+    dest[0] = '=';
+    dest[1] = '\0';
     return TOK_EQ;
   }
-  if (!strncmp(&cmd[pos], "LET", 3)) {
+  if (!strncmp(cmd, ";", 1)) {
+    strncpy(dest, ";", 2);
+    return TOK_SEMICOLON;
+  }
+  if (!strncmp(cmd, ",", 1)) {
+    strncpy(dest, ",", 2);
+    return TOK_COMMA;
+  }
+  if (!strncmp(cmd, "\"", 1)) {
+    strncpy(dest, "\"", 2);
+    return TOK_QUOTE;
+  }
+  if (!strncmp(cmd, "LET", 3)) {
     strncpy(dest, "LET", 4);
     return TOK_LET;
+  }
+  if (!strncmp(cmd, "PRINT", 5)) {
+    strncpy(dest, "PRINT", 6);
+    return TOK_PRINT;
+  }
+  if (!strncmp(cmd, "INPUT", 5)) {
+    strncpy(dest, "INPUT", 6);
+    return TOK_INPUT;
   }
   
   return TOK_NONE;
 }
 
-u64 get_toklen(char* cmd, u64 pos) {
-  return 0;
-}
-
-u8 is_valid_varname(char* cmd, u64 pos) {
-  /*
-   * Check if a valid variable name starts at cmd[pos]
-   *
-   * Args:
-   *   cmd - sting that contains a basic command
-   *   pos - index from where we are reading right now
-   *
-   * Return:
-   *   If cmd[pos] contains first character of a valid variable name, return its length
-   *   returns 0 otherwise
-   */
-  if (!isalpha(cmd[pos])) {
-    // must start with a letter
-    return 0;
-  }
-  for (int i=1; i<7; ++i) {
-    if (!isalphanum(cmd[pos+i])) {
-      // if non alphanum character occurs then varname lenght is less than 7, return it
-      return i;
-    }
-  }
-  if (isalphanum(cmd[pos+7])) {
-    // varname too long
-    return 0;
-  }
-  // valid varname of max length (eq 7)
-  return 7;
-}
-
-tokenE get_next_token(char* cmd, u64 pos, char* dest) {
-  DEBUG("[*] get_next_token(%s)\n", &cmd[pos]);
-  if (isdigit(cmd[pos])) {
-    /* jeszcze znaki +- */
-    dest[0] = cmd[pos];
-    dest[1] = '\0';
-    DEBUG(" token read=%s\n", dest);
-    return TOK_NUMBER;
-  }
-
-  tokenE t = map_str2tok(cmd, pos, dest);
-  if (t) {
-    DEBUG(" token read=%s\n", dest);
-    return t;
-  }
-  // for (const tokenS* t = tokens; t->tok_id != TOK_NONE; ++t) {
-  //   DEBUG(" checking token %lu %s...", t->tok_name, t->tok_name);
-  //   if (strncmp(&cmd[pos], t->tok_name, strlen(t->tok_name)) == 0) {
-  //     strncpy(dest, &cmd[pos], strlen(t->tok_name));
-  //     dest[strlen(t->tok_name)] = '\n';
-  //     DEBUG(" token read=%s\n", dest);
-  //     return t->tok_id;
-  //   }
-  //   DEBUG(" no match\n",0);
-  // }
-
-  u8 varlen = is_valid_varname(cmd, pos);
-  if (varlen) {
-    strncpy(dest, &cmd[pos], varlen);
-    dest[varlen] = '\0';
-    DEBUG(" token read=%s\n", dest);
-    return TOK_VAR;
-  }
-
-  dest[0] = '\0';
-  DEBUG(" token read=%s\n", dest);
-  return TOK_ERROR;
-}
-
-u64 consume_whitespaces(char* cmd, u64 pos) {
-  while (cmd[pos] == ' ') {
-    ++pos;
-  }
-
-  return pos;
-}
-
 u64 get_line_number(char* cmd) {
-  // NO WHITESPACES AT THE BEGINNING OF THE LINE!!!
   if (cmd[0] > 57 || cmd[0] < 48) {
     return ~0;
   }
@@ -116,50 +56,109 @@ u64 get_line_number(char* cmd) {
   return out;
 }
 
-void get_variable_name(char* dest, char* cmd, u64* pos) {
+u8 is_valid_varname(char* cmd) {
   /*
-   * This function saves variable name that starts at cmd[pos] to dest
-   * Important: assume that we have valid varname starting at cmd[pos]
+   * Check if a valid variable name starts at *cmd
    *
    * Args:
-   *   dest - pointer to allocated space where varname will be stored
-   *   cmd  - sting that contains a basic command
-   *   pos  - index from where we are reading right now
+   *   cmd - sting that contains a basic command
+   *
+   * Return:
+   *   If *cmd contains first character of a valid variable name, return its length
+   *   returns 0 otherwise
    */
-  u8 varlen = is_valid_varname(cmd, *pos);
-  for (int i=0; i < varlen; ++i) {
-    dest[i] = cmd[*pos+i];
+  if (!isalpha(*cmd)) {
+    // must start with a letter
+    return 0;
   }
-  *pos += varlen;
+  for (int i=1; i<7; ++i) {
+    if (!isalphanum(cmd[i])) {
+      // if non alphanum character occurs then varname lenght is less than 7, return it
+      return i;
+    }
+  }
+  if (isalphanum(cmd[7])) {
+    // varname too long
+    return 0;
+  }
+  // valid varname of max length (eq 7)
+  return 7;
 }
+
+
+tokenE get_next_token(char* cmd, char* dest) {
+  DEBUG("[*] get_next_token(%s)\n", cmd);
+
+  if (isdigit(*cmd)) {
+    /* jeszcze znaki +- */
+    /* a w ogóle to czyta tylko jedną cyfrę */
+    dest[0] = *cmd;
+    dest[1] = '\0';
+    DEBUG(" token read = \"%s\"\n", dest);
+    return TOK_NUMBER;
+  }
+
+  tokenE tok = map_str2tok(cmd, dest);
+  if (tok != TOK_NONE) {
+    DEBUG(" token read = \"%s\"\n", dest);
+    return tok;
+  }
+
+  u8 varlen = is_valid_varname(cmd);
+  if (varlen) {
+    strncpy(dest, cmd, varlen);
+    dest[varlen] = '\0';
+    DEBUG(" token read = \"%s\"\n", dest);
+    return TOK_VAR;
+  }
+
+  dest[0] = '\0';
+  // DEBUG("[*] no token\n", 0);
+  return TOK_ERROR;
+}
+
+char* consume_whitespaces(char* cmd) {
+  while (*cmd == ' ') {
+    ++cmd;
+  }
+  return cmd;
+}
+
 
 void execute_command(void* env, char* cmd) {
 
-  DEBUG("[*] execute_command()\n"
-        " -cmd: %s\n",
-        cmd);
+  DEBUG("[*] execute_command(%s)\n", cmd);
 
   u64 ln = get_line_number(cmd);
 
   if (ln == ~0) {
-    DEBUG("[*] No line number\n", 0);
+    DEBUG("   no line number\n", 0);
     interprete_command(env, cmd);
     return;
   }
-  DEBUG("[*] Line number: %lu\n", ln);
+  DEBUG("    line number: %lu\n", ln);
   // zapisz na linked list w środowisku
   // save_command(env, cmd, ln);
 }
 
 void interprete_command(void* env, char* cmd) {
   char buf[32];
-  u64 pos = consume_whitespaces(cmd, 0);
-  tokenE tok = get_next_token(cmd, pos, buf);
-  pos += strlen(buf);
+  cmd = consume_whitespaces(cmd);
+  tokenE tok = get_next_token(cmd, buf);
+  cmd += strlen(buf);
+  cmd = consume_whitespaces(cmd);
 
   switch (tok) {
     case TOK_LET:
-      let_instr(env, cmd, pos);
+      let_instr(env, cmd);
+      break;
+
+    case TOK_PRINT:
+      print_instr(env, cmd);
+      break;
+
+    case TOK_INPUT:
+      input_instr(env, cmd);
       break;
     
     default:

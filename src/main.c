@@ -83,6 +83,8 @@ void main(void){
   enable_interrupt_controller();
   irq_enable();
 
+  mem_init();
+
   print_greetings();
 
   char buf[256];

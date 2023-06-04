@@ -23,7 +23,7 @@ size_t strlen(char* s) {
 
 void strncpy(char *dest, const char *src, size_t n) {
   for(int i=0; i<n; ++i) {
-    if (src[i] == 0) return;
+    // if (src[i] == 0) return;
     dest[i] = src[i];
   }
 }
@@ -40,4 +40,22 @@ int strncmp(const char *src1, const char *src2, register size_t n) {
       return 0;
   }
   return 0;
+}
+
+s64 str2s64(char* str) {
+  s64 out = 0;
+  int i = 0;
+  if (str[0] == '-' || str[0] == '+') {
+    ++i;
+  }
+  for (; isdigit(str[i]); ++i) {
+    out *= 10;
+    out += (u8)(str[i] - 48);
+  }
+
+  if (str[0] == '-') {
+    out *= -1;
+  }
+
+  return out;
 }
