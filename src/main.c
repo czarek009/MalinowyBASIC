@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "io.h"
 #include "mm.h"
+#include "session.h"
 
 void fun(int *main_local_addr) {
   int fun_local;
@@ -45,49 +46,15 @@ void main(void){
   int main_local;
   fun(&main_local);
 
+
   mem_init();
   print_memory_map();
-  delay(150);
-  void *p1 = malloc(5);
-  printf("pointer = %lu\n", (u64)p1);
-  print_memory_map();
-  void *p2 = malloc(1023);
-  printf("pointer = %lu\n", (u64)p2);
-  print_memory_map();
-  void *p3 = malloc(69);
-  printf("pointer = %lu\n", (u64)p3);
-  void *p4 = malloc(13);
-  printf("pointer = %lu\n", (u64)p4);
-  print_memory_map();
-  free(p2);
-  print_memory_map();
-  free(p3);
-  print_memory_map();
-  free(p1);
-  print_memory_map();
-  free(p4);
+  print_structures_size();
+  printf("session init\n");
+  Session *s = session_init();
   print_memory_map();
 
-  float x = 17.24;
-  float y = 25.33;
-  printf("FPU: %u\n", (u32)(x+y));
-
-  gpio_func_selection(16, OUTPUT);
-  for (int i = 0; i < 4; ++i) {
-    gpio_set(16);
-    delay(1000);
-    gpio_clear(16);
-    delay(1000);
-  }
-
-  char buf[256];
-
-  while (1) {
-    readline(buf, "$> ");
-
-    uart_send_string("Recv: ");
-    uart_send_string(buf);
-    uart_send_string("\\0");
-    uart_send_string("\r\n");
-  }
+  session_end(s);
+  printf("session end\n");
+  print_memory_map();
 }
