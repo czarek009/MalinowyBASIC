@@ -74,8 +74,8 @@ enum tokenE {
 } typedef tokenE;
 
 struct tokenS {
-  char* tok_name;
   tokenE tok_id;
+  char tok_name[16];
 } typedef tokenS;
 
 
@@ -88,59 +88,3 @@ void interprete_command(void* env, char* cmd);
 
 
 #endif /* _INTERPRETER_H */
-
-// static const tokenS tokens[] = {
-//   /* single char */
-//   {.tok_name=",",  .tok_id=TOK_COMMA},
-//   {.tok_name="\"", .tok_id=TOK_QUOTE},
-//   {.tok_name=";",  .tok_id=TOK_SEMICOLON},
-//   {.tok_name="+",  .tok_id=TOK_ADD},
-//   {.tok_name="-",  .tok_id=TOK_SUB},
-//   {.tok_name="/",  .tok_id=TOK_DIV},
-//   {.tok_name="*",  .tok_id=TOK_MULT},
-//   {.tok_name="&",  .tok_id=TOK_AND},
-//   {.tok_name="|",  .tok_id=TOK_OR},
-//   {.tok_name="(",  .tok_id=TOK_LPAREN},
-//   {.tok_name=")",  .tok_id=TOK_RPAREN},
-//   {.tok_name="#",  .tok_id=TOK_HASH},
-//   {.tok_name="<",  .tok_id=TOK_LT},
-//   {.tok_name=">",  .tok_id=TOK_GT},
-//   {.tok_name="=",  .tok_id=TOK_EQ},
-
-//   /* keywords */
-//   {.tok_name="DATA",    .tok_id=TOK_DATA},
-//   {.tok_name="DEF",     .tok_id=TOK_DEF},
-//   {.tok_name="DIM",     .tok_id=TOK_DIM},
-//   {.tok_name="END",     .tok_id=TOK_END},
-//   {.tok_name="FOR",     .tok_id=TOK_FOR},
-//   {.tok_name="TO",      .tok_id=TOK_TO},
-//   {.tok_name="STEP",    .tok_id=TOK_STEP},
-//   {.tok_name="ON",      .tok_id=TOK_ON},
-//   {.tok_name="GOSUB",   .tok_id=TOK_GOSUB},
-//   {.tok_name="GOTO",    .tok_id=TOK_GOTO},
-//   {.tok_name="IF",      .tok_id=TOK_IF},
-//   {.tok_name="THEN",    .tok_id=TOK_THEN},
-//   {.tok_name="ELSE",    .tok_id=TOK_ELSE},
-//   {.tok_name="INPUT",   .tok_id=TOK_INPUT},
-//   {.tok_name="LET",     .tok_id=TOK_LET},
-//   {.tok_name="NEXT",    .tok_id=TOK_NEXT},
-//   {.tok_name="PRINt",   .tok_id=TOK_PRINT},
-//   {.tok_name="READ",    .tok_id=TOK_READ},
-//   {.tok_name="REM",     .tok_id=TOK_REM},
-//   {.tok_name="RESTORE", .tok_id=TOK_RESTORE},
-//   {.tok_name="RETURN",  .tok_id=TOK_RETURN},
-//   {.tok_name="STOP",    .tok_id=TOK_STOP},
-
-//   {.tok_name="", TOK_NONE}
-// };
-
-// for (const tokenS* t = tokens; t->tok_id != TOK_NONE; ++t) {
-  //   DEBUG(" checking token %lu %s...", t->tok_name, t->tok_name);
-  //   if (strncmp(&cmd[pos], t->tok_name, strlen(t->tok_name)) == 0) {
-  //     strncpy(dest, &cmd[pos], strlen(t->tok_name));
-  //     dest[strlen(t->tok_name)] = '\n';
-  //     DEBUG(" token read=%s\n", dest);
-  //     return t->tok_id;
-  //   }
-  //   DEBUG(" no match\n",0);
-  // }

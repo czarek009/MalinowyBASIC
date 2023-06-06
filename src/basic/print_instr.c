@@ -12,7 +12,7 @@ char* print_instr_string(char* cmd);
  * One PRINT instruction can print many things separated by comma
  */
 void print_instr(void* env, char* cmd) {
-  char buf[32];
+  char buf[32] = {0};
   tokenE tok = TOK_NONE;
   cmd = consume_whitespaces(cmd);
 

@@ -19,7 +19,7 @@ void print_greetings(void) {
   rpiv = 4;
   #endif
 
-  printf("RPi version: %d\n", rpiv);
+  printf("RPi version: %d\n\n", rpiv);
 
 }
 
@@ -86,6 +86,8 @@ void main(void){
   mem_init();
 
   print_greetings();
+
+  // struct_test();
 
   char buf[256];
 
