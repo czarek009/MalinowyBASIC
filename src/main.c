@@ -18,7 +18,7 @@ void print_greetings(void) {
   rpiv = 4;
   #endif
 
-  printf("RPi version: %d\n", rpiv);
+  printf("RPi version: %d\n\n", rpiv);
 
 }
 
@@ -26,6 +26,22 @@ void putc(void *p, char c) {
   if (c == '\n')
     uart_send('\r');
   uart_send(c);
+}
+
+void struct_test(void) {
+  struct foo {
+    int id;
+    char name[8];
+  } typedef fooS;
+
+  fooS bar[] = {
+    {69, "qpa"},
+    {42, "d00pa"},
+  };
+
+  for (int i=0; i<2; ++i) {
+    printf(bar[i].name);
+  }
 }
 
 void main(void){
@@ -39,6 +55,8 @@ void main(void){
   mem_init();
 
   print_greetings();
+
+  // struct_test();
 
   char buf[256];
 

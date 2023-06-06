@@ -6,45 +6,52 @@
 #include "mm.h"
 
 
-tokenE map_str2tok(char* cmd, char* dest) {
-  /* zwierzęca funkcja */
-  if (!strncmp(cmd, "=", 1)) {
-    // strncpy(dest, "=", 2);
-    dest[0] = '=';
-    dest[1] = '\0';
-    return TOK_EQ;
-  }
-  if (!strncmp(cmd, ";", 1)) {
-    strncpy(dest, ";", 2);
-    return TOK_SEMICOLON;
-  }
-  if (!strncmp(cmd, "$", 1)) {
-    strncpy(dest, "$", 2);
-    return TOK_DOLAR;
-  }
-  if (!strncmp(cmd, ",", 1)) {
-    strncpy(dest, ",", 2);
-    return TOK_COMMA;
-  }
-  if (!strncmp(cmd, "\"", 1)) {
-    strncpy(dest, "\"", 2);
-    return TOK_QUOTE;
-  }
-  if (!strncmp(cmd, "LET", 3)) {
-    strncpy(dest, "LET", 4);
-    return TOK_LET;
-  }
-  if (!strncmp(cmd, "PRINT", 5)) {
-    strncpy(dest, "PRINT", 6);
-    return TOK_PRINT;
-  }
-  if (!strncmp(cmd, "INPUT", 5)) {
-    strncpy(dest, "INPUT", 6);
-    return TOK_INPUT;
-  }
-  
-  return TOK_NONE;
-}
+tokenS tokens[] = {
+  /* single char */
+  {.tok_name=",",  .tok_id=TOK_COMMA},
+  {.tok_name="\"", .tok_id=TOK_QUOTE},
+  {.tok_name=";",  .tok_id=TOK_SEMICOLON},
+  {.tok_name="+",  .tok_id=TOK_ADD},
+  {.tok_name="-",  .tok_id=TOK_SUB},
+  {.tok_name="/",  .tok_id=TOK_DIV},
+  {.tok_name="*",  .tok_id=TOK_MULT},
+  {.tok_name="&",  .tok_id=TOK_AND},
+  {.tok_name="|",  .tok_id=TOK_OR},
+  {.tok_name="(",  .tok_id=TOK_LPAREN},
+  {.tok_name=")",  .tok_id=TOK_RPAREN},
+  {.tok_name="#",  .tok_id=TOK_HASH},
+  {.tok_name="<",  .tok_id=TOK_LT},
+  {.tok_name=">",  .tok_id=TOK_GT},
+  {.tok_name="=",  .tok_id=TOK_EQ},
+  {.tok_name="$",  .tok_id=TOK_DOLAR},
+
+  /* keywords */
+  {.tok_name="DATA",    .tok_id=TOK_DATA},
+  {.tok_name="DEF",     .tok_id=TOK_DEF},
+  {.tok_name="DIM",     .tok_id=TOK_DIM},
+  {.tok_name="END",     .tok_id=TOK_END},
+  {.tok_name="FOR",     .tok_id=TOK_FOR},
+  {.tok_name="TO",      .tok_id=TOK_TO},
+  {.tok_name="STEP",    .tok_id=TOK_STEP},
+  {.tok_name="ON",      .tok_id=TOK_ON},
+  {.tok_name="GOSUB",   .tok_id=TOK_GOSUB},
+  {.tok_name="GOTO",    .tok_id=TOK_GOTO},
+  {.tok_name="IF",      .tok_id=TOK_IF},
+  {.tok_name="THEN",    .tok_id=TOK_THEN},
+  {.tok_name="ELSE",    .tok_id=TOK_ELSE},
+  {.tok_name="INPUT",   .tok_id=TOK_INPUT},
+  {.tok_name="LET",     .tok_id=TOK_LET},
+  {.tok_name="NEXT",    .tok_id=TOK_NEXT},
+  {.tok_name="PRINT",   .tok_id=TOK_PRINT},
+  {.tok_name="READ",    .tok_id=TOK_READ},
+  {.tok_name="REM",     .tok_id=TOK_REM},
+  {.tok_name="RESTORE", .tok_id=TOK_RESTORE},
+  {.tok_name="RETURN",  .tok_id=TOK_RETURN},
+  {.tok_name="STOP",    .tok_id=TOK_STOP},
+
+  {.tok_name="", .tok_id=TOK_NONE}
+};
+
 
 u64 get_line_number(char* cmd) {
   if (!isdigit(cmd[0])) {
@@ -106,26 +113,29 @@ tokenE get_next_token(char* cmd, char* dest) {
     /* a w ogóle to czyta tylko jedną cyfrę */
     dest[0] = *cmd;
     dest[1] = '\0';
-    DEBUG(" token read = \"%s\"\n", dest);
+    DEBUG(" 1 token read = \"%s\"\n", dest);
     return TOK_NUMBER;
   }
 
-  tokenE tok = map_str2tok(cmd, dest);
-  if (tok != TOK_NONE) {
-    DEBUG(" token read = \"%s\"\n", dest);
-    return tok;
+  for (tokenS* t = tokens; t->tok_id != TOK_NONE; ++t) {
+    if (strncmp(cmd, t->tok_name, strlen(t->tok_name)) == 0) {
+      strncpy(dest, cmd, strlen(t->tok_name));
+      dest[strlen(t->tok_name)] = '\0';
+      DEBUG(" 2 token read = \"%s\"\n", dest);
+      return t->tok_id;
+    }
   }
 
   u8 varlen = is_valid_varname(cmd);
   if (varlen) {
     strncpy(dest, cmd, varlen);
     dest[varlen] = '\0';
-    DEBUG(" token read = \"%s\"\n", dest);
+    DEBUG(" 3 token read = \"%s\"\n", dest);
     return TOK_VAR;
   }
 
   dest[0] = '\0';
-  // DEBUG("[*] no token\n", 0);
+  DEBUG("[*] no token\n", 0);
   return TOK_ERROR;
 }
 

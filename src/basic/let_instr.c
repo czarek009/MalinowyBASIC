@@ -6,8 +6,8 @@
 
 
 void let_instr(void* env, char* cmd) {
-  char buf[32];
-  char varname[8];
+  char buf[32] = {0};
+  char varname[8] = {0};
   bool isStr = false;
 
   tokenE tok = TOK_NONE;
