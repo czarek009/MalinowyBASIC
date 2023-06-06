@@ -5,6 +5,12 @@
 #define malloc(...) mmalloc(__VA_ARGS__)
 #define free(...) ffree(__VA_ARGS__)
 
+#define PAGE_SHIFT 12
+#define TABLE_SHIFT 9
+#define SECTION_SHIFT (PAGE_SHIFT + TABLE_SHIFT)
+#define PAGE_SIZE (1 << PAGE_SHIFT)
+#define SECTION_SIZE (1 << SECTION_SHIFT)
+
 /* STACK GROWS DOWNWARD (ADDRESSES DECREASE) */
 #define STACK_SIZE 0x400000   /*  4MB  */
 #define STACK_ADDRESS (STACK_SIZE)
