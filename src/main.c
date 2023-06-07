@@ -54,7 +54,7 @@ void main(void){
   void *p2 = malloc(1023);
   printf("pointer = %lu\n", (u64)p2);
   print_memory_map();
-  void *p3 = malloc(69);
+  void *p3 = malloc(9);
   printf("pointer = %lu\n", (u64)p3);
   void *p4 = malloc(13);
   printf("pointer = %lu\n", (u64)p4);

@@ -13,12 +13,12 @@
 
 ----------------------------------------------------------------------------------------------
 
-  .                 |           32 - 1 bit               |   0 bit    |
-  HEADER / FOOTER = |  size_in_blocks   (hd + pld + ft)  | allocated? |
+  .                 |        32 - 1 bit          |   0 bit    |
+  HEADER / FOOTER = |  size     (hd + pld + ft)  | allocated? |
 
 ----------------------------------------------------------------------------------------------
 
-  .      |  4   |   number_of_blocks(size)  |  4   |
+  .      |  4   |   size_in_blocks()        |  4   |
   .      | bytes|          bytes            | bytes|
   DATA = |HEADER|PAYLOAD|PAYLOAD|...|PAYLOAD|FOOTER|
 
@@ -45,11 +45,6 @@ static word_t *last_header;
 static word_t *heap_end;
 
 
-/* calculate size in number of blocks */
-static size_t number_of_blocks(size_t size) {
-  return size / BLOCK_SIZE;
-}
-
 /* round up size to ALIGNMENT (in bytes) */
 static size_t round_up(size_t size) {
   return (size + ALIGNMENT - 1) & -ALIGNMENT;
@@ -57,12 +52,17 @@ static size_t round_up(size_t size) {
 
 /* get size in number of blocks based on header/footer */
 static size_t size_in_blocks(word_t *hf) {
+  return (*hf & -2) / BLOCK_SIZE;
+}
+
+/* get size */
+static size_t get_size(word_t *hf) {
   return *hf & -2;
 }
 
 /* function for printing memory map*/
 static size_t size_of_alloc(word_t *hf) {
-  return (BLOCK_SIZE * (size_in_blocks(hf) - 2));
+  return get_size(hf) - METADATA_SIZE;
 }
 
 /* check if block is allocated based on header/footer */
@@ -105,14 +105,14 @@ static void set_footer(word_t *header) {
 void mem_init(void) {
   first_header = (word_t *)((u8 *)HEAP_ADDRESS + OFFSET);
   last_header = first_header;
-  set_header(first_header, number_of_blocks(MAX_ALLOC), FREE);
+  set_header(first_header, MAX_ALLOC, FREE);
   set_footer(first_header);
   heap_end = (word_t *)HEAP_END_ADDRESS;
 }
 
 static word_t *find_free_block(size_t size) {
   word_t *block = first_header;
-  while((is_alocated(block) || (size_in_blocks(block) < size)) && block != NULL){
+  while((is_alocated(block) || (get_size(block) < size)) && block != NULL){
     block = next_header(block);
   }
   return block;
@@ -125,7 +125,7 @@ static void update_last_header(word_t *old_header, word_t *new_header) {
 }
 
 static void split(word_t *header, size_t new_alloc_size) {
-  size_t new_free_size = size_in_blocks(header) - new_alloc_size;
+  size_t new_free_size = get_size(header) - new_alloc_size;
   set_header(header, new_alloc_size, ALLOCATED);
   set_footer(header);
   if (0 < new_free_size){
@@ -139,7 +139,6 @@ static void split(word_t *header, size_t new_alloc_size) {
 /* allocate number of bytes if unsuccessful return NULL*/
 void *mmalloc(size_t size) {
   size = round_up(size + METADATA_SIZE);
-  size = number_of_blocks(size);
   word_t *header = find_free_block(size);
   if (header == NULL){
     return header;
@@ -149,7 +148,7 @@ void *mmalloc(size_t size) {
 }
 
 static word_t *coalesce(word_t *first, word_t *second) {
-  set_header(first, size_in_blocks(first) + size_in_blocks(second), FREE);
+  set_header(first, get_size(first) + get_size(second), FREE);
   set_footer(first);
   update_last_header(second, first);
   return first;
@@ -157,7 +156,7 @@ static word_t *coalesce(word_t *first, word_t *second) {
 
 void ffree(void *ptr) {
   word_t *header = get_header((word_t *)ptr);
-  set_header(header, size_in_blocks(header), FREE);
+  set_header(header, get_size(header), FREE);
   set_footer(header);
   if (first_header != header) {
     word_t *prev = prev_header(header);
