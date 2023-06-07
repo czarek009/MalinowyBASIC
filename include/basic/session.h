@@ -8,7 +8,6 @@
 
 TODO:
 - napisać dokumentację w folderze doc
-- ładne debug printy (define na printf DEBUG (...))
 - array variable
 
 */
@@ -29,20 +28,23 @@ types:
  - string
  - pointer to array
 
- data:
-  - unia (u64, wskaźnik)
-
- pointer ma na początku metadane
 */
 
+#define DEBUG_MODE 1
+#if DEBUG_MODE
+#define DEBUG(...)  printf(__VA_ARGS__)
+#else
+#define DEBUG(...)
+#endif
+
 #define RET_ADDR_STACK_SIZE        256
-#define RET_ADDR_STACK_MAX_FIELD  (RET_ADDR_STACK_SIZE / sizeof(u32)) - 1
+#define RET_ADDR_STACK_MAX_FIELD  (RET_ADDR_STACK_SIZE / sizeof(u64)) - 1
 
 #define DATA_STACK_SIZE           512
 #define DATA_STACK_MAX_FIELD      (DATA_STACK_SIZE / sizeof(s32)) - 1
 
 #define VARIABLES_MAX_FIELD       63
-#define VARIABLE_NAME_SIZE
+#define VARIABLE_NAME_SIZE        7
 #define VARIABLE_NAME_MAX_FIELD   (VARIABLE_NAME_SIZE - 1)
 
 /* VARIABLE TYPES */
@@ -51,6 +53,7 @@ types:
 #define FLOATING_POINT ((u8)2)
 #define BOOLEAN ((u8)3)
 #define STRING ((u8)4)
+#define NOT_FOUND ((u8)255)
 
 typedef enum {
     RUNNING = 0,
@@ -95,7 +98,7 @@ typedef struct Variable {
 
 typedef struct Session {
     Metadata metadata;
-    u32 return_address_stack[64];
+    u64 return_address_stack[32];
     s32 data_stack[128];
     Variable variables[64];
 } Session;
@@ -106,10 +109,15 @@ Session *session_init(void);
 SessionStatus get_session_status(Session *s);
 void set_session_status(Session *s, SessionStatus status);
 void set_jump_flag(Session *s, u64 line_number);
+
 void push_data_to_stack(Session *s, s32 data);
 s32 pop_data_from_stack(Session *s);
-void push_return_address_to_stack(Session *s, s32 address);
-u32 pop_return_address_from_stack(Session *s);
+void print_data_stack(Session *s);
+
+void push_return_address_to_stack(Session *s, u64 address);
+u64 pop_return_address_from_stack(Session *s);
+void print_return_address_stack(Session *s);
+
 Variable *get_variable_ptr(Session *s, char* name);
 u8 get_variable_value(Session *s, char* name, VariableData *var_data);
 void add_integer_variable(Session *s, s32 data, char *name);
@@ -117,11 +125,14 @@ void add_floating_point_variable(Session *s, float data, char *name);
 void add_boolean_variable(Session *s, bool data, char *name);
 void add_instruction(Session *s, u64 line_number, char *instruction);
 void add_string_variable(Session *s, char *data, char *name);
+void print_variables(Session *s);
+
 void add_instruction(Session *s, u64 line_number, char *instruction);
 void delete_single_instruction(Session *s, u64 line_number);
 void delete_all_instructions(Session *s);
 void print_instructions(Session *s);
 void run_program(Session *s);
+
 void session_end(Session *s);
 
 #endif /* _SESSION_H */

@@ -18,6 +18,7 @@ Session *session_init(void) {
     s->metadata.errno = 0;
     s->metadata.status = NEW;
     s->metadata.jump_flag = 0;
+    DEBUG("Init session\n");
     return s;
 }
 
@@ -33,35 +34,62 @@ void set_jump_flag(Session *s, u64 line_number) {
     s->metadata.jump_flag = line_number;
 }
 
-/* STACK */
+/* DATA STACK */
 void push_data_to_stack(Session *s, s32 data) {
     if(s->metadata.data_stackpointer < DATA_STACK_MAX_FIELD){
         s->data_stack[s->metadata.data_stackpointer] = data;
         s->metadata.data_stackpointer++;
+        return;
     }
+    DEBUG("PUSH - data stack is full\n");
 }
 
 s32 pop_data_from_stack(Session *s) {
-    s32 data = s->data_stack[s->metadata.data_stackpointer];
     if(s->metadata.data_stackpointer > 0) {
-        s->metadata.data_stackpointer++;
+        s->metadata.data_stackpointer--;
+        s32 data = s->data_stack[s->metadata.data_stackpointer];
+        return data;
     }
-    return data;
+    else {
+        DEBUG("POP - data stack is empty\n");
+        return 0;
+    }
 }
 
-void push_return_address_to_stack(Session *s, s32 address) {
+void print_data_stack(Session *s) {
+    printf("data stack:\n");
+    for(u8 i = 0; i < s->metadata.data_stackpointer; i++) {
+        printf("field: %u, value: %d\n", i, s->data_stack[i]);
+    }
+}
+
+/* RETURN ADDRESS STACK */
+void push_return_address_to_stack(Session *s, u64 address) {
     if(s->metadata.return_address_stackpointer < RET_ADDR_STACK_MAX_FIELD){
         s->return_address_stack[s->metadata.return_address_stackpointer] = address;
         s->metadata.return_address_stackpointer++;
+        return;
+    }
+    DEBUG("PUSH - return address stack is full\n");
+}
+
+u64 pop_return_address_from_stack(Session *s) {
+    if(s->metadata.return_address_stackpointer > 0) {
+        s->metadata.return_address_stackpointer--;
+        u64 data = s->return_address_stack[s->metadata.return_address_stackpointer];
+        return data;
+    }
+    else {
+        DEBUG("POP - return address stack is empty\n");
+        return 0;
     }
 }
 
-u32 pop_return_address_from_stack(Session *s) {
-    u32 data = s->data_stack[s->metadata.data_stackpointer];
-    if(s->metadata.data_stackpointer > 0) {
-        s->metadata.data_stackpointer++;
+void print_return_address_stack(Session *s) {
+    printf("return address stack:\n");
+    for(u8 i = 0; i < s->metadata.return_address_stackpointer; i++) {
+        printf("field: %u, value: %lu\n", i, s->return_address_stack[i]);
     }
-    return data;
 }
 
 /* VARIABLE */
@@ -89,18 +117,20 @@ Variable *get_variable_ptr(Session *s, char* name) {
 
 u8 get_variable_value(Session *s, char* name, VariableData *var_data) {
     Variable *var = get_variable_ptr(s, name);
-    /* variable not found */
     if (var == NULL) {
-        return 255;
+        DEBUG("Variable not found\n");
+        return NOT_FOUND;
     }
     *var_data = var->data;
     return var->type;
 }
 
 void add_variable(Variable *var, VariableData data, char *name, u8 type) {
-    for(u8 i = 0; (*name != '\0' && i < VARIABLE_NAME_MAX_FIELD); i++, name++) {
+    u8 i;
+    for(i = 0; (*name != '\0' && i < VARIABLE_NAME_MAX_FIELD); i++, name++) {
         var->name[i] = *name;
     }
+    var->name[i] = '\0';
     var->data = data;
     var->type = type;
 }
@@ -108,11 +138,16 @@ void add_variable(Variable *var, VariableData data, char *name, u8 type) {
 void check_and_add_variable(Session *s, VariableData data, char *name, u8 type) {
     Variable *var = get_variable_ptr(s, name);
     if(var != NULL){
+        DEBUG("Replace variable value\n");
         add_variable(var, data, name, type);
     }
     else if (s->metadata.variables_number < VARIABLES_MAX_FIELD) {
+        DEBUG("Add new variable\n");
         add_variable(&(s->variables[s->metadata.variables_number]), data, name, type);
         s->metadata.variables_number++;
+    }
+    else {
+        DEBUG("Cannot add variable - max number of variables reached\n");
     }
 }
 
@@ -138,6 +173,32 @@ void add_string_variable(Session *s, char *data, char *name) {
     VariableData var_data;
     var_data.string = data;
     check_and_add_variable(s, var_data, name, STRING);
+}
+
+void print_variables(Session *s) {
+    printf("Variables:\n");
+    Variable var;
+    for(u8 i = 0; i < s->metadata.variables_number; i++){
+        var = s->variables[i];
+        printf("name = %s, ", var.name);
+        switch(var.type) {
+            case INTEGER:
+                printf("type = INTEGER, value = %d\n", var.data);
+                break;
+            case FLOATING_POINT:
+                printf("type = FLOATING_POINT, value = %d\n", var.data);
+                break;
+            case BOOLEAN:
+                printf("type = BOOLEAN, value = %d\n", var.data);
+                break;
+            case STRING:
+                printf("type = STRING, value = %s\n", var.data);
+                break;
+            default:
+                printf("not supporting yet\n");
+                break;
+        }
+    }
 }
 
 /* INSTRUCTIONS */
@@ -193,10 +254,13 @@ void add_instruction(Session *s, u64 line_number, char *instruction) {
     }
 }
 
-Node *find_node(Node *head, u64 line_number) {
+Node *find_instruction(Node *head, u64 line_number) {
     Node *node = head;
     while((node->line_number != line_number) && (node != NULL)) {
         node = node->next;
+    }
+    if(node == NULL){
+        DEBUG("Instruction not found\n");
     }
     return node;
 }
@@ -222,7 +286,7 @@ void delete_node(Node *node, Session *s) {
 }
 
 void delete_single_instruction(Session *s, u64 line_number) {
-    Node *node = find_node(s->metadata.instructions_start, line_number);
+    Node *node = find_instruction(s->metadata.instructions_start, line_number);
     if(node != NULL){
         delete_node(node, s);
     }
@@ -249,8 +313,9 @@ void run_program(Session *s) {
     Node *node = s->metadata.instructions_start;
     while(node != NULL){
         // interprete_command(s, node->instruction);
+        printf("interprete command: %s\n", node->instruction);
         if(s->metadata.jump_flag != 0){
-            node = find_node(s->metadata.instructions_start, s->metadata.jump_flag);
+            node = find_instruction(s->metadata.instructions_start, s->metadata.jump_flag);
             s->metadata.jump_flag = 0;
         }
         else{
@@ -260,6 +325,7 @@ void run_program(Session *s) {
 }
 
 void session_end(Session *s) {
-    // delete_all_instructions(s);
+    delete_all_instructions(s);
     free(s);
+    DEBUG("Session end\n");
 }
