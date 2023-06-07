@@ -17,6 +17,7 @@ main_cpu:
 enable_fpu:
   mov  x0, #0x33ff
   msr  cptr_el3, x0
+
   mrs  x1, cpacr_el1
   mov  x0, #(3 << 20)
   orr  x0, x1, x0
@@ -35,6 +36,16 @@ set_el1:
   ldr  x0, =SPSR_VAL
   msr  spsr_el3, x0
 
+activate_mmu:
+  ldr  x0, =CPACR_EL1_VAL
+  msr  cpacr_el1, x0
+
+  ldr  x0, =TCR_EL1_VAL
+  msr  tcr_el1, x0
+
+  ldr  x0, =MAIR_VALUE
+  msr  mair_el1, x0
+
   adr  x0, master
   msr  elr_el3, x0
 
@@ -47,5 +58,21 @@ master:
   bl   memzero
 
   mov  sp, #STACK_ADDRESS
+
+  bl init_mmu
+
+  adrp x0, id_pgd
+  msr ttbr0_el1, x0
+
+  mrs x0, sctlr_el1
+  mov x1, #SCTLR_MMU_ENABLED
+  orr x0, x0, x1
+  msr sctlr_el1, x0
+
   bl   main
   b    proc_hang
+
+.globl id_pgd_addr
+id_pgd_addr:
+    adrp x0, id_pgd
+    ret
