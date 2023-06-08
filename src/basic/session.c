@@ -1,5 +1,6 @@
 #include "session.h"
 #include "printf.h"
+#include "interpreter.h"
 
 /* SESSION */
 void print_structures_size(void) {
@@ -203,74 +204,54 @@ void print_variables(Session *s) {
 
 /* INSTRUCTIONS */
 Node *create_node(Node *previous, Node *next, u64 line_number, char *instruction) {
-    DEBUG("[*] 5.1\n");
-    print_memory_map();
     Node *new = malloc(sizeof(Node));
-    DEBUG("[*] 5.2\n");
     new->previous = previous;
-    DEBUG("[*] 5.3\n");
     new->next = next;
-    DEBUG("[*] 5.4\n");
     new->line_number = line_number;
-    DEBUG("[*] 5.5\n");
     new->instruction = instruction;
-    DEBUG("[*] 5.6\n");
     return new;
 }
 
 Node *find_place(Node *head, u64 line_number) {
     Node *node = head;
     while((node->next != NULL) && (node->next->line_number < line_number)) {
-        DEBUG("[*] LOOP\n");
         node = node->next;
     }
     return node;
 }
 
 void add_instruction(Session *s, u64 line_number, char *instruction) {
-    DEBUG("[*] ADD INSTRUCTION\n");
     if(s->metadata.instructions_start == NULL){
-        DEBUG("[*] 1.1\n");
         Node *new_node = create_node(NULL, NULL, line_number, instruction);
-        DEBUG("[*] 1.2\n");
         s->metadata.instructions_start = new_node;
-        DEBUG("[*] 1.3\n");
         s->metadata.instructions_end = new_node;
-        DEBUG("[*] 1.4\n");
     }
     else if(line_number < s->metadata.instructions_start->line_number) {
-        DEBUG("[*] 2\n");
         Node *new_node = create_node(NULL, s->metadata.instructions_start, line_number, instruction);
         s->metadata.instructions_start->previous = new_node;
         s->metadata.instructions_start = new_node;
     }
     else if(line_number > s->metadata.instructions_end->line_number) {
-        DEBUG("[*] 3\n");
         Node *new_node = create_node(s->metadata.instructions_end, NULL, line_number, instruction);
         s->metadata.instructions_end->next = new_node;
         s->metadata.instructions_end = new_node;
 
     }
     else {
-        DEBUG("[*] 4\n");
         Node *place = find_place(s->metadata.instructions_start, line_number);
         if(place->line_number == line_number){
-            DEBUG("[*] 4.1\n");
             place->instruction = instruction;
         }
         else if(place->next->line_number == line_number){
-            DEBUG("[*] 4.2\n");
             place->next->instruction = instruction;
         }
         else {
-            DEBUG("[*] 4.3\n");
             Node *next = place->next;
             Node *new_node = create_node(place, next, line_number, instruction);
             place->next = new_node;
             next->previous = new_node;
         }
     }
-    DEBUG("[*] INSTRUCTION ADDED\n");
 }
 
 Node *find_instruction(Node *head, u64 line_number) {
@@ -331,8 +312,7 @@ void print_instructions(Session *s) {
 void run_program(Session *s) {
     Node *node = s->metadata.instructions_start;
     while(node != NULL){
-        // interprete_command(s, node->instruction);
-        printf("interprete command: %s\n", node->instruction);
+        interprete_command(s, node->instruction);
         if(s->metadata.jump_flag != 0){
             node = find_instruction(s->metadata.instructions_start, s->metadata.jump_flag);
             s->metadata.jump_flag = 0;

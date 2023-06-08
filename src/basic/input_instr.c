@@ -41,7 +41,7 @@ void input_instr(Session* env, char* cmd) {
   }
 
   char input[256];
-  readline(input, ":");
+  readline(input, "\n:");
 
   DEBUG("[*] INPUT to var %s: %s\n", buf, input);
 
@@ -70,5 +70,6 @@ char* print_prompt(char* cmd) {
   }
 
   printf(cmd);
+  printf("\n");
   return &cmd[i];
 }

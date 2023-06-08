@@ -89,16 +89,11 @@ void main(void){
   mem_init();
 
   Session *current_session = session_init();
-  print_memory_map();
-  char* buf = malloc(9);
-  print_memory_map();
 
   while (1) {
     char buf[256] = {0};
     readline(buf, "$> ");
     execute_command(current_session, buf);
   }
-  // run_program(s);
-  free(buf);
   session_end(current_session);
 }

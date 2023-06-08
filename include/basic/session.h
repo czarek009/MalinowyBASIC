@@ -30,7 +30,7 @@ types:
 
 */
 
-#define DEBUG_MODE 1
+// #define DEBUG_MODE 1
 #if DEBUG_MODE
 #define DEBUG(...)  printf(__VA_ARGS__)
 #else
