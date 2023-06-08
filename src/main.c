@@ -88,6 +88,40 @@ void main(void){
 
   mem_init();
 
+  print_memory_map();
+  delay(150);
+  void *p1 = malloc(5);
+  printf("pointer = %lu\n", (u64)p1);
+  print_memory_map();
+  void *p2 = malloc(1023);
+  printf("pointer = %lu\n", (u64)p2);
+  print_memory_map();
+  void *p3 = malloc(9);
+  printf("pointer = %lu\n", (u64)p3);
+  void *p4 = malloc(13);
+  printf("pointer = %lu\n", (u64)p4);
+  print_memory_map();
+  free(p2);
+  print_memory_map();
+  free(p3);
+  print_memory_map();
+  free(p1);
+  print_memory_map();
+  free(p4);
+  print_memory_map();
+
+  float x = 17.24;
+  float y = 25.33;
+  printf("FPU: %u\n", (u32)(x+y));
+
+  gpio_func_selection(16, OUTPUT);
+  for (int i = 0; i < 4; ++i) {
+    gpio_set(16);
+    delay(1000);
+    gpio_clear(16);
+    delay(1000);
+  }
+
   Session *current_session = session_init();
 
   while (1) {
