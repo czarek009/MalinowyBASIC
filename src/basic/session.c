@@ -181,19 +181,22 @@ void print_variables(Session *s) {
     Variable var;
     for(u8 i = 0; i < s->metadata.variables_number; i++){
         var = s->variables[i];
-        printf("name = %s, ", var.name);
         switch(var.type) {
             case INTEGER:
-                printf("type = INTEGER, value = %d\n", var.data);
+                printf("int %s = %d\n", var.name, var.data.integer);
                 break;
             case FLOATING_POINT:
-                printf("type = FLOATING_POINT, value = %d\n", var.data);
+                printf("float %s = %f\n", var.name, var.data.floating_point);
                 break;
             case BOOLEAN:
-                printf("type = BOOLEAN, value = %d\n", var.data);
+                if (var.data.boolean) {
+                    printf("bool %s = true\n", var.name);
+                } else {
+                    printf("bool %s = false\n", var.name);
+                }
                 break;
             case STRING:
-                printf("type = STRING, value = %s\n", var.data);
+                printf("string %s = %s\n", var.name, var.data);
                 break;
             default:
                 printf("not supporting yet\n");
@@ -301,10 +304,9 @@ void delete_all_instructions(Session *s){
 }
 
 void print_instructions(Session *s) {
-    printf("instructions:\n");
     Node *node = s->metadata.instructions_start;
     while(node != NULL){
-        printf("line_number = %d, pointer = %lu,  instruction = %s\n", node->line_number, (u64)node->instruction, node->instruction);
+        printf(" %d %s\n", node->line_number, node->instruction);
         node = node->next;
     }
 }

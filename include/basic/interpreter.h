@@ -65,15 +65,18 @@ enum tokenE {
   TOK_ELSE,
   TOK_INPUT,
   TOK_LET,
-  TOK_LIST,
   TOK_NEXT,
   TOK_PRINT,
   TOK_READ,
   TOK_REM,
   TOK_RESTORE,
   TOK_RETURN,
-  TOK_RUN,
   TOK_STOP,
+
+  TOK_ENV,
+  TOK_LIST,
+  TOK_MEM,
+  TOK_RUN,
 } typedef tokenE;
 
 struct tokenS {

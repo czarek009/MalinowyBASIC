@@ -42,15 +42,18 @@ tokenS tokens[] = {
   {.tok_name="ELSE",    .tok_id=TOK_ELSE},
   {.tok_name="INPUT",   .tok_id=TOK_INPUT},
   {.tok_name="LET",     .tok_id=TOK_LET},
-  {.tok_name="LIST",    .tok_id=TOK_LIST},
   {.tok_name="NEXT",    .tok_id=TOK_NEXT},
   {.tok_name="PRINT",   .tok_id=TOK_PRINT},
   {.tok_name="READ",    .tok_id=TOK_READ},
   {.tok_name="REM",     .tok_id=TOK_REM},
   {.tok_name="RESTORE", .tok_id=TOK_RESTORE},
   {.tok_name="RETURN",  .tok_id=TOK_RETURN},
-  {.tok_name="RUN",     .tok_id=TOK_RUN},
   {.tok_name="STOP",    .tok_id=TOK_STOP},
+
+  {.tok_name="ENV",     .tok_id=TOK_ENV},
+  {.tok_name="LIST",    .tok_id=TOK_LIST},
+  {.tok_name="MEM",     .tok_id=TOK_MEM},
+  {.tok_name="RUN",     .tok_id=TOK_RUN},
 
   {.tok_name="", .tok_id=TOK_NONE}
 };
@@ -204,11 +207,19 @@ void interprete_command(Session* env, char* cmd) {
     case TOK_LIST:
       print_instructions(env);
       break;
+
+    case TOK_ENV:
+      print_variables(env);
+      break;
+
+    case TOK_MEM:
+      print_memory_map();
+      break;
     
     default:
       // report invald token error
       ERROR("[!] Invalid token: %s\n", buf);
       break;
   }
-  printf("\n");
+  // printf("\n");
 }

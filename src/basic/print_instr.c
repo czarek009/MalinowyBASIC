@@ -34,6 +34,11 @@ void print_instr(Session* env, char* cmd) {
       // eval and print
       break;
 
+    case TOK_NONE:
+    case TOK_ERROR:
+      // empty print
+      break;
+
     default:
       // report invald token error
       ERROR("[!] Invalid token in PRINT: %s\n", buf);
@@ -45,8 +50,17 @@ void print_instr(Session* env, char* cmd) {
   if (tok == TOK_COMMA) {
     cmd += strlen(buf);
     cmd = consume_whitespaces(cmd);
-    print_instr(env, cmd);
+    printf("\n");
   }
+  if (tok == TOK_SEMICOLON) {
+    cmd += strlen(buf);
+    cmd = consume_whitespaces(cmd);
+  }
+  if (tok == TOK_NONE || tok == TOK_ERROR) {
+    printf("\n");
+    return;
+  }
+  print_instr(env, cmd);
 }
 
 char* print_instr_string(char* cmd) {
@@ -56,6 +70,7 @@ char* print_instr_string(char* cmd) {
     if (cmd[i] == '"') {
       cmd[i] = '\0';
       printf(cmd);
+      cmd[i] = '"';
       return &cmd[i+1];
     }
   }

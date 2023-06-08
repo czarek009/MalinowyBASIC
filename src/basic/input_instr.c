@@ -41,7 +41,7 @@ void input_instr(Session* env, char* cmd) {
   }
 
   char input[256];
-  readline(input, "\n:");
+  readline(input, ":");
 
   DEBUG("[*] INPUT to var %s: %s\n", buf, input);
 
@@ -65,6 +65,8 @@ char* print_prompt(char* cmd) {
     if (cmd[i] == '"') {
       cmd[i] = '\0';
       printf(cmd);
+      printf("\n");
+      cmd[i] = '"';
       return &cmd[i+1];
     }
   }
