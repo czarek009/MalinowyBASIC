@@ -46,6 +46,7 @@ void *mmalloc(size_t size);
 void ffree(void *ptr);
 void print_memory_map(void);
 void* memcpy(void *dest, const void *src, size_t len);
+void *memset (void *dest, int val, size_t len);
 
 #endif
 
