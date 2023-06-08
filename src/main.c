@@ -7,6 +7,7 @@
 #include "session.h"
 #include "interpreter.h"
 
+
 void print_greetings(void) {
   printf("\n\n\nMalinowyBASIC\n");
   printf("MalinowyBASIC\n");
@@ -83,42 +84,21 @@ void main(void){
   enable_interrupt_controller();
   irq_enable();
 
-  mem_init();
-
   print_greetings();
 
-  // struct_test();
+  mem_init();
 
-  char buf[256];
+  Session *current_session = session_init();
+  print_memory_map();
+  char* buf = malloc(9);
+  print_memory_map();
 
   while (1) {
+    char buf[256] = {0};
     readline(buf, "$> ");
-
-    execute_command(NULL, buf);
-
-  int main_local;
-  fun(&main_local);
-
-  mem_init();
-  print_memory_map();
-  print_structures_size();
-  Session *s = session_init();
-  print_memory_map();
-
-  test_data_stack(s);
-  test_return_sddress_stack(s);
-  test_variable(s);
-  test_instructions(s);
-
-  printf("run program:\n");
-  run_program(s);
-
-
-  session_end(s);
-  print_memory_map();
-  //   uart_send_string("Recv: ");
-  //   uart_send_string(buf);
-  //   uart_send_string("\\0");
-  //   uart_send_string("\r\n");
+    execute_command(current_session, buf);
   }
+  // run_program(s);
+  free(buf);
+  session_end(current_session);
 }

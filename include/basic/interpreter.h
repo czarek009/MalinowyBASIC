@@ -1,11 +1,12 @@
 #ifndef _INTERPRETER_H
 #define _INTERPRETER_H
 
+#include "session.h"
 #include "types.h"
 #include "printf.h"
 
 #define ERROR(...)  printf(__VA_ARGS__)
-#define DEBUG_MODE 1
+// #define DEBUG_MODE 1
 #if DEBUG_MODE
 #define DEBUG(...)  printf(__VA_ARGS__)
 #else
@@ -64,12 +65,14 @@ enum tokenE {
   TOK_ELSE,
   TOK_INPUT,
   TOK_LET,
+  TOK_LIST,
   TOK_NEXT,
   TOK_PRINT,
   TOK_READ,
   TOK_REM,
   TOK_RESTORE,
   TOK_RETURN,
+  TOK_RUN,
   TOK_STOP,
 } typedef tokenE;
 
@@ -83,8 +86,8 @@ tokenE get_next_token(char* cmd, char* dest);
 char* consume_whitespaces(char* cmd);
 u64 get_str_len(char* cmd);
 
-void execute_command(void* env, char* cmd);
-void interprete_command(void* env, char* cmd);
+void execute_command(Session* env, char* cmd);
+void interprete_command(Session* env, char* cmd);
 
 
 #endif /* _INTERPRETER_H */

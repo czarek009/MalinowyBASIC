@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include "instructions.h"
+#include "session.h"
 #include "evaluator.h"
 #include "mm.h"
 #include "butils.h"
@@ -7,11 +8,12 @@
 
 
 char* print_instr_string(char* cmd);
+char* print_instr_var(Session* env, char* cmd, char* varname);
 
 /*
  * One PRINT instruction can print many things separated by comma
  */
-void print_instr(void* env, char* cmd) {
+void print_instr(Session* env, char* cmd) {
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
   cmd = consume_whitespaces(cmd);
@@ -25,6 +27,7 @@ void print_instr(void* env, char* cmd) {
       break;
 
     case TOK_VAR:
+      cmd = print_instr_var(env, cmd, buf);
     case TOK_NUMBER:
     case TOK_LPAREN:
     case TOK_FN:
@@ -59,4 +62,25 @@ char* print_instr_string(char* cmd) {
 
   printf(cmd);
   return &cmd[i];
+}
+
+char* print_instr_var(Session* env, char* cmd, char* varname) {
+  DEBUG("[*] print_instr_var(%s)\n", cmd);
+  VariableData vardata = {0};
+  u8 vartype = get_variable_value(env, varname, &vardata);
+
+  switch (vartype) {
+    case INTEGER:
+      printf("%d", vardata.integer);
+      break;
+
+    case STRING:
+      printf(vardata.string);
+      break;
+    
+    default:
+      ERROR("[!] Frobidden vartype in PRINT!\n");
+      break;
+  }
+  return cmd;
 }

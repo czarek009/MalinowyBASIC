@@ -1,8 +1,9 @@
 #include "instructions.h"
 #include "interpreter.h"
-#include "types.h"
+#include "session.h"
 #include "butils.h"
 #include "printf.h"
+#include "types.h"
 #include "mm.h"
 
 
@@ -41,12 +42,14 @@ tokenS tokens[] = {
   {.tok_name="ELSE",    .tok_id=TOK_ELSE},
   {.tok_name="INPUT",   .tok_id=TOK_INPUT},
   {.tok_name="LET",     .tok_id=TOK_LET},
+  {.tok_name="LIST",    .tok_id=TOK_LIST},
   {.tok_name="NEXT",    .tok_id=TOK_NEXT},
   {.tok_name="PRINT",   .tok_id=TOK_PRINT},
   {.tok_name="READ",    .tok_id=TOK_READ},
   {.tok_name="REM",     .tok_id=TOK_REM},
   {.tok_name="RESTORE", .tok_id=TOK_RESTORE},
   {.tok_name="RETURN",  .tok_id=TOK_RETURN},
+  {.tok_name="RUN",     .tok_id=TOK_RUN},
   {.tok_name="STOP",    .tok_id=TOK_STOP},
 
   {.tok_name="", .tok_id=TOK_NONE}
@@ -147,7 +150,7 @@ char* consume_whitespaces(char* cmd) {
 }
 
 
-void execute_command(void* env, char* cmd) {
+void execute_command(Session* env, char* cmd) {
 
   DEBUG("[*] execute_command(%s)\n", cmd);
 
@@ -164,11 +167,17 @@ void execute_command(void* env, char* cmd) {
   }
   DEBUG("    line number: %lu\n", ln);
   DEBUG("    saved command: %s\n", cmd);
+  DEBUG("    intruction pointer: %lu\n", (u64)cmd);
   // zapisz na linked list w środowisku
-  // save_command(env, cmd, ln);
+  u64 instrlen = strlen(cmd);
+  DEBUG("strlen cmd=%lu\n", instrlen);
+  char* instrbuf = malloc(instrlen+1);
+  strncpy(instrbuf, cmd, instrlen);
+  instrbuf[instrlen] = '\0';
+  add_instruction(env, ln, instrbuf);
 }
 
-void interprete_command(void* env, char* cmd) {
+void interprete_command(Session* env, char* cmd) {
   char buf[32];
   cmd = consume_whitespaces(cmd);
   tokenE tok = get_next_token(cmd, buf);
@@ -186,6 +195,14 @@ void interprete_command(void* env, char* cmd) {
 
     case TOK_INPUT:
       input_instr(env, cmd);
+      break;
+
+    case TOK_RUN:
+      run_program(env);
+      break;
+
+    case TOK_LIST:
+      print_instructions(env);
       break;
     
     default:

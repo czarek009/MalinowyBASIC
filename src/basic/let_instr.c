@@ -1,11 +1,12 @@
-#include "interpreter.h"
 #include "instructions.h"
+#include "interpreter.h"
 #include "evaluator.h"
-#include "mm.h"
+#include "session.h"
 #include "butils.h"
+#include "mm.h"
 
 
-void let_instr(void* env, char* cmd) {
+void let_instr(Session* env, char* cmd) {
   char buf[32] = {0};
   char varname[8] = {0};
   bool isStr = false;
@@ -55,6 +56,7 @@ void let_instr(void* env, char* cmd) {
     cmd += len+2;
 
     DEBUG("[*] Add string variable %s = %s\n", varname, buf);
+    add_string_variable(env, buf, varname);
     return;
   }
 
@@ -73,5 +75,6 @@ void let_instr(void* env, char* cmd) {
 
   // add_variable(env, value, TYPE);
   DEBUG("[*] Add variable %s = %ld\n", varname, value);
+  add_integer_variable(env, (s32)value, varname);
   return;
 }
