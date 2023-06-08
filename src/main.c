@@ -4,31 +4,11 @@
 #include "utils.h"
 #include "io.h"
 #include "mm.h"
+#include "session.h"
+#include "interpreter.h"
 
-void fun(int *main_local_addr) {
-  int fun_local;
-  if (main_local_addr < &fun_local) {
-    printf("STACK GROWS UPWARD\n");
-  }
-  else {
-    printf("STACK GROWS DOWNWARD\n");
-  }
-}
 
-void putc(void *p, char c) {
-  if (c == '\n')
-    uart_send('\r');
-  uart_send(c);
-}
-
-void main(void){
-  uart_init_gpio();
-  init_printf(0, putc);
-
-  irq_init_vectors();
-  enable_interrupt_controller();
-  irq_enable();
-
+void print_greetings(void) {
   printf("\n\n\nMalinowyBASIC\n");
   printf("MalinowyBASIC\n");
 
@@ -40,12 +20,74 @@ void main(void){
   rpiv = 4;
   #endif
 
-  printf("RPi version: %d\n", rpiv);
+  printf("RPi version: %d\n\n", rpiv);
 
-  int main_local;
-  fun(&main_local);
+}
+
+void putc(void *p, char c) {
+  if (c == '\n')
+    uart_send('\r');
+  uart_send(c);
+}
+
+void test_data_stack(Session *s) {
+  printf("\nDATA STACK TEST\n");
+  push_data_to_stack(s, (s32)666);
+  push_data_to_stack(s, (s32)69);
+  push_data_to_stack(s, (s32)-42);
+  print_data_stack(s);
+  printf("pop = %d\n", pop_data_from_stack(s));
+  printf("pop = %d\n", pop_data_from_stack(s));
+  printf("pop = %d\n", pop_data_from_stack(s));
+  printf("next pop is on empty stack:\n");
+  printf("pop = %d\n", pop_data_from_stack(s));
+}
+
+void test_return_sddress_stack(Session *s) {
+  printf("\nRETURN ADDRESS STACK TEST\n");
+  push_return_address_to_stack(s, (u64)2347878);
+  push_return_address_to_stack(s, (u64)222);
+  print_return_address_stack(s);
+  printf("pop = %d\n", pop_return_address_from_stack(s));
+  printf("pop = %d\n", pop_return_address_from_stack(s));
+  printf("pop = %d\n", pop_return_address_from_stack(s));
+}
+
+void test_variable(Session *s) {
+  printf("\nVARIABLE TEST\n");
+  add_integer_variable(s, (s32)23, "int");
+  add_floating_point_variable(s, (float)35.0, "float");
+  add_string_variable(s, "data", "string");
+  add_boolean_variable(s, true, "bool");
+  print_variables(s);
+
+  printf("adding variable with the same name (float)\n");
+  add_integer_variable(s, (s32)69, "float");
+  print_variables(s);
+}
+
+void test_instructions(Session *s) {
+  printf("\nINSTRUCTIONS TEST\n");
+  add_instruction(s, (u64)5, "let y = x + 1");
+  add_instruction(s, (u64)1, "let x = 1");
+  add_instruction(s, (u64)8, "print sum");
+  add_instruction(s, (u64)6, "let sum = x + y");
+
+  print_instructions(s);
+}
+
+void main(void){
+  uart_init_gpio();
+  init_printf(0, putc);
+
+  irq_init_vectors();
+  enable_interrupt_controller();
+  irq_enable();
+
+  print_greetings();
 
   mem_init();
+
   print_memory_map();
   delay(150);
   void *p1 = malloc(5);
@@ -80,14 +122,12 @@ void main(void){
     delay(1000);
   }
 
-  char buf[256];
+  Session *current_session = session_init();
 
   while (1) {
+    char buf[256] = {0};
     readline(buf, "$> ");
-
-    uart_send_string("Recv: ");
-    uart_send_string(buf);
-    uart_send_string("\\0");
-    uart_send_string("\r\n");
+    execute_command(current_session, buf);
   }
+  session_end(current_session);
 }

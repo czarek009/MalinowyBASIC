@@ -19,7 +19,13 @@ clean :
 	rm -rf $(BUILD_DIR) $(ARMSTUB_BUILD_DIR) *.d *.img *.bin
 
 screen :
-	screen /dev/ttyUSB0 115200
+	sudo screen /dev/ttyUSB0 115200
+
+sd :
+	cp ./kernel8.img /media/$(USER)/boot
+	sync
+	umount -q /media/$(USER)/boot
+	umount -q /media/$(USER)/rootfs
 
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
