@@ -3,39 +3,12 @@
 #include "butils.h"
 
 
-enum opE {
-  OP_ADD,
-  OP_SUB,
-  OP_DIV,
-  OP_MUL,
-  OP_POW,
-  OP_MOD,
-  OP_LPARENT,
-  OP_RPARENT,
-} typedef opE;
-
-enum itemE {
-  OPERATOR,
-  INT_NUM,
-  FLOAT_NUM,
-  VARIABLE,
-  FUNCTION,
-} typedef itemE;
-
-union itemU {
-  opE op_id;
-  s64 int_val;
-  // float float_val;
-  // char* varname;
-  // char* funname;
-} typedef itemU;
-
-struct itemS {
-  itemE item_type;
-  itemU item_val;
-} typedef itemS;
-
-/* --------------------------------------------------------- */
+/*
+TODO:
+ - NIE DZIAŁA NA UJEMNYCH LICZBACH w expr
+ - BRAK czytania wartości zmiennych ze środowiska
+ - lepsze zaokrąglanie floatów
+*/
 
 char *operator_push = "+-*/([%";
 
@@ -48,6 +21,44 @@ bool isoperator(char c) {
   return false;
 }
 
+/* OP STACK */
+OpStack init_OpStack(void) {
+  OpStack stack;
+  stack.stack_pointer = 0;
+  return stack;
+}
+
+void push_OpStack(OpStack *data, char val) {
+  if(data->stack_pointer < STACK_LENGTH) {
+    data->stack[data->stack_pointer] = val;
+    data->stack_pointer++;
+    return;
+  }
+  DEBUG("EVAL - PUSH: OpStack is FULL\n");
+}
+
+char pop_OpStack(OpStack *data){
+  if(data->stack_pointer > 0) {
+    data->stack_pointer--;
+    return data->stack[data->stack_pointer];
+  }
+  DEBUG("EVAL - POP: OpStack is empty\n");
+  return '\0';
+}
+
+char peek_OpStack(OpStack *data){
+  if(data->stack_pointer > 0) {
+    return data->stack[data->stack_pointer - 1];
+  }
+  return '\0';
+}
+
+void print_OpStack(OpStack *data) {
+  for(u8 i = 0; i < data->stack_pointer; i++) {
+    printf("%c\n", data->stack[i]);
+  }
+}
+
 /* EXPR DATA */
 ExprData init_ExprData(void) {
   ExprData data;
@@ -55,77 +66,93 @@ ExprData init_ExprData(void) {
   return data;
 }
 
-void add_data(ExprData *data, char val) {
+void push_ExprData(ExprData *data, char* val, u8 length) {
   if(data->expr_number < STACK_LENGTH) {
-    data->expr[data->expr_number] = val;
+    char *str = malloc(length + 1);
+    memcpy(str, val, length);
+    str[length] = '\0';
+    data->expr[data->expr_number] = str;
     data->expr_number++;
     return;
   }
-  DEBUG("EVAL - ADD_DATA - ExprData is FULL\n");
+  DEBUG("EVAL - PUSH: ExprData is FULL\n");
 }
 
-char pop_data(ExprData *data){
-  if(data->expr_number > 0) {
-    data->expr_number--;
-    return data->expr[data->expr_number];
+void free_ExprData(ExprData *data){
+  for(u8 i = 0; i < data->expr_number; i++){
+    free(data->expr[i]);
   }
-  DEBUG("EVAL - POP_DATA - ExprData is empty\n");
-  return '\0';
+  data->expr_number = 0;
 }
 
-char peek(ExprData *data){
-  if(data->expr_number > 0) {
-    return data->expr[data->expr_number - 1];
-  }
-  DEBUG("EVAL - PEEK - ExprData is empty\n");
-  return '\0';
-}
-
-void add_operator(ExprData *op_stack, ExprData *expr_data, char op) {
-  char op_from_stack = peek(op_stack);
-  if((op == '+' || op == '-') && (op_from_stack == '*' || op_from_stack == '/')) {
-    add_data(expr_data, pop_data(op_stack));
-  }
-  add_data(op_stack, op);
-}
-
-void move_op_to_expr(ExprData *op_stack, ExprData *expr_data, char op) {
-  char c = pop_data(op_stack);
-  while(c != op){
-    add_data(expr_data, c);
-    c = pop_data(op_stack);
-  }
-}
-
-void add_remaining_op(ExprData *op_stack, ExprData *expr_data) {
-  while(op_stack->expr_number > 0){
-    add_data(expr_data, pop_data(op_stack));
-  }
-}
-
-void print_ExprData(ExprData *data) {
+void print_ExprData(ExprData *data){
   for(u8 i = 0; i < data->expr_number; i++) {
-    DEBUG("%c\n", data->expr[i]);
+    printf("%s ", data->expr[i]);
   }
+  printf("\n");
+}
+
+/* TRANSFORM */
+void add_operator(OpStack *op_stack, ExprData *expr_data, char op) {
+  char op_from_stack = peek_OpStack(op_stack);
+  if((op == '+' || op == '-') && (op_from_stack == '*' || op_from_stack == '/')) {
+    char pop = pop_OpStack(op_stack);
+    push_ExprData(expr_data, &pop, 1);
+  }
+  push_OpStack(op_stack, op);
+}
+
+void move_op_to_expr(OpStack *op_stack, ExprData *expr_data, char op) {
+  char c = pop_OpStack(op_stack);
+  while(c != op){
+    push_ExprData(expr_data, &c, 1);
+    c = pop_OpStack(op_stack);
+  }
+}
+
+void add_remaining_op(OpStack *op_stack, ExprData *expr_data) {
+  while(op_stack->stack_pointer > 0){
+    char c = pop_OpStack(op_stack);
+    push_ExprData(expr_data, &c, 1);
+  }
+}
+
+u8 get_number_length(char *expr){
+  u8 i;
+  bool one_dot = 1;
+  for(i = 0; isdigit(expr[i]) || (expr[i] == '.' && one_dot); i++){
+    if(expr[i] == '.'){
+      one_dot = 0;
+    }
+  }
+  return i;
 }
 
 ExprData transform(char *expr) {
-  ExprData op_stack = init_ExprData();
+  OpStack op_stack = init_OpStack();
   ExprData expr_data = init_ExprData();
 
-  for(u8 i = 0; expr[i] != '\0'; i++){
-    if(isdigit(expr[i])){
-      add_data(&expr_data, expr[i]);
+  while(*expr != '\0'){
+    if(isdigit(*expr)){
+      u8 length = get_number_length(expr);
+      push_ExprData(&expr_data, expr, length);
+      expr = expr + length;
     }
-    else if(isoperator(expr[i])){
-      add_operator(&op_stack, &expr_data, expr[i]);
+    else if(isoperator(*expr)){
+      add_operator(&op_stack, &expr_data, *expr);
+      expr++;
     }
-    else if(expr[i] == ')') {
+    else if(*expr == ')') {
       move_op_to_expr(&op_stack, &expr_data, '(');
+      expr++;
 
     }
-    else if(expr[i] == ']') {
+    else if(*expr == ']') {
       move_op_to_expr(&op_stack, &expr_data, '[');
+      expr++;
+    }
+    else {
+      expr++;
     }
   }
   add_remaining_op(&op_stack, &expr_data);
@@ -139,26 +166,31 @@ EvalStack init_EvalStack(void) {
   return stack;
 }
 
-void add_data_EvalStack(EvalStack *data, s64 val) {
+void push_EvalStack(EvalStack *data, s64 val) {
   if(data->stack_pointer < STACK_LENGTH) {
     data->stack[data->stack_pointer] = val;
     data->stack_pointer++;
     return;
   }
-  DEBUG("EVAL - ADD_DATA - EvalStack is FULL\n");
+  DEBUG("EVAL - PUSH: EvalStack is FULL\n");
 }
 
-s64 pop_data_EvalStack(EvalStack *data){
+s64 pop_EvalStack(EvalStack *data){
   if(data->stack_pointer > 0) {
     data->stack_pointer--;
     return data->stack[data->stack_pointer];
   }
-  DEBUG("EVAL - POP_DATA - EvalStack is empty\n");
+  DEBUG("EVAL - POP: EvalStack is empty\n");
   return '\0';
 }
 
-s64 atoi(char c){
-  return (s64)(c - '0');
+/* obcina to co jest po kropce - jakieś lepsze rozwiązanie ? */
+s64 atoii(char *str){
+    s64 res = 0;
+    for(u8 i = 0; (str[i] != '\0' && str[i] != '.'); i++) {
+        res = res * 10 + (s64)(str[i] - '0');
+    }
+  return res;
 }
 
 s64 eval_bin(s64 first, s64 second, char op){
@@ -178,19 +210,20 @@ s64 eval_bin(s64 first, s64 second, char op){
   }
 }
 
-s64 eval_int(char* expr) {
+s64 eval_int_expr(char* expr) {
   EvalStack eval_stack = init_EvalStack();
   ExprData expr_data = transform(expr);
   u8 expr_number = expr_data.expr_number;
   for(u8 i = 0; i < expr_number; i++){
-    if(isdigit(expr_data.expr[i])){
-      add_data_EvalStack(&eval_stack, atoi(expr_data.expr[i]));
+    if(isdigit(*expr_data.expr[i])){
+      push_EvalStack(&eval_stack, atoii(expr_data.expr[i]));
     }
-    if(isoperator(expr_data.expr[i])) {
-      s64 second = pop_data_EvalStack(&eval_stack);
-      s64 first = pop_data_EvalStack(&eval_stack);
-      add_data_EvalStack(&eval_stack, eval_bin(first, second, expr_data.expr[i]));
+    if(isoperator(*expr_data.expr[i])) {
+      s64 second = pop_EvalStack(&eval_stack);
+      s64 first = pop_EvalStack(&eval_stack);
+      push_EvalStack(&eval_stack, eval_bin(first, second, *expr_data.expr[i]));
     }
   }
-  return pop_data_EvalStack(&eval_stack);
+  free_ExprData(&expr_data);
+  return pop_EvalStack(&eval_stack);
 }
