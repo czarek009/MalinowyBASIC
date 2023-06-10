@@ -5,12 +5,12 @@
 
 /*
 TODO:
- - NIE DZIAŁA NA UJEMNYCH LICZBACH w expr
  - BRAK czytania wartości zmiennych ze środowiska
- - lepsze zaokrąglanie floatów
+ - lepsze zaokrąglanie floatów ? - teraz ucina to co jest po przecinku
+ - dodać sprawdzenie poprawności wyrażenia
 */
 
-char *operator_push = "+-*/([%";
+char *operator_push = "+-*/%^";
 
 bool isoperator(char c) {
   for(u8 i = 0; operator_push[i] != '\0'; i++){
@@ -19,6 +19,42 @@ bool isoperator(char c) {
     }
   }
   return false;
+}
+
+/*                           - % /    ^    * +    */
+u8 operator_precedence[9] = {0,1,1,-1,2,-1,1,0,-1};
+u8 precedence(char op) {
+  return operator_precedence[op % 9];
+}
+
+bool is_negative(char *expr){
+  return ((*expr == '-') && isdigit(*(expr + 1)));
+}
+
+s64 atoi(char *str){
+    s64 res = 0;
+    u8 i = 0;
+    s64 neg = 1;
+    if(str[0] == '-'){
+      i = 1;
+      neg  = -1;
+    }
+    for(; (str[i] != '\0' && str[i] != '.'); i++) {
+      res = res * 10 + (s64)(str[i] - '0');
+    }
+  return neg * res;
+}
+
+s64 pow(s64 first, s64 second) {
+  s64 res = 1;
+  while(second > 0) {
+    if(second%2){
+      res *= first;
+    }
+    first *= first;
+    second >>= 1;
+  }
+  return res;
 }
 
 /* OP STACK */
@@ -95,9 +131,10 @@ void print_ExprData(ExprData *data){
 /* TRANSFORM */
 void add_operator(OpStack *op_stack, ExprData *expr_data, char op) {
   char op_from_stack = peek_OpStack(op_stack);
-  if((op == '+' || op == '-') && (op_from_stack == '*' || op_from_stack == '/')) {
+  while((op_from_stack != '\0') && (op_from_stack != '(') && (op_from_stack != '[') && (precedence(op) <= precedence(op_from_stack))){
     char pop = pop_OpStack(op_stack);
     push_ExprData(expr_data, &pop, 1);
+    op_from_stack = peek_OpStack(op_stack);
   }
   push_OpStack(op_stack, op);
 }
@@ -118,9 +155,9 @@ void add_remaining_op(OpStack *op_stack, ExprData *expr_data) {
 }
 
 u8 get_number_length(char *expr){
-  u8 i;
+  u8 i = (*expr == '-');
   bool one_dot = 1;
-  for(i = 0; isdigit(expr[i]) || (expr[i] == '.' && one_dot); i++){
+  for(; isdigit(expr[i]) || (expr[i] == '.' && one_dot); i++){
     if(expr[i] == '.'){
       one_dot = 0;
     }
@@ -131,27 +168,37 @@ u8 get_number_length(char *expr){
 ExprData transform(char *expr) {
   OpStack op_stack = init_OpStack();
   ExprData expr_data = init_ExprData();
+  bool possible_negative = 1;
 
   while(*expr != '\0'){
-    if(isdigit(*expr)){
+    if(isdigit(*expr) || (possible_negative && is_negative(expr))){
       u8 length = get_number_length(expr);
       push_ExprData(&expr_data, expr, length);
+      possible_negative = 0;
       expr = expr + length;
     }
     else if(isoperator(*expr)){
       add_operator(&op_stack, &expr_data, *expr);
+      possible_negative = 1;
+      expr++;
+    }
+    else if(*expr == '(' || *expr == '['){
+      push_OpStack(&op_stack, *expr);
+      possible_negative = 1;
       expr++;
     }
     else if(*expr == ')') {
       move_op_to_expr(&op_stack, &expr_data, '(');
+      possible_negative = 0;
       expr++;
-
     }
     else if(*expr == ']') {
       move_op_to_expr(&op_stack, &expr_data, '[');
+      possible_negative = 0;
       expr++;
     }
     else {
+      possible_negative = 0;
       expr++;
     }
   }
@@ -184,15 +231,6 @@ s64 pop_EvalStack(EvalStack *data){
   return '\0';
 }
 
-/* obcina to co jest po kropce - jakieś lepsze rozwiązanie ? */
-s64 atoii(char *str){
-    s64 res = 0;
-    for(u8 i = 0; (str[i] != '\0' && str[i] != '.'); i++) {
-        res = res * 10 + (s64)(str[i] - '0');
-    }
-  return res;
-}
-
 s64 eval_bin(s64 first, s64 second, char op){
   switch(op) {
     case '+':
@@ -203,6 +241,8 @@ s64 eval_bin(s64 first, s64 second, char op){
       return first * second;
     case '/':
       return first / second;
+    case '^':
+      return pow(first, second);
     case '%':
       return first % second;
     default:
@@ -215,10 +255,10 @@ s64 eval_int_expr(char* expr) {
   ExprData expr_data = transform(expr);
   u8 expr_number = expr_data.expr_number;
   for(u8 i = 0; i < expr_number; i++){
-    if(isdigit(*expr_data.expr[i])){
-      push_EvalStack(&eval_stack, atoii(expr_data.expr[i]));
+    if(isdigit(*expr_data.expr[i]) || is_negative(expr_data.expr[i])){
+      push_EvalStack(&eval_stack, atoi(expr_data.expr[i]));
     }
-    if(isoperator(*expr_data.expr[i])) {
+    else if(isoperator(*expr_data.expr[i])) {
       s64 second = pop_EvalStack(&eval_stack);
       s64 first = pop_EvalStack(&eval_stack);
       push_EvalStack(&eval_stack, eval_bin(first, second, *expr_data.expr[i]));
