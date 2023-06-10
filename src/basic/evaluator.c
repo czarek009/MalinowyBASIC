@@ -21,6 +21,18 @@ bool isoperator(char c) {
   return false;
 }
 
+bool is_lparen(char c) {
+  return (c == '(') || (c == '[');
+}
+
+bool is_rparen(char c) {
+  return (c == ')') || (c == ']');
+}
+
+char get_lparen(char c) {
+  return (c == ')')? '(': '[';
+}
+
 /*                           - % /    ^    * +    */
 u8 operator_precedence[9] = {0,1,1,-1,2,-1,1,0,-1};
 u8 precedence(char op) {
@@ -131,7 +143,7 @@ void print_ExprData(ExprData *data){
 /* TRANSFORM */
 void add_operator(OpStack *op_stack, ExprData *expr_data, char op) {
   char op_from_stack = peek_OpStack(op_stack);
-  while((op_from_stack != '\0') && (op_from_stack != '(') && (op_from_stack != '[') && (precedence(op) <= precedence(op_from_stack))){
+  while((op_from_stack != '\0') && !is_lparen(op_from_stack) && (precedence(op) <= precedence(op_from_stack))){
     char pop = pop_OpStack(op_stack);
     push_ExprData(expr_data, &pop, 1);
     op_from_stack = peek_OpStack(op_stack);
@@ -182,18 +194,13 @@ ExprData transform(char *expr) {
       possible_negative = 1;
       expr++;
     }
-    else if(*expr == '(' || *expr == '['){
+    else if(is_lparen(*expr)){
       push_OpStack(&op_stack, *expr);
       possible_negative = 1;
       expr++;
     }
-    else if(*expr == ')') {
-      move_op_to_expr(&op_stack, &expr_data, '(');
-      possible_negative = 0;
-      expr++;
-    }
-    else if(*expr == ']') {
-      move_op_to_expr(&op_stack, &expr_data, '[');
+    else if(is_rparen(*expr)){
+      move_op_to_expr(&op_stack, &expr_data, get_lparen(*expr));
       possible_negative = 0;
       expr++;
     }
