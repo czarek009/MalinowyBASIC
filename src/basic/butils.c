@@ -12,6 +12,14 @@ bool isalphanum(char c) {
   return isalpha(c) || isdigit(c);
 }
 
+bool isin(char c, char* p) {
+  for (int i = 0; p[i] != '\0'; ++i) {
+    if (c == p[i])
+      return true;
+  }
+  return false;
+}
+
 size_t strlen(char* s) {
   size_t out = 0;
   while (s[out] != '\0') {
