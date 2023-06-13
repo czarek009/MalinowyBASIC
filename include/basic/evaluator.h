@@ -61,7 +61,7 @@ struct itemS {
 
 
 void get_expression_type(char* expr);
-s64 eval_int_expr(Session *s, char* expr);
+s64 eval_int_expr(Session *s, char** expr);
 float eval_float_expr(char* expr);
 bool eval_bool_expr(Session* env, char* expr);
 void eval_expr(void*, char* expr);

@@ -5,12 +5,11 @@
 
 /*
 TODO:
- - BRAK czytania wartości zmiennych ze środowiska
  - lepsze zaokrąglanie floatów ? - teraz ucina to co jest po przecinku
  - dodać sprawdzenie poprawności wyrażenia
 */
 
-char *operator_push = "+-*/%^";
+char operator_push[7] = "+-*/%^\0";
 
 bool isoperator(char c) {
   for(u8 i = 0; operator_push[i] != '\0'; i++){
@@ -82,7 +81,7 @@ void push_OpStack(OpStack *data, char val) {
     data->stack_pointer++;
     return;
   }
-  DEBUG("EVAL - PUSH: OpStack is FULL\n");
+  DEBUG("[*] EVAL - PUSH: OpStack is FULL\n");
 }
 
 char pop_OpStack(OpStack *data){
@@ -90,7 +89,7 @@ char pop_OpStack(OpStack *data){
     data->stack_pointer--;
     return data->stack[data->stack_pointer];
   }
-  DEBUG("EVAL - POP: OpStack is empty\n");
+  DEBUG("[*] EVAL - POP: OpStack is empty\n");
   return '\0';
 }
 
@@ -123,7 +122,7 @@ void push_ExprData(ExprData *data, char* val, u8 length) {
     data->expr_number++;
     return;
   }
-  DEBUG("EVAL - PUSH: ExprData is FULL\n");
+  DEBUG("[*] EVAL - PUSH: ExprData is FULL\n");
 }
 
 void free_ExprData(ExprData *data){
@@ -177,48 +176,48 @@ u8 get_number_length(char *expr){
   return i;
 }
 
-ExprData transform(char *expr) {
+ExprData transform(char **expr) {
   OpStack op_stack = init_OpStack();
   ExprData expr_data = init_ExprData();
   bool possible_negative = 1;
 
-  while(*expr != '\0' && *expr != ';' && *expr != ','){
-    if(isdigit(*expr) || (possible_negative && is_negative(expr))){
-      u8 length = get_number_length(expr);
-      push_ExprData(&expr_data, expr, length);
+  while(**expr != '\0' && **expr != ';' && **expr != ','){
+    if(isdigit(**expr) || (possible_negative && is_negative(*expr))){
+      u8 length = get_number_length(*expr);
+      push_ExprData(&expr_data, *expr, length);
       possible_negative = 0;
-      expr = expr + length;
+      *expr = *expr + length;
     }
-    else if(isoperator(*expr)){
-      add_operator(&op_stack, &expr_data, *expr);
+    else if(isoperator(**expr)){
+      add_operator(&op_stack, &expr_data, **expr);
       possible_negative = 1;
-      expr++;
+      (*expr)++;
     }
-    else if(is_lparen(*expr)){
-      push_OpStack(&op_stack, *expr);
+    else if(is_lparen(**expr)){
+      push_OpStack(&op_stack, **expr);
       possible_negative = 1;
-      expr++;
+      (*expr)++;
     }
-    else if(is_rparen(*expr)){
-      move_op_to_expr(&op_stack, &expr_data, get_lparen(*expr));
+    else if(is_rparen(**expr)){
+      move_op_to_expr(&op_stack, &expr_data, get_lparen(**expr));
       possible_negative = 0;
-      expr++;
+      (*expr)++;
     }
-    else if(isalpha(*expr)){
-      u8 length = is_valid_varname(expr);
+    else if(isalpha(**expr)){
+      u8 length = is_valid_varname(*expr);
       if(length){
-        push_ExprData(&expr_data, expr, length);
+        push_ExprData(&expr_data, *expr, length);
         possible_negative = 0;
-        expr = expr + length;
+        *expr = *expr + length;
       }
       else{
-        DEBUG("VARNAME IS NOT VALID");
+        DEBUG("[*] VARNAME IS NOT VALID");
         return init_ExprData();
       }
     }
     else {
       possible_negative = 0;
-      expr++;
+      (*expr)++;
     }
   }
   add_remaining_op(&op_stack, &expr_data);
@@ -238,7 +237,7 @@ void push_EvalStack(EvalStack *data, s64 val) {
     data->stack_pointer++;
     return;
   }
-  DEBUG("EVAL - PUSH: EvalStack is FULL\n");
+  DEBUG("[*] EVAL - PUSH: EvalStack is FULL\n");
 }
 
 s64 pop_EvalStack(EvalStack *data){
@@ -246,7 +245,7 @@ s64 pop_EvalStack(EvalStack *data){
     data->stack_pointer--;
     return data->stack[data->stack_pointer];
   }
-  DEBUG("EVAL - POP: EvalStack is empty\n");
+  DEBUG("[*] EVAL - POP: EvalStack is empty\n");
   return '\0';
 }
 
@@ -283,15 +282,16 @@ s64 eval_var(Session *s, char *varname){
       return (s64) var_data.boolean;
       break;
     case NOT_FOUND:
-      DEBUG("VAR NOT FOUND: varname:%s\n", varname);
+      DEBUG("[*] VAR NOT FOUND: varname:%s\n", varname);
       return (s64) 0;
     default:
-      DEBUG("VAR TYPE NOT CORRECT: varname:%s\n", varname);
+      DEBUG("[*] VAR TYPE NOT CORRECT: varname:%s\n", varname);
       return (s64) 0;
   }
 }
 
-s64 eval_int_expr(Session *s, char* expr) {
+s64 eval_int_expr(Session *s, char** expr) {
+  DEBUG("[*] EVAL INT EXPR:  %s\n", *expr);
   EvalStack eval_stack = init_EvalStack();
   ExprData expr_data = transform(expr);
   u8 expr_number = expr_data.expr_number;
@@ -309,5 +309,7 @@ s64 eval_int_expr(Session *s, char* expr) {
     }
   }
   free_ExprData(&expr_data);
-  return pop_EvalStack(&eval_stack);
+  s64 res = pop_EvalStack(&eval_stack);
+  DEBUG("[*] EVAL RESULT = %ld \n", res);
+  return res;
 }

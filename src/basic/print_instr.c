@@ -19,19 +19,20 @@ void print_instr(Session* env, char* cmd) {
   cmd = consume_whitespaces(cmd);
 
   tok = get_next_token(cmd, buf);
-  cmd += strlen(buf);
 
   switch (tok) {
     case TOK_QUOTE:
+      cmd += strlen(buf);
       cmd = print_instr_string(cmd);
       break;
 
     case TOK_VAR:
-      cmd = print_instr_var(env, cmd, buf);
+    //   cmd += strlen(buf);
+    //   cmd = print_instr_var(env, cmd, buf);
     case TOK_NUMBER:
     case TOK_LPAREN:
     case TOK_FN:
-      // eval and print
+      printf("%ld\n", eval_int_expr(env, &cmd));
       break;
 
     case TOK_NONE:

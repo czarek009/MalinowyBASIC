@@ -65,11 +65,11 @@ void let_instr(Session* env, char* cmd) {
     ERROR("[!] Invalid token: %s\n", buf);
     return;
   }
-  if (tok != TOK_NUMBER) {
-    ERROR("[!] LET supports only numbers\n");
-    return;
-  }
-  s64 value = str2s64(cmd);
+  // if (tok != TOK_NUMBER) {
+  //   ERROR("[!] LET supports only numbers\n");
+  //   return;
+  // }
+  s64 value = eval_int_expr(env, &cmd);
   cmd += strlen(buf);
   cmd = consume_whitespaces(cmd);
 
