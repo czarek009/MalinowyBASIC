@@ -55,14 +55,14 @@ void test_return_sddress_stack(Session *s) {
 
 void test_variable(Session *s) {
   printf("\nVARIABLE TEST\n");
-  add_integer_variable(s, (s32)23, "int");
+  add_integer_variable(s, (s64)23, "int");
   add_floating_point_variable(s, (float)35.0, "float");
   add_string_variable(s, "data", "string");
   add_boolean_variable(s, true, "bool");
   print_variables(s);
 
   printf("adding variable with the same name (float)\n");
-  add_integer_variable(s, (s32)69, "float");
+  add_integer_variable(s, (s64)69, "float");
   print_variables(s);
 }
 

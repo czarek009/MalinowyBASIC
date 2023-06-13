@@ -86,7 +86,7 @@ char* print_instr_var(Session* env, char* cmd, char* varname) {
 
   switch (vartype) {
     case INTEGER:
-      printf("%d", vardata.integer);
+      printf("%ld", vardata.integer);
       break;
 
     case STRING:

@@ -182,7 +182,7 @@ ExprData transform(char *expr) {
   ExprData expr_data = init_ExprData();
   bool possible_negative = 1;
 
-  while(*expr != '\0'){
+  while(*expr != '\0' && *expr != ';' && *expr != ','){
     if(isdigit(*expr) || (possible_negative && is_negative(expr))){
       u8 length = get_number_length(expr);
       push_ExprData(&expr_data, expr, length);
@@ -203,6 +203,18 @@ ExprData transform(char *expr) {
       move_op_to_expr(&op_stack, &expr_data, get_lparen(*expr));
       possible_negative = 0;
       expr++;
+    }
+    else if(isalpha(*expr)){
+      u8 length = is_valid_varname(expr);
+      if(length){
+        push_ExprData(&expr_data, expr, length);
+        possible_negative = 0;
+        expr = expr + length;
+      }
+      else{
+        DEBUG("VARNAME IS NOT VALID");
+        return init_ExprData();
+      }
     }
     else {
       possible_negative = 0;
@@ -257,13 +269,38 @@ s64 eval_bin(s64 first, s64 second, char op){
   }
 }
 
-s64 eval_int_expr(char* expr) {
+s64 eval_var(Session *s, char *varname){
+  VariableData var_data;
+  u8 type = get_variable_value(s, varname, &var_data);
+  switch(type){
+    case INTEGER:
+      return (s64) var_data.integer;
+      break;
+    case FLOATING_POINT:
+      return (s64) var_data.floating_point;
+      break;
+    case BOOLEAN:
+      return (s64) var_data.boolean;
+      break;
+    case NOT_FOUND:
+      DEBUG("VAR NOT FOUND: varname:%s\n", varname);
+      return (s64) 0;
+    default:
+      DEBUG("VAR TYPE NOT CORRECT: varname:%s\n", varname);
+      return (s64) 0;
+  }
+}
+
+s64 eval_int_expr(Session *s, char* expr) {
   EvalStack eval_stack = init_EvalStack();
   ExprData expr_data = transform(expr);
   u8 expr_number = expr_data.expr_number;
   for(u8 i = 0; i < expr_number; i++){
     if(isdigit(*expr_data.expr[i]) || is_negative(expr_data.expr[i])){
       push_EvalStack(&eval_stack, atoi(expr_data.expr[i]));
+    }
+    else if(isalpha(*expr_data.expr[i])) {
+      push_EvalStack(&eval_stack, eval_var(s, expr_data.expr[i]));
     }
     else if(isoperator(*expr_data.expr[i])) {
       s64 second = pop_EvalStack(&eval_stack);

@@ -75,6 +75,6 @@ void let_instr(Session* env, char* cmd) {
 
   // add_variable(env, value, TYPE);
   DEBUG("[*] Add variable %s = %ld\n", varname, value);
-  add_integer_variable(env, (s32)value, varname);
+  add_integer_variable(env, value, varname);
   return;
 }

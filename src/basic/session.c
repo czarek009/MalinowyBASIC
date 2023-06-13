@@ -95,12 +95,10 @@ void print_return_address_stack(Session *s) {
 
 /* VARIABLE */
 bool compare_name(char *variable_name, char* name) {
-    while(*variable_name != '\0' || *name != '\0') {
-        if((*variable_name != *name) || (*variable_name == '\0') || (*name == '\0')){
+    for(u8 i = 0; (i < VARIABLE_NAME_SIZE && (variable_name[i] != '\0' && name[i] != '\0')); i++){
+        if((variable_name[i] != name[i])){
             return false;
         }
-        variable_name++;
-        name++;
     }
     return true;
 }
@@ -128,10 +126,12 @@ u8 get_variable_value(Session *s, char* name, VariableData *var_data) {
 
 void add_variable(Variable *var, VariableData data, char *name, u8 type) {
     u8 i;
-    for(i = 0; (*name != '\0' && i < VARIABLE_NAME_MAX_FIELD); i++, name++) {
-        var->name[i] = *name;
+    for(i = 0; (name[i] != '\0' && i < VARIABLE_NAME_SIZE); i++) {
+        var->name[i] = name[i];
     }
-    var->name[i] = '\0';
+    if(i < VARIABLE_NAME_SIZE){
+        var->name[i] = '\0';
+    }
     var->data = data;
     var->type = type;
 }
@@ -152,7 +152,7 @@ void check_and_add_variable(Session *s, VariableData data, char *name, u8 type) 
     }
 }
 
-void add_integer_variable(Session *s, s32 data, char *name) {
+void add_integer_variable(Session *s, s64 data, char *name) {
     VariableData var_data;
     var_data.integer = data;
     check_and_add_variable(s, var_data, name, INTEGER);
@@ -183,7 +183,7 @@ void print_variables(Session *s) {
         var = s->variables[i];
         switch(var.type) {
             case INTEGER:
-                printf("int %s = %d\n", var.name, var.data.integer);
+                printf("int %s = %ld\n", var.name, var.data.integer);
                 break;
             case FLOATING_POINT:
                 printf("float %s = %f\n", var.name, var.data.floating_point);
@@ -196,7 +196,7 @@ void print_variables(Session *s) {
                 }
                 break;
             case STRING:
-                printf("string %s = %s\n", var.name, var.data);
+                printf("string %s = %s\n", var.name, var.data.string);
                 break;
             default:
                 printf("not supporting yet\n");
@@ -306,7 +306,7 @@ void delete_all_instructions(Session *s){
 void print_instructions(Session *s) {
     Node *node = s->metadata.instructions_start;
     while(node != NULL){
-        printf(" %d %s\n", node->line_number, node->instruction);
+        printf(" %ld %s\n", node->line_number, node->instruction);
         node = node->next;
     }
 }
