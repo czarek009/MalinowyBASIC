@@ -10,6 +10,22 @@
     - No module’s header file name shall share the name of a header file
       from the C Standard Library or C++ Standard Library. For example,
       modules shall not be named “stdio ” or “math ”.
+1.2 Rules:
+    - There shall always be precisely one header file for each source file,
+      but many source file may have the same header file.
+    - Each header file shall contain a preprocessor include guard.
+    - The headerfile shall identify only the functions, constants and data types
+      about which it is strictly necessary for other modules to be informed.
+    - Each header file should include only necessary modules with required type definitions.
+    - Each header file should be free of unused include files.
+    - Each source file shall contain some or all of the following sections,
+      exactly in the order listed:
+      * comment block with module description
+      * include statements
+      * global variables
+      * private function declarations
+      * public functions definitions
+      * private functions definitions
 
 ### 2. Functions:
 2.1 Naming conventions:
@@ -26,7 +42,14 @@
       Standard Library. Examples of such names include strlen, atoi,
       and memset.
     - The names of all public functions shall be prefixed with their module name
-      and an underscore (e.g., sensor_read()).
+      and an underscore (e.g., gpio_read()).
+2.2 Rules:
+    - Functions should be as short as possible, no longer than 100 lines.
+    - All private functions should be declared as `static`
+    - All public functions should be declared in module header file.
+    - Each parameter should have meaningfull name.
+    - Each function should be preceded by a comment with short description
+      of its behavion, parameters and return value.
 
 ### 3. Data types:
 3.1 Naming conventions:
@@ -45,3 +68,8 @@
     - Underscores shall be used to separate words in variable names.
     - The names of any pointer variables shall end with `_p`
     - The names of any global variables shall end with `_g`
+4.2 Rules:
+    - All variables should be initialized at declaration.
+    - Each variable should be defined in separate line.
+    - All variables should have minimal required scope.
+    - All local variables should be defined at the top of their scope.
