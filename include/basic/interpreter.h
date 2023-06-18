@@ -89,8 +89,8 @@ tokenE get_next_token(char* cmd, char* dest);
 char* consume_whitespaces(char* cmd);
 u64 get_str_len(char* cmd);
 
-void execute_command(Session* env, char* cmd);
-void interprete_command(Session* env, char* cmd, u64 line_number);
+void execute_command(sessionS* env, char* cmd);
+void interprete_command(sessionS* env, char* cmd, u64 line_number);
 
 
 #endif /* _INTERPRETER_H */

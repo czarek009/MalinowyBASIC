@@ -3,6 +3,7 @@
 
 #include "mm.h"
 #include "types.h"
+#include "variable.h"
 
 /*
 
@@ -46,92 +47,78 @@ types:
 #define VARIABLES_MAX_FIELD       63
 #define VARIABLE_NAME_SIZE        7
 
-/* VARIABLE TYPES */
-#define POINTER ((u8)0)
-#define INTEGER ((u8)1)
-#define FLOATING_POINT ((u8)2)
-#define BOOLEAN ((u8)3)
-#define STRING ((u8)4)
-#define NOT_FOUND ((u8)255)
-
 typedef enum {
     RUNNING = 0,
     STOPPED = 1,
     FINISHED = 2,
     MODIFIED = 3,
     NEW = 4
-} SessionStatus;
+} sessionStatusE;
 
-typedef struct Node {
-    struct Node *previous;
-    struct Node *next;
+typedef struct instructionS {
+    struct instructionS *previous;
+    struct instructionS *next;
     u64 line_number;
     char *instruction;
-} Node;
+} instructionS;
 
-typedef struct Metadata {
-    Node *instructions_start;
-    Node *instructions_end;
+typedef struct metadataS {
+    instructionS *instructions_start;
+    instructionS *instructions_end;
     u8 return_address_stackpointer;
     u8 data_stackpointer;
     u8 variables_number;
     u8 errno;
     u64 jump_flag;
-    SessionStatus status;
+    sessionStatusE status;
     u8 reserved[220];
-} Metadata;
+} metadataS;
 
-typedef union VariableData {
-    u64 *pointer;
-    s64 integer;
-    float floating_point;
-    bool boolean;
-    char *string;
-} VariableData;
-
-typedef struct Variable {
+typedef struct variableS {
     char name[7];
     u8 type;
-    VariableData data;
-} Variable;
+    variableDataU data;
+} variableS;
 
-typedef struct Session {
-    Metadata metadata;
+typedef struct sessionS {
+    metadataS metadata;
     u64 return_address_stack[32];
     s32 data_stack[128];
-    Variable variables[64];
-} Session;
+    variableS variables[64];
+} sessionS;
 
 
 void print_structures_size(void);
-Session *session_init(void);
-SessionStatus get_session_status(Session *s);
-void set_session_status(Session *s, SessionStatus status);
-void set_jump_flag(Session *s, u64 line_number);
+sessionS *session_init(void);
+sessionStatusE get_session_status(sessionS *s);
+void set_session_status(sessionS *s, sessionStatusE status);
+void set_jump_flag(sessionS *s, u64 line_number);
 
-void push_data_to_stack(Session *s, s32 data);
-s32 pop_data_from_stack(Session *s);
-void print_data_stack(Session *s);
+void push_data_to_stack(sessionS *s, s32 data);
+s32 pop_data_from_stack(sessionS *s);
+void print_data_stack(sessionS *s);
 
-void push_return_address_to_stack(Session *s, u64 address);
-u64 pop_return_address_from_stack(Session *s);
-void print_return_address_stack(Session *s);
+void push_return_address_to_stack(sessionS *s, u64 address);
+u64 pop_return_address_from_stack(sessionS *s);
+void print_return_address_stack(sessionS *s);
 
-Variable *get_variable_ptr(Session *s, char* name);
-u8 get_variable_value(Session *s, char* name, VariableData *var_data);
-void add_integer_variable(Session *s, s64 data, char *name);
-void add_floating_point_variable(Session *s, float data, char *name);
-void add_boolean_variable(Session *s, bool data, char *name);
-void add_string_variable(Session *s, char *data, char *name);
-void print_variables(Session *s);
+variableS *get_variable_ptr(sessionS *s, char* name);
+u8 get_variable_value(sessionS *s, char* name, variableDataU *var_data);
+void add_variable(sessionS *s, variableDataU var_data, char *name, u8 type);
+void add_integer_variable(sessionS *s, s64 data, char *name);
+void add_floating_point_variable(sessionS *s, float data, char *name);
+void add_boolean_variable(sessionS *s, bool data, char *name);
+void add_string_variable(sessionS *s, char *data, char *name);
+void print_variables(sessionS *s);
 
-void add_instruction(Session *s, u64 line_number, char *instruction);
-void delete_single_instruction(Session *s, u64 line_number);
-void delete_all_instructions(Session *s);
-void print_instructions(Session *s);
-void run_program(Session *s);
-u64 get_next_instr_line(Session *s, u64 ln);
+void add_instruction(sessionS *s, u64 line_number, char *instruction);
+void delete_single_instruction(sessionS *s, u64 line_number);
+void delete_all_instructions(sessionS *s);
+void print_instructions(sessionS *s);
+void run_program(sessionS *s);
 
-void session_end(Session *s);
+u64 get_next_instr_line(sessionS *s, u64 ln)
+
+void session_end(sessionS *s);
 
 #endif /* _SESSION_H */

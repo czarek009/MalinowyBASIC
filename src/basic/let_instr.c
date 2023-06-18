@@ -6,7 +6,7 @@
 #include "mm.h"
 
 
-void let_instr(Session* env, char* cmd) {
+void let_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   char varname[8] = {0};
   bool isStr = false;
@@ -69,12 +69,10 @@ void let_instr(Session* env, char* cmd) {
   //   ERROR("[!] LET supports only numbers\n");
   //   return;
   // }
-  s64 value = eval_int_expr(env, &cmd);
+  variableDataU value;
+  s8 value_type = eval_expr(env, &cmd, &value);
   cmd += strlen(buf);
   cmd = consume_whitespaces(cmd);
-
-  // add_variable(env, value, TYPE);
-  DEBUG("[*] Add variable %s = %ld\n", varname, value);
-  add_integer_variable(env, value, varname);
+  add_variable(env, value, varname, value_type);
   return;
 }

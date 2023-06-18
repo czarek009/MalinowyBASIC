@@ -8,12 +8,12 @@
 
 
 char* print_instr_string(char* cmd);
-char* print_instr_var(Session* env, char* cmd, char* varname);
+char* print_instr_var(sessionS* env, char* cmd, char* varname);
 
 /*
  * One PRINT instruction can print many things separated by comma
  */
-void print_instr(Session* env, char* cmd) {
+void print_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
   cmd = consume_whitespaces(cmd);
@@ -32,7 +32,26 @@ void print_instr(Session* env, char* cmd) {
     case TOK_NUMBER:
     case TOK_LPAREN:
     case TOK_FN:
-      printf("%ld\n", eval_int_expr(env, &cmd));
+      {
+        variableDataU eval_res;
+        u8 eval_type = eval_expr(env, &cmd, &eval_res);
+        switch (eval_type){
+          case INTEGER:
+            printf("%ld\n", eval_res.integer);
+            break;
+          case FLOATING_POINT:
+            printf("%s\n", eval_res.floating_point);
+            break;
+          case BOOLEAN:
+            printf("%d\n", eval_res.boolean);
+            break;
+          case STRING:
+            printf("%s\n", eval_res.string);
+            break;
+          default:
+            break;
+        }
+      }
       break;
 
     case TOK_NONE:
@@ -80,9 +99,9 @@ char* print_instr_string(char* cmd) {
   return &cmd[i];
 }
 
-char* print_instr_var(Session* env, char* cmd, char* varname) {
+char* print_instr_var(sessionS* env, char* cmd, char* varname) {
   DEBUG("[*] print_instr_var(%s)\n", cmd);
-  VariableData vardata = {0};
+  variableDataU vardata = {0};
   u8 vartype = get_variable_value(env, varname, &vardata);
 
   switch (vartype) {

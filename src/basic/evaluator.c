@@ -1,62 +1,548 @@
 #include "evaluator.h"
 #include "types.h"
 #include "butils.h"
+#include "printf.h"
+#include "mm.h"
+
+#define ERROR(...)  printf(__VA_ARGS__)
+
+#define MAX_DATA_NUMBER     32
+#define MAX_OPERATOR_NUMBER (MAX_DATA_NUMBER - 1) / 2
+
+typedef enum {
+  OP_ADD,          /* +  */
+  OP_SUB,          /* -  */
+  OP_DIV,          /* /  */
+  OP_MUL,          /* *  */
+  OP_POW,          /* ^  */
+  OP_MOD,          /* %  */
+  OP_LPARENT,      /* (  */
+  OP_RPARENT,      /* )  */
+  OP_AND,          /* && */
+  OP_OR,           /* || */
+  OP_NOT,          /* !  */
+  OP_EQ,           /* == */
+  OP_NEQ,          /* != */
+  OP_GT,           /* >  */
+  OP_LT,           /* <  */
+  OP_GEQ,          /* >= */
+  OP_LEQ,          /* <= */
+  OP_NONE
+} opE;
+
+typedef union {
+  opE op;
+  bool boolean;
+  s64 integer;
+  double floating_point;
+  char *string;
+} dataU;
+
+typedef struct {
+  u8 expr_number;
+  u8 types[MAX_DATA_NUMBER];
+  dataU exprs[MAX_DATA_NUMBER];
+} exprDataS;
+
+typedef struct {
+  u8 stack_pointer;
+  u8 stack[MAX_OPERATOR_NUMBER];
+} opStackS;
+
+typedef enum {
+  EVAL_SUCCESS,
+  EVAL_INTERNAL_ERROR
+} evalErrorE;
+
+evalErrorE error_g = EVAL_SUCCESS;
+
+/*                       +  -  /  *  ^  %  (  ) && ||  ! == !=  >  <  >= <=  */
+u8 op_precedenceA[17] = {3, 3, 4, 4, 5, 4, 0, 0, 2, 1, 3, 1, 1, 2, 2, 2, 2};
 
 
-/*
-TODO:
- - lepsze zaokrąglanie floatów ? - teraz ucina to co jest po przecinku
- - dodać sprawdzenie poprawności wyrażenia
-*/
+/* types */
+void print_types(u8 type) {
+  switch(type) {
+    case INTEGER:
+      printf("integer");
+      return;
+    case FLOATING_POINT:
+      printf("floating_point");
+      break;
+    case BOOLEAN:
+      printf("boolean");
+      break;
+    case STRING:
+      printf("string");
+      break;
+    case OPERATOR:
+      printf("operator");
+      break;
+    default:
+      ERROR("[!] EVAL - print_types: type not supported = %d\n", type);
+      error_g = EVAL_INTERNAL_ERROR;
+      return;
+  }
+}
 
-char operator_push[7] = "+-*/%^\0";
+/* opE */
+void print_opE(opE op) {
+  switch(op) {
+    case OP_ADD:
+      printf("+ ");
+      return;
+    case OP_SUB:
+      printf("- ");
+      return;
+    case OP_DIV:
+      printf("/ ");
+      return;
+    case OP_MUL:
+      printf("* ");
+      return;
+    case OP_POW:
+      printf("^ ");
+      return;
+    case OP_MOD:
+      printf("%% ");
+      return;
+    case OP_LPARENT:
+      printf("( ");
+      return;
+    case OP_RPARENT:
+      printf(") ");
+      return;
+    case OP_AND:
+      printf("&& ");
+      return;
+    case OP_OR:
+      printf("|| ");
+      return;
+    case OP_NOT:
+      printf("! ");
+      return;
+    case OP_EQ:
+      printf("== ");
+      return;
+    case OP_NEQ:
+      printf("!= ");
+      return;
+    case OP_GT:
+      printf("> ");
+      return;
+    case OP_LT:
+      printf("< ");
+      return;
+    case OP_GEQ:
+      printf(">= ");
+      return;
+    case OP_LEQ:
+      printf("<= ");
+      return;
+    case OP_NONE:
+      return;
+    default:
+      ERROR("[!] EVAL - print_opE: there in no such an operator\n");
+      error_g = EVAL_INTERNAL_ERROR;
+      return;
+  }
+}
 
-bool isoperator(char c) {
-  for(u8 i = 0; operator_push[i] != '\0'; i++){
-    if(c == operator_push[i]){
-      return true;
+/* opStackS */
+opStackS init_opStackS(void) {
+  opStackS stack;
+  stack.stack_pointer = 0;
+  return stack;
+}
+
+void push_opStackS(opStackS *data, u8 op) {
+  if(data->stack_pointer < MAX_OPERATOR_NUMBER) {
+    data->stack[data->stack_pointer] = op;
+    data->stack_pointer++;
+    return;
+  }
+  error_g = EVAL_INTERNAL_ERROR;
+  ERROR("[!] EVAL - push_opStackS: stack is FULL\n");
+}
+
+u8 pop_opStackS(opStackS *data) {
+  if(data->stack_pointer > 0) {
+    data->stack_pointer--;
+    return data->stack[data->stack_pointer];
+  }
+  return OP_NONE;
+}
+
+u8 peek_opStackS(opStackS *data) {
+  if(data->stack_pointer > 0) {
+    return data->stack[data->stack_pointer - 1];
+  }
+  return OP_NONE;
+}
+
+void print_opStackS(opStackS *data) {
+  printf("opStackS:\n");
+  for(u8 i = 0; i < data->stack_pointer; i++) {
+    print_opE(data->stack[i]);
+  }
+  printf("\n");
+}
+
+/* exprDataS */
+exprDataS init_exprDataS(void) {
+  exprDataS data;
+  data.expr_number = 0;
+  return data;
+}
+
+void push_exprDataS(exprDataS *expr_data, dataU data, u8 type) {
+  if(expr_data->expr_number < MAX_DATA_NUMBER) {
+    expr_data->exprs[expr_data->expr_number] = data;
+    expr_data->types[expr_data->expr_number] = type;
+    expr_data->expr_number++;
+    return;
+  }
+  error_g = EVAL_INTERNAL_ERROR;
+  ERROR("[!] EVAL - push_exprDataS: expr_data is FULL\n");
+}
+
+u8 pop_exprDataS(exprDataS *expr_data, dataU *data) {
+  if(expr_data->expr_number > 0) {
+    expr_data->expr_number--;
+    *data = expr_data->exprs[expr_data->expr_number];
+    return expr_data->types[expr_data->expr_number];
+  }
+  return EVAL_ERROR;
+}
+
+u8 pop_result(exprDataS *expr_data, variableDataU *data) {
+  if(expr_data->expr_number > 0) {
+    u8 i = expr_data->expr_number - 1;
+    u8 type = expr_data->types[i];
+    switch(type){
+      case INTEGER:
+        data->integer = expr_data->exprs[i].integer;
+        return type;
+      case FLOATING_POINT:
+        data->floating_point = expr_data->exprs[i].floating_point;
+        return type;
+      case BOOLEAN:
+        data->boolean = expr_data->exprs[i].boolean;
+        return type;
+      case STRING:
+        data->string = expr_data->exprs[i].string;
+        return type;
+      default:
+        break;
     }
   }
-  return false;
+  ERROR("[!] EVAL - pop_result: no matching data in eval_stack\n");
+  return EVAL_ERROR;
 }
 
-bool is_lparen(char c) {
-  return (c == '(') || (c == '[');
+void free_exprDataS(exprDataS *expr_data) {
+  for(u8 i = 0; i < expr_data->expr_number; i++) {
+    if(expr_data->types[i] == STRING){
+      free(expr_data->exprs[i].string);
+    }
+  }
 }
 
-bool is_rparen(char c) {
-  return (c == ')') || (c == ']');
+void print_exprDataS(exprDataS *expr_data) {
+  for(u8 i = 0; i < expr_data->expr_number; i++) {
+    switch(expr_data->types[i]) {
+      case INTEGER:
+        printf("%ld ", expr_data->exprs[i].integer);
+        break;
+      case FLOATING_POINT:
+        printf("%f ", expr_data->exprs[i].floating_point);
+        break;
+      case BOOLEAN:
+        if(expr_data->exprs[i].boolean) {
+          printf("true ");
+        }
+        else {
+          printf("false ");
+        }
+        break;
+      case STRING:
+        printf("%s ", expr_data->exprs[i].string);
+        break;
+      case OPERATOR:
+        print_opE((u8)expr_data->exprs[i].op);
+        break;
+      default:
+        error_g = EVAL_INTERNAL_ERROR;
+        ERROR("[!] EVAL - print_exprDataS: type not supported = %d\n", expr_data->types[i]);
+        break;
+    }
+  }
+  printf("\n");
 }
 
-char get_lparen(char c) {
-  return (c == ')')? '(': '[';
-}
-
-/*                           - % /    ^    * +    */
-u8 operator_precedence[9] = {0,1,1,-1,2,-1,1,0,-1};
-u8 precedence(char op) {
-  return operator_precedence[op % 9];
+/* TRANSFORM */
+dataU get_number(u8 *type, char **str){
+  dataU result;
+  s64 res_integer = 0;
+  s64 neg_integer = 1;
+  double res_double = 0.0;
+  double neg_double = 1.0;
+  if(**str == '-') {
+    (*str)++;
+    neg_integer = -1;
+    neg_double = -1.0;
+  }
+  for(; isdigit(**str); (*str)++){
+    res_integer = res_integer * 10 + (s64)(**str - '0');
+    res_double = res_double * 10.0 + (double)(**str - '0');
+  }
+  if(**str == '.') {
+    (*str)++;
+    for(double j = 0.1; isdigit(**str); (*str)++, j*=0.1){
+      res_double = res_double + j * (double)(**str - '0');
+    }
+    result.floating_point = res_double * neg_double;
+    *type = FLOATING_POINT;
+  }
+  else {
+    result.integer = res_integer * neg_integer;
+    *type = INTEGER;
+  }
+  return result;
 }
 
 bool is_negative(char *expr){
   return ((*expr == '-') && isdigit(*(expr + 1)));
 }
 
-s64 atoi(char *str){
-    s64 res = 0;
-    u8 i = 0;
-    s64 neg = 1;
-    if(str[0] == '-'){
-      i = 1;
-      neg  = -1;
+dataU get_var(sessionS *s, u8 *type, char **str){
+  u8 type_var;
+  variableDataU var_data;
+  dataU result;
+  u8 length = is_valid_varname(*str);
+  if(length > 0) {
+    type_var = get_variable_value(s, *str, &var_data);
+    switch(type_var){
+      case INTEGER:
+        result.integer = var_data.integer;
+        *type = INTEGER;
+        break;
+      case FLOATING_POINT:
+        result.floating_point = var_data.floating_point;
+        *type = FLOATING_POINT;
+        break;
+      case BOOLEAN:
+        result.boolean = var_data.boolean;
+        *type = BOOLEAN;
+        break;
+      case STRING:
+        result.string = var_data.string;
+        *type = STRING;
+        break;
+      default:
+        error_g = EVAL_INTERNAL_ERROR;
+        ERROR("[!] EVAL - get_var: data type not compatible\n");
     }
-    for(; (str[i] != '\0' && str[i] != '.'); i++) {
-      res = res * 10 + (s64)(str[i] - '0');
-    }
-  return neg * res;
+    *str = *str + length;
+  }
+  else{
+    error_g = EVAL_INTERNAL_ERROR;
+    ERROR("[!] EVAL - get_var: varname not correct\n");
+  }
+  return result;
 }
 
-s64 pow(s64 first, s64 second) {
+void add_operator(opStackS *op_stack, exprDataS *expr_data, opE op){
+  u8 peek_op = peek_opStackS(op_stack);
+  dataU data;
+  while((peek_op != OP_NONE) && (op_precedenceA[op] <= op_precedenceA[peek_op])){
+    data.op = pop_opStackS(op_stack);
+    push_exprDataS(expr_data, data, OPERATOR);
+    peek_op = peek_opStackS(op_stack);
+  }
+  push_opStackS(op_stack, op);
+}
+
+bool check_add_operator(opStackS *op_stack, exprDataS *expr_data, char **expr) {
+  switch(**expr){
+    case '+':
+      add_operator(op_stack, expr_data, OP_ADD);
+      break;
+    case '-':
+      add_operator(op_stack, expr_data, OP_SUB);
+      break;
+    case '/':
+      add_operator(op_stack, expr_data, OP_DIV);
+      break;
+    case '*':
+      add_operator(op_stack, expr_data, OP_MUL);
+      break;
+    case '^':
+      add_operator(op_stack, expr_data, OP_POW);
+      break;
+    case '%':
+      add_operator(op_stack, expr_data, OP_MOD);
+      break;
+    case '&':
+      if(*((*expr) + 1) == '&') {
+        (*expr)++;
+        add_operator(op_stack, expr_data, OP_AND);
+        break;
+      }
+      else{
+        return 0;
+      }
+    case '|':
+      if(*((*expr) + 1) == '|') {
+        (*expr)++;
+        add_operator(op_stack, expr_data, OP_OR);
+        break;
+      }
+      else{
+        return 0;
+      }
+    case '!':
+      if(*((*expr) + 1) == '=') {
+        (*expr)++;
+        add_operator(op_stack, expr_data, OP_NEQ);
+      }
+      else{
+        add_operator(op_stack, expr_data, OP_NOT);
+      }
+      break;
+    case '=':
+      if(*((*expr) + 1) == '=') {
+        (*expr)++;
+        add_operator(op_stack, expr_data, OP_EQ);
+        break;
+      }
+      else{
+        return 0;
+      }
+    case '>':
+      if(*((*expr) + 1) == '=') {
+        (*expr)++;
+        add_operator(op_stack, expr_data, OP_GEQ);
+      }
+      else{
+        add_operator(op_stack, expr_data, OP_GT);
+      }
+      break;
+    case '<':
+      if(*((*expr) + 1) == '=') {
+        (*expr)++;
+        add_operator(op_stack, expr_data, OP_LEQ);
+      }
+      else{
+        add_operator(op_stack, expr_data, OP_LT);
+      }
+      break;
+    default:
+      return 0;
+  }
+  (*expr)++;
+  return 1;
+}
+
+void move_op_to_expr(opStackS *op_stack, exprDataS *expr_data){
+  opE op = pop_opStackS(op_stack);
+  dataU data;
+  while((op != OP_LPARENT) && (op != OP_NONE)){
+    data.op = op;
+    push_exprDataS(expr_data, data, OPERATOR);
+    op = pop_opStackS(op_stack);
+  }
+  if(op == OP_NONE){
+    error_g = EVAL_INTERNAL_ERROR;
+    ERROR("[!] EVAL - parentheses don't match\n");
+  }
+}
+
+void add_remaining_op(opStackS *op_stack, exprDataS *expr_data) {
+  dataU data;
+  while(op_stack->stack_pointer > 0){
+    data.op = pop_opStackS(op_stack);
+    push_exprDataS(expr_data, data, OPERATOR);
+  }
+}
+
+dataU get_str(char **expr, u8 *type) {
+  (*expr)++;
+  char *expr_str = *expr;
+  dataU data;
+  u8 i = 0;
+  *type = STRING;
+  while(expr_str[i] != '\"' && expr_str[i] != '\0'){
+    i++;
+  }
+  if(expr_str[i] == '\0'){
+    error_g = EVAL_INTERNAL_ERROR;
+    data.string = NULL;
+    ERROR("[!] EVAL - get_str: string does not end with quotes\n");
+    return data;
+  }
+  char *str = malloc(i + 1);
+  memcpy(str, expr_str, i+1);
+  str[i] = '\0';
+  data.string = str;
+  *expr = *expr + i + 1;
+  return data;
+}
+
+u8 transform(sessionS *s, char **expr, exprDataS *expr_data) {
+  opStackS op_stack = init_opStackS();
+  u8 integer_type = 0;
+  u8 type = NOT_DECLARED;
+  dataU data;
+  bool possible_neg = 1;
+  while(**expr != '\0' && **expr != ';' && **expr != ',') {
+    if(isdigit(**expr) || (possible_neg && is_negative(*expr))) {
+      data = get_number(&type, expr);
+      push_exprDataS(expr_data, data, type);
+      possible_neg = 0;
+    }
+    else if(isalpha(**expr)) {
+      data = get_var(s, &type, expr);
+      push_exprDataS(expr_data, data, type);
+      possible_neg = 0;
+    }
+    else if(**expr == '\"') {
+      data = get_str(expr, &type);
+      push_exprDataS(expr_data, data, type);
+    }
+    else if(**expr == '(') {
+      push_opStackS(&op_stack, OP_LPARENT);
+      possible_neg = 1;
+      (*expr)++;
+    }
+    else if(**expr == ')') {
+      move_op_to_expr(&op_stack, expr_data);
+      possible_neg = 0;
+      (*expr)++;
+    }
+    else if(check_add_operator(&op_stack, expr_data, expr) && !possible_neg){
+      possible_neg = 1;
+    }
+    else if(**expr == ' ') {
+      (*expr)++;
+    }
+    else{
+      ERROR("[!] EVAL - transform: invalid character in expression = %c\n", **expr);
+      error_g = EVAL_INTERNAL_ERROR;
+    }
+    if(type == INTEGER){
+      integer_type = 1;
+    }
+    if(error_g){
+      return EVAL_ERROR;
+    }
+  }
+  add_remaining_op(&op_stack, expr_data);
+  return integer_type;
+}
+
+
+s64 poww(s64 first, s64 second) {
   s64 res = 1;
   while(second > 0) {
     if(second%2){
@@ -68,248 +554,237 @@ s64 pow(s64 first, s64 second) {
   return res;
 }
 
-/* OP STACK */
-OpStack init_OpStack(void) {
-  OpStack stack;
-  stack.stack_pointer = 0;
-  return stack;
-}
-
-void push_OpStack(OpStack *data, char val) {
-  if(data->stack_pointer < STACK_LENGTH) {
-    data->stack[data->stack_pointer] = val;
-    data->stack_pointer++;
-    return;
-  }
-  DEBUG("[*] EVAL - PUSH: OpStack is FULL\n");
-}
-
-char pop_OpStack(OpStack *data){
-  if(data->stack_pointer > 0) {
-    data->stack_pointer--;
-    return data->stack[data->stack_pointer];
-  }
-  DEBUG("[*] EVAL - POP: OpStack is empty\n");
-  return '\0';
-}
-
-char peek_OpStack(OpStack *data){
-  if(data->stack_pointer > 0) {
-    return data->stack[data->stack_pointer - 1];
-  }
-  return '\0';
-}
-
-void print_OpStack(OpStack *data) {
-  for(u8 i = 0; i < data->stack_pointer; i++) {
-    printf("%c\n", data->stack[i]);
-  }
-}
-
-/* EXPR DATA */
-ExprData init_ExprData(void) {
-  ExprData data;
-  data.expr_number = 0;
-  return data;
-}
-
-void push_ExprData(ExprData *data, char* val, u8 length) {
-  if(data->expr_number < STACK_LENGTH) {
-    char *str = malloc(length + 1);
-    memcpy(str, val, length);
-    str[length] = '\0';
-    data->expr[data->expr_number] = str;
-    data->expr_number++;
-    return;
-  }
-  DEBUG("[*] EVAL - PUSH: ExprData is FULL\n");
-}
-
-void free_ExprData(ExprData *data){
-  for(u8 i = 0; i < data->expr_number; i++){
-    free(data->expr[i]);
-  }
-  data->expr_number = 0;
-}
-
-void print_ExprData(ExprData *data){
-  for(u8 i = 0; i < data->expr_number; i++) {
-    printf("%s ", data->expr[i]);
-  }
-  printf("\n");
-}
-
-/* TRANSFORM */
-void add_operator(OpStack *op_stack, ExprData *expr_data, char op) {
-  char op_from_stack = peek_OpStack(op_stack);
-  while((op_from_stack != '\0') && !is_lparen(op_from_stack) && (precedence(op) <= precedence(op_from_stack))){
-    char pop = pop_OpStack(op_stack);
-    push_ExprData(expr_data, &pop, 1);
-    op_from_stack = peek_OpStack(op_stack);
-  }
-  push_OpStack(op_stack, op);
-}
-
-void move_op_to_expr(OpStack *op_stack, ExprData *expr_data, char op) {
-  char c = pop_OpStack(op_stack);
-  while(c != op){
-    push_ExprData(expr_data, &c, 1);
-    c = pop_OpStack(op_stack);
+/* EVAL INT*/
+u8 eval_int(s64 first, s64 second, dataU *res, opE op) {
+  switch(op) {
+    case OP_ADD:
+      res->integer = first + second;
+      return INTEGER;
+    case OP_SUB:
+      res->integer = first - second;
+      return INTEGER;
+    case OP_DIV:
+      if(second == 0){
+        res->integer = 0;
+        ERROR("[!] EVAL - division by zero!\n");
+        error_g = EVAL_INTERNAL_ERROR;
+        return EVAL_ERROR;
+      }
+      res->integer = first / second;
+      return INTEGER;
+    case OP_MUL:
+      res->integer = first * second;
+      return INTEGER;
+    case OP_POW:
+      res->integer = poww(first, second);
+      return INTEGER;
+    case OP_MOD:
+      res->integer = first % second;
+      return INTEGER;
+    case OP_AND:
+      res->boolean = first && second;
+      return BOOLEAN;
+    case OP_OR:
+      res->boolean = first || second;
+      return BOOLEAN;
+    case OP_EQ:
+      res->boolean = first == second;
+      return BOOLEAN;
+    case OP_NEQ:
+      res->boolean = first != second;
+      return BOOLEAN;
+    case OP_GT:
+      res->boolean = first > second;
+      return BOOLEAN;
+    case OP_LT:
+      res->boolean = first < second;
+      return BOOLEAN;
+    case OP_GEQ:
+      res->boolean = first >= second;
+      return BOOLEAN;
+    case OP_LEQ:
+      res->boolean = first <= second;
+      return BOOLEAN;
+    default:
+      error_g = EVAL_INTERNAL_ERROR;
+      ERROR("[!] EVAL - eval_int: unknown operator\n");
+      return EVAL_ERROR;
   }
 }
 
-void add_remaining_op(OpStack *op_stack, ExprData *expr_data) {
-  while(op_stack->stack_pointer > 0){
-    char c = pop_OpStack(op_stack);
-    push_ExprData(expr_data, &c, 1);
+/* EVAL DOUBLE */
+u8 eval_double(double first, double second, dataU *res, opE op) {
+  switch(op) {
+    case OP_ADD:
+      res->floating_point = first + second;
+      return FLOATING_POINT;
+    case OP_SUB:
+      res->floating_point = first - second;
+      return FLOATING_POINT;
+    case OP_DIV:
+      if(second == 0.0){
+        res->floating_point = 0.0;
+        ERROR("[!] EVAL - division by zero!\n");
+        error_g = EVAL_INTERNAL_ERROR;
+        return EVAL_ERROR;
+      }
+      res->floating_point = first / second;
+      return FLOATING_POINT;
+    case OP_MUL:
+      res->floating_point = first * second;
+      return FLOATING_POINT;
+    case OP_POW:
+      printf("double not supported in pow\n");
+      res->floating_point = poww(first, second);
+      return FLOATING_POINT;
+    case OP_MOD:
+      error_g = EVAL_INTERNAL_ERROR;
+      ERROR("[!] EVAL - eval_double: modulo operands must be integers\n");
+      return EVAL_ERROR;
+    case OP_AND:
+      res->boolean = first && second;
+      return BOOLEAN;
+    case OP_OR:
+      res->boolean = first || second;
+      return BOOLEAN;
+    case OP_EQ:
+      res->boolean = first == second;
+      return BOOLEAN;
+    case OP_NEQ:
+      res->boolean = first != second;
+      return BOOLEAN;
+    case OP_GT:
+      res->boolean = first > second;
+      return BOOLEAN;
+    case OP_LT:
+      res->boolean = first < second;
+      return BOOLEAN;
+    case OP_GEQ:
+      res->boolean = first >= second;
+      return BOOLEAN;
+    case OP_LEQ:
+      res->boolean = first <= second;
+      return BOOLEAN;
+    default:
+      error_g = EVAL_INTERNAL_ERROR;
+      ERROR("[!] EVAL - eval_double: unknown operator\n");
+      return EVAL_ERROR;
   }
 }
 
-u8 get_number_length(char *expr){
-  u8 i = (*expr == '-');
-  bool one_dot = 1;
-  for(; isdigit(expr[i]) || (expr[i] == '.' && one_dot); i++){
-    if(expr[i] == '.'){
-      one_dot = 0;
-    }
-  }
-  return i;
-}
-
-ExprData transform(char **expr) {
-  OpStack op_stack = init_OpStack();
-  ExprData expr_data = init_ExprData();
-  bool possible_negative = 1;
-
-  while(**expr != '\0' && **expr != ';' && **expr != ','){
-    if(isdigit(**expr) || (possible_negative && is_negative(*expr))){
-      u8 length = get_number_length(*expr);
-      push_ExprData(&expr_data, *expr, length);
-      possible_negative = 0;
-      *expr = *expr + length;
-    }
-    else if(isoperator(**expr)){
-      add_operator(&op_stack, &expr_data, **expr);
-      possible_negative = 1;
-      (*expr)++;
-    }
-    else if(is_lparen(**expr)){
-      push_OpStack(&op_stack, **expr);
-      possible_negative = 1;
-      (*expr)++;
-    }
-    else if(is_rparen(**expr)){
-      move_op_to_expr(&op_stack, &expr_data, get_lparen(**expr));
-      possible_negative = 0;
-      (*expr)++;
-    }
-    else if(isalpha(**expr)){
-      u8 length = is_valid_varname(*expr);
-      if(length){
-        push_ExprData(&expr_data, *expr, length);
-        possible_negative = 0;
-        *expr = *expr + length;
+u8 eval_string(char *first, char *second, dataU *res, opE op){
+  switch(op){
+    case OP_ADD:
+      return STRING;
+    case OP_EQ:
+      if(strcmp(first, second)){
+        res->boolean = 0;
       }
       else{
-        DEBUG("[*] VARNAME IS NOT VALID");
-        return init_ExprData();
+        res->boolean = 1;
       }
-    }
-    else {
-      possible_negative = 0;
-      (*expr)++;
-    }
-  }
-  add_remaining_op(&op_stack, &expr_data);
-  return expr_data;
-}
-
-/* EVAL STACK */
-EvalStack init_EvalStack(void) {
-  EvalStack stack;
-  stack.stack_pointer = 0;
-  return stack;
-}
-
-void push_EvalStack(EvalStack *data, s64 val) {
-  if(data->stack_pointer < STACK_LENGTH) {
-    data->stack[data->stack_pointer] = val;
-    data->stack_pointer++;
-    return;
-  }
-  DEBUG("[*] EVAL - PUSH: EvalStack is FULL\n");
-}
-
-s64 pop_EvalStack(EvalStack *data){
-  if(data->stack_pointer > 0) {
-    data->stack_pointer--;
-    return data->stack[data->stack_pointer];
-  }
-  DEBUG("[*] EVAL - POP: EvalStack is empty\n");
-  return '\0';
-}
-
-s64 eval_bin(s64 first, s64 second, char op){
-  switch(op) {
-    case '+':
-      return first + second;
-    case '-':
-      return first - second;
-    case '*':
-      return first * second;
-    case '/':
-      return first / second;
-    case '^':
-      return pow(first, second);
-    case '%':
-      return first % second;
+      return BOOLEAN;
+    case OP_NEQ:
+      res->boolean = (first != second);
+      return BOOLEAN;
     default:
-      return 0;
+      error_g = EVAL_INTERNAL_ERROR;
+      ERROR("[!] EVAL - eval_string: operator cannot be used on string\n");
+      return EVAL_ERROR;
   }
 }
 
-s64 eval_var(Session *s, char *varname){
-  VariableData var_data;
-  u8 type = get_variable_value(s, varname, &var_data);
-  switch(type){
-    case INTEGER:
-      return (s64) var_data.integer;
-      break;
-    case FLOATING_POINT:
-      return (s64) var_data.floating_point;
-      break;
-    case BOOLEAN:
-      return (s64) var_data.boolean;
-      break;
-    case NOT_FOUND:
-      DEBUG("[*] VAR NOT FOUND: varname:%s\n", varname);
-      return (s64) 0;
-    default:
-      DEBUG("[*] VAR TYPE NOT CORRECT: varname:%s\n", varname);
-      return (s64) 0;
+u8 eval_bin(dataU first, dataU second, u8 first_type, u8 second_type, dataU *res, opE op, u8 integer_type) {
+  if(first_type == STRING) {
+    switch(second_type) {
+      case STRING:
+        return eval_string(first.string, second.string, res, op);
+      default:
+        error_g = EVAL_INTERNAL_ERROR;
+        ERROR("[!] EVAL - eval_bin: operation between string and other type\n");
+        return EVAL_ERROR;
+    }
+  }
+  else if(first_type == INTEGER) {
+    switch(second_type) {
+      case INTEGER:
+        return eval_int(first.integer, second.integer, res, op);
+      case FLOATING_POINT:
+        return eval_int(first.integer, (s64)second.floating_point, res, op);
+      case BOOLEAN:
+        return eval_int(first.integer, (s64)second.boolean, res, op);
+      default:
+        error_g = EVAL_INTERNAL_ERROR;
+        ERROR("[!] EVAL - eval_bin: operation between integer and type that dont match\n");
+        return EVAL_ERROR;
+    }
+  }
+  else if(first_type == FLOATING_POINT) {
+    switch(second_type) {
+      case FLOATING_POINT:
+        if(integer_type){
+          return eval_int((s64)first.floating_point, (s64)second.floating_point, res, op);
+        }
+        return eval_double(first.floating_point, second.floating_point, res, op);
+      case INTEGER:
+        return eval_int((s64)first.floating_point, second.integer, res, op);
+      case BOOLEAN:
+        return eval_double(first.floating_point, (double)second.boolean, res, op);
+      default:
+        error_g = EVAL_INTERNAL_ERROR;
+        ERROR("[!] EVAL - eval_bin: operation between floating_point and type that dont match\n");
+        return EVAL_ERROR;
+    }
+  }
+  else if(first_type == BOOLEAN) {
+    switch(second_type) {
+      case INTEGER:
+        return eval_int((s64)first.boolean, second.integer, res, op);
+      case FLOATING_POINT:
+        return eval_double((double)first.boolean, second.floating_point, res, op);
+      case BOOLEAN:
+        return eval_int((s64)first.boolean, (s64)second.boolean, res, op);
+      default:
+        error_g = EVAL_INTERNAL_ERROR;
+        ERROR("[!] EVAL - eval_bin: operation between boolean and type that dont match\n");
+        return EVAL_ERROR;
+    }
+  }
+  else {
+    error_g = EVAL_INTERNAL_ERROR;
+    ERROR("[!] EVAL - eval_bin: type of operand is invalid\n");
+    return EVAL_ERROR;
   }
 }
-
-s64 eval_int_expr(Session *s, char** expr) {
-  DEBUG("[*] EVAL INT EXPR:  %s\n", *expr);
-  EvalStack eval_stack = init_EvalStack();
-  ExprData expr_data = transform(expr);
+/*zwracanie stringów*/
+u8 eval_expr(sessionS *s, char** expr, variableDataU *result) {
+  exprDataS expr_data = init_exprDataS();
+  u8 integer_type = transform(s, expr, &expr_data);
+  print_exprDataS(&expr_data);
+  if(integer_type == EVAL_ERROR){
+    return EVAL_ERROR;
+  }
+  exprDataS eval_stack = init_exprDataS();
   u8 expr_number = expr_data.expr_number;
+  dataU second;
+  dataU first;
+  dataU res;
   for(u8 i = 0; i < expr_number; i++){
-    if(isdigit(*expr_data.expr[i]) || is_negative(expr_data.expr[i])){
-      push_EvalStack(&eval_stack, atoi(expr_data.expr[i]));
+    u8 type = expr_data.types[i];
+    /* dodać negację */
+    if(type == OPERATOR){
+      u8 second_type = pop_exprDataS(&eval_stack, &second);
+      u8 first_type = pop_exprDataS(&eval_stack, &first);
+      type = eval_bin(first, second, first_type, second_type, &res, expr_data.exprs[i].op, integer_type);
+      push_exprDataS(&eval_stack, res, type);
     }
-    else if(isalpha(*expr_data.expr[i])) {
-      push_EvalStack(&eval_stack, eval_var(s, expr_data.expr[i]));
+    else{
+      push_exprDataS(&eval_stack, expr_data.exprs[i], type);
     }
-    else if(isoperator(*expr_data.expr[i])) {
-      s64 second = pop_EvalStack(&eval_stack);
-      s64 first = pop_EvalStack(&eval_stack);
-      push_EvalStack(&eval_stack, eval_bin(first, second, *expr_data.expr[i]));
+    if(error_g){
+      return EVAL_ERROR;
     }
   }
-  free_ExprData(&expr_data);
-  s64 res = pop_EvalStack(&eval_stack);
-  DEBUG("[*] EVAL RESULT = %ld \n", res);
-  return res;
+  free_exprDataS(&expr_data);
+  return pop_result(&eval_stack, result);
 }

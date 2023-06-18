@@ -130,7 +130,7 @@ char* consume_whitespaces(char* cmd) {
 }
 
 
-void execute_command(Session* env, char* cmd) {
+void execute_command(sessionS* env, char* cmd) {
 
   DEBUG("[*] execute_command(%s)\n", cmd);
 
@@ -157,7 +157,7 @@ void execute_command(Session* env, char* cmd) {
   add_instruction(env, ln, instrbuf);
 }
 
-void interprete_command(Session* env, char* cmd, u64 line_number) {
+void interprete_command(sessionS* env, char* cmd, u64 line_number) {
   char buf[32];
   cmd = consume_whitespaces(cmd);
   tokenE tok = get_next_token(cmd, buf);

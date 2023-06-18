@@ -13,5 +13,6 @@ void strncpy(char *dest, const char *src, size_t n);
 
 s64 str2s64(char* str);
 u8 is_valid_varname(char* cmd);
+u8 strcmp(char *str1, char *str2);
 
 #endif /* _BUTILS_H */

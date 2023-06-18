@@ -96,3 +96,16 @@ u8 is_valid_varname(char* cmd) {
   // valid varname of max length (eq 7)
   return 7;
 }
+
+u8 strcmp(char *str1, char *str2) {
+  u8 i = 0;
+  for(; str1[i] != '\0' && str2[i] != '\0'; i++) {
+    if(str1[i] != str2[i]){
+      return 1;
+    }
+  }
+  if(str1[i] == '\0' && str2[i] == '\0'){
+    return 0;
+  }
+  return 1;
+}
