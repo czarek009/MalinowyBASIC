@@ -132,6 +132,7 @@ void delete_single_instruction(Session *s, u64 line_number);
 void delete_all_instructions(Session *s);
 void print_instructions(Session *s);
 void run_program(Session *s);
+u64 get_next_instr_line(Session *s, u64 ln);
 
 void session_end(Session *s);
 

@@ -114,13 +114,19 @@ u64 get_str_len(char* cmd) {
 tokenE get_next_token(char* cmd, char* dest) {
   DEBUG("[*] get_next_token(%s)\n", cmd);
 
-  if (isdigit(*cmd)) {
-    /* jeszcze znaki +- */
-    /* a w ogóle to czyta tylko jedną cyfrę */
-    dest[0] = *cmd;
-    dest[1] = '\0';
-    DEBUG(" 1 token read = \"%s\"\n", dest);
-    return TOK_NUMBER;
+  if (isdigit(*cmd) || *cmd == '-' || *cmd == '+') {
+    dest[0] = cmd[0];
+    int i = 1;
+    for (; isdigit(cmd[i]); ++i) {
+      dest[i] = cmd[i];
+    }
+    dest[i] = '\0';
+    if (isin(cmd[i], " +-*/=<>") || cmd[i] == '\0') {
+      DEBUG(" 1 token read = \"%s\"\n", dest);
+      return TOK_NUMBER;
+    }
+    ERROR(" this should be a number, bud idk what this is '%c'\n", cmd[i]);
+    return TOK_ERROR;
   }
 
   for (tokenS* t = tokens; t->tok_id != TOK_NONE; ++t) {
@@ -162,7 +168,7 @@ void execute_command(Session* env, char* cmd) {
 
   if (ln == ~0) {
     DEBUG("   no line number\n", 0);
-    interprete_command(env, cmd);
+    interprete_command(env, cmd, 0);
     return;
   }
   while (isdigit(*cmd)) {
@@ -180,7 +186,7 @@ void execute_command(Session* env, char* cmd) {
   add_instruction(env, ln, instrbuf);
 }
 
-void interprete_command(Session* env, char* cmd) {
+void interprete_command(Session* env, char* cmd, u64 line_number) {
   char buf[32];
   cmd = consume_whitespaces(cmd);
   tokenE tok = get_next_token(cmd, buf);
@@ -214,6 +220,18 @@ void interprete_command(Session* env, char* cmd) {
 
     case TOK_MEM:
       print_memory_map();
+      break;
+
+    case TOK_GOTO:
+      goto_instr(env, cmd);
+      break;
+
+    case TOK_GOSUB:
+      gosub_instr(env, cmd, line_number);
+      break;
+
+    case TOK_RETURN:
+      return_instr(env, cmd);
       break;
     
     default:

@@ -90,7 +90,7 @@ char* consume_whitespaces(char* cmd);
 u64 get_str_len(char* cmd);
 
 void execute_command(Session* env, char* cmd);
-void interprete_command(Session* env, char* cmd);
+void interprete_command(Session* env, char* cmd, u64 line_number);
 
 
 #endif /* _INTERPRETER_H */

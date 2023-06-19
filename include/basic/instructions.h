@@ -7,5 +7,8 @@
 void let_instr(Session* env, char* cmd);
 void print_instr(Session* env, char* cmd);
 void input_instr(Session* env, char* cmd);
+void goto_instr(Session* env, char* cmd);
+void gosub_instr(Session* env, char* cmd, u64 ln);
+void return_instr(Session* env, char* cmd);
 
 #endif /* _INSTRUCTIONS_H */
