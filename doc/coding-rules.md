@@ -57,8 +57,8 @@
     - All data types names shall begin with lowercase letters and each next word
       shall begin with uppercase letters (no undersores).
     - Structures, enums and unions shall end with `S`, `E` and `U` respectively.
-    - The name of all public data types shall be prefixed with their module name
-      and an underscore.
+    - The name of all public data types, global variables and defines shall be
+      prefixed with their module name and an underscore.
 
 ### 4. Variables:
 4.1 Naming conventions:
@@ -66,10 +66,11 @@
     - No variable name shall be longer than 31 characters.
     - No variable name shall contain any uppercase letters.
     - Underscores shall be used to separate words in variable names.
-    - The names of any pointer variables shall end with `_p`
-    - The names of any global variables shall end with `_g`
 4.2 Rules:
     - All variables should be initialized at declaration.
     - Each variable should be defined in separate line.
     - All variables should have minimal required scope.
-    - All local variables should be defined at the top of their scope.
+
+### 5. General rules:
+    - Use two spaces instead tab to indent code.
+    - All test functions should be in separate test file that can be included in main
