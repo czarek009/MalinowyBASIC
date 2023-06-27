@@ -187,12 +187,26 @@ void add_boolean_variable(sessionS *s, bool data, char *name) {
 
 void add_string_variable(sessionS *s, char *data, char *name) {
   variableDataU var_data;
-  var_data.string = data;
+  size_t size = strlen(data);
+  char *str = malloc(size + 1);
+  memcpy(str, data, size);
+  str[size] = '\0';
+  var_data.string = str;
   check_and_add_variable(s, var_data, name, STRING);
 }
 
+void delete_all_variables(sessionS *s) {
+  variableS var;
+  for(u8 i = 0; i < s->metadata.variables_number; i++){
+    var = s->variables[i];
+    if (var.type == STRING) {
+      free(var.data.string);
+    }
+  }
+}
+
 void print_variables(sessionS *s) {
-  printf("variableSs:\n");
+  printf("variables:\n");
   variableS var;
   for(u8 i = 0; i < s->metadata.variables_number; i++){
     var = s->variables[i];
@@ -355,7 +369,8 @@ u64 get_next_instr_line(sessionS *s, u64 ln) {
 }
 
 void session_end(sessionS *s) {
-    delete_all_instructions(s);
-    free(s);
-    DEBUG("Session end\n");
+  delete_all_instructions(s);
+  delete_all_variables(s);
+  free(s);
+  DEBUG("sessionS end\n");
 }
