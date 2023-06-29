@@ -114,7 +114,7 @@ void print_instr_eval(variableDataU *eval_res, u8 eval_type) {
       printf("%ld", eval_res->integer);
       break;
     case FLOATING_POINT:
-      printf("%f", eval_res->floating_point);
+      printf("%ld", eval_res->floating_point);
       break;
     case BOOLEAN:
       printf("%s", (eval_res->boolean ? "true" : "false"));
