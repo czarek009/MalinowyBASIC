@@ -65,10 +65,6 @@ void let_instr(sessionS* env, char* cmd) {
     ERROR("[!] Invalid token: %s\n", buf);
     return;
   }
-  // if (tok != TOK_NUMBER) {
-  //   ERROR("[!] LET supports only numbers\n");
-  //   return;
-  // }
   variableDataU value;
   s8 value_type = eval_expr(env, &cmd, &value);
   cmd += strlen(buf);

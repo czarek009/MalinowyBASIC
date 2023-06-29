@@ -147,17 +147,78 @@ void print_opE(opE op) {
   }
 }
 
-s64 poww(s64 first, s64 second) {
-  s64 res = 1;
-  while(second > 0) {
-    if(second%2){
-      res *= first;
+double powfu(double x, u64 p) {
+  double result = 1;
+  while (p > 0) {
+    if (p & 0x1) {
+      result *= x;
     }
-    first *= first;
-    second >>= 1;
+    x *= x;
+    p >>= 1;
   }
-  return res;
+  return result;
 }
+
+double powfi(double x, s64 p) {
+  if (p < 0) {
+    return 1.0 / powfu(x , (u64)(-1 * p));
+  }
+  return powfu(x, p);
+}
+
+/*
+
+double fact2(u8 n) {
+  if (n < 0 || n >= 172) return 0;
+  double result = 1;
+  for (u8 i = 2; i <= n; i++) {
+    result *= i;
+  }
+  return result;
+}
+
+double exp2(double x) {
+  if (x < 0) return 0;
+  double result = 0;
+  for (u8 n = 0; n < 100; n++) {
+    result += powfi(x, n) / fact2(n);
+  }
+  return result;
+}
+
+double ln2(double x) {
+  if (x <= 0) return 0;
+
+  double result = 0;
+  for (u32 n = 1; n < 1000; n++) {
+    result += powfu((x-1)/(x+1), 2*n-1)/(2*n-1);
+  }
+  return 2*result;
+}
+
+double powff(double x, double p) {
+  if (x <= 0) return 0;
+
+  bool neg_p = 0;
+  if (p < 0.0) {
+    p = (-1.0 * p);
+    neg_p = 1;
+  }
+
+  s64 int_power = (s64)p;
+
+  double int_pow_result = powfi(x, int_power);
+
+  double remaining_power = p - int_power;
+  double remaining_result = exp2(remaining_power*ln2(x));
+  double result = int_pow_result * remaining_result;
+  if(neg_p){
+    result = 1.0 / result;
+  }
+  return result;
+}
+
+*/
 
 /* EVAL INT*/
 u8 eval_int(s64 first, s64 second, dataU *res, opE op) {
@@ -181,7 +242,7 @@ u8 eval_int(s64 first, s64 second, dataU *res, opE op) {
       res->integer = first * second;
       return INTEGER;
     case OP_POW:
-      res->integer = poww(first, second);
+      res->integer = (s64)powfi(first, second);
       return INTEGER;
     case OP_MOD:
       res->integer = first % second;
@@ -239,8 +300,7 @@ u8 eval_double(double first, double second, dataU *res, opE op) {
       res->floating_point = first * second;
       return FLOATING_POINT;
     case OP_POW:
-      printf("double not supported in pow\n");
-      res->floating_point = poww(first, second);
+      res->floating_point = powfi(first, (s64)second);
       return FLOATING_POINT;
     case OP_MOD:
       error_g = EVAL_INTERNAL_ERROR;
