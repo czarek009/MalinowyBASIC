@@ -56,7 +56,7 @@ void test_return_sddress_stack(Session *s) {
 void test_variable(Session *s) {
   printf("\nVARIABLE TEST\n");
   add_integer_variable(s, (s32)23, "int");
-  add_floating_point_variable(s, (float)35.0, "float");
+  add_floating_point_variable(s, (double)35.0, "float");
   add_string_variable(s, "data", "string");
   add_boolean_variable(s, true, "bool");
   print_variables(s);
@@ -123,6 +123,8 @@ void main(void){
   }
 
   Session *current_session = session_init();
+
+  add_floating_point_variable(current_session, 69.9999, "check");
 
   while (1) {
     char buf[256] = {0};

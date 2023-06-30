@@ -85,7 +85,7 @@ typedef struct Metadata {
 typedef union VariableData {
     u64 *pointer;
     s32 integer;
-    u64 floating_point;
+    double floating_point;
     bool boolean;
     char *string;
 } VariableData;
@@ -121,7 +121,7 @@ void print_return_address_stack(Session *s);
 Variable *get_variable_ptr(Session *s, char* name);
 u8 get_variable_value(Session *s, char* name, VariableData *var_data);
 void add_integer_variable(Session *s, s32 data, char *name);
-void add_floating_point_variable(Session *s, float data, char *name);
+void add_floating_point_variable(Session *s, double data, char *name);
 void add_boolean_variable(Session *s, bool data, char *name);
 void add_instruction(Session *s, u64 line_number, char *instruction);
 void add_string_variable(Session *s, char *data, char *name);

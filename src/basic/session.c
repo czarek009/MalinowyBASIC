@@ -158,7 +158,7 @@ void add_integer_variable(Session *s, s32 data, char *name) {
     check_and_add_variable(s, var_data, name, INTEGER);
 }
 
-void add_floating_point_variable(Session *s, float data, char *name) {
+void add_floating_point_variable(Session *s, double data, char *name) {
     VariableData var_data;
     var_data.floating_point = data;
     check_and_add_variable(s, var_data, name, FLOATING_POINT);
