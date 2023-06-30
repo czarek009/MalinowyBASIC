@@ -166,8 +166,6 @@ double powfi(double x, s64 p) {
   return powfu(x, p);
 }
 
-/*
-
 double fact2(u8 n) {
   if (n < 0 || n >= 172) return 0;
   double result = 1;
@@ -197,7 +195,7 @@ double ln2(double x) {
 }
 
 double powff(double x, double p) {
-  if (x <= 0) return 0;
+  if (x <= 0.0) return 0.0;
 
   bool neg_p = 0;
   if (p < 0.0) {
@@ -218,7 +216,6 @@ double powff(double x, double p) {
   return result;
 }
 
-*/
 
 /* EVAL INT*/
 u8 eval_int(s64 first, s64 second, dataU *res, opE op) {
@@ -300,7 +297,7 @@ u8 eval_double(double first, double second, dataU *res, opE op) {
       res->floating_point = first * second;
       return FLOATING_POINT;
     case OP_POW:
-      res->floating_point = powfi(first, (s64)second);
+      res->floating_point = powff(first, second);
       return FLOATING_POINT;
     case OP_MOD:
       error_g = EVAL_INTERNAL_ERROR;
