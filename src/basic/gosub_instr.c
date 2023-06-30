@@ -8,7 +8,7 @@
 #include "io.h"
 
 
-void gosub_instr(Session* env, char* cmd, u64 ln) {
+void gosub_instr(sessionS* env, char* cmd, u64 ln) {
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
 
@@ -33,7 +33,7 @@ void gosub_instr(Session* env, char* cmd, u64 ln) {
   set_jump_flag(env, jump_addr);
 }
 
-void return_instr(Session* env, char* cmd) {
+void return_instr(sessionS* env, char* cmd) {
   u64 ln = pop_return_address_from_stack(env);
   set_jump_flag(env, ln);
 }

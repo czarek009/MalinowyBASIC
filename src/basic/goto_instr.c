@@ -8,7 +8,7 @@
 #include "io.h"
 
 
-void goto_instr(Session* env, char* cmd) {
+void goto_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
 

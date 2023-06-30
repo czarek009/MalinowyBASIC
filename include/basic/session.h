@@ -117,7 +117,7 @@ void delete_all_instructions(sessionS *s);
 void print_instructions(sessionS *s);
 void run_program(sessionS *s);
 
-u64 get_next_instr_line(sessionS *s, u64 ln)
+u64 get_next_instr_line(sessionS *s, u64 ln);
 
 void session_end(sessionS *s);
 

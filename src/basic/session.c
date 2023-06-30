@@ -343,7 +343,7 @@ void print_instructions(sessionS *s) {
 void run_program(sessionS *s) {
   instructionS *node = s->metadata.instructions_start;
   while(node != NULL){
-    interprete_command(s, node->instruction);
+    interprete_command(s, node->instruction, node->line_number);
     if(s->metadata.jump_flag != 0){
       node = find_instruction(s->metadata.instructions_start, s->metadata.jump_flag);
       s->metadata.jump_flag = 0;
@@ -355,17 +355,17 @@ void run_program(sessionS *s) {
 }
 
 u64 get_next_instr_line(sessionS *s, u64 ln) {
-    Node *node = s->metadata.instructions_start;
-    while(node != NULL){
-        if (node->line_number == ln) {
-            if (node->next != NULL) {
-                return node->next->line_number;
-            }
-            return 0;
-        }
-        node = node->next;
+  instructionS *node = s->metadata.instructions_start;
+  while(node != NULL){
+    if (node->line_number == ln) {
+      if (node->next != NULL) {
+        return node->next->line_number;
+      }
+      return 0;
     }
-    return 0;
+    node = node->next;
+  }
+  return 0;
 }
 
 void session_end(sessionS *s) {
