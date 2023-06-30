@@ -577,7 +577,7 @@ void print_exprDataS(exprDataS *expr_data) {
         printf("%ld ", expr_data->exprs[i].integer);
         break;
       case FLOATING_POINT:
-        printf("%f ", expr_data->exprs[i].floating_point);
+        printf("%ld ", (s64)(expr_data->exprs[i].floating_point));
         break;
       case BOOLEAN:
         if(expr_data->exprs[i].boolean) {

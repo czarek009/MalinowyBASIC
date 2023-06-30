@@ -215,7 +215,7 @@ void print_variables(sessionS *s) {
         printf("int %s = %ld\n", var.name, var.data.integer);
         break;
       case FLOATING_POINT:
-        printf("float %s = %ld\n", var.name, var.data.floating_point);
+        printf("float %s = %ld\n", var.name, (s64)(var.data.floating_point));
         break;
       case BOOLEAN:
         if (var.data.boolean) {
