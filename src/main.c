@@ -30,7 +30,7 @@ void putc(void *p, char c) {
   uart_send(c);
 }
 
-void test_data_stack(Session *s) {
+void test_data_stack(sessionS *s) {
   printf("\nDATA STACK TEST\n");
   push_data_to_stack(s, (s32)666);
   push_data_to_stack(s, (s32)69);
@@ -43,7 +43,7 @@ void test_data_stack(Session *s) {
   printf("pop = %d\n", pop_data_from_stack(s));
 }
 
-void test_return_sddress_stack(Session *s) {
+void test_return_sddress_stack(sessionS *s) {
   printf("\nRETURN ADDRESS STACK TEST\n");
   push_return_address_to_stack(s, (u64)2347878);
   push_return_address_to_stack(s, (u64)222);
@@ -53,20 +53,22 @@ void test_return_sddress_stack(Session *s) {
   printf("pop = %d\n", pop_return_address_from_stack(s));
 }
 
-void test_variable(Session *s) {
+void test_variable(sessionS *s) {
   printf("\nVARIABLE TEST\n");
   add_integer_variable(s, (s32)23, "int");
   add_floating_point_variable(s, (double)35.0, "float");
+  add_integer_variable(s, (s64)23, "int");
+  add_floating_point_variable(s, (float)35.0, "float");
   add_string_variable(s, "data", "string");
   add_boolean_variable(s, true, "bool");
   print_variables(s);
 
   printf("adding variable with the same name (float)\n");
-  add_integer_variable(s, (s32)69, "float");
+  add_integer_variable(s, (s64)69, "float");
   print_variables(s);
 }
 
-void test_instructions(Session *s) {
+void test_instructions(sessionS *s) {
   printf("\nINSTRUCTIONS TEST\n");
   add_instruction(s, (u64)5, "let y = x + 1");
   add_instruction(s, (u64)1, "let x = 1");
@@ -122,7 +124,7 @@ void main(void){
     delay(1000);
   }
 
-  Session *current_session = session_init();
+  sessionS *current_session = session_init();
 
   add_floating_point_variable(current_session, 69.9999, "check");
 

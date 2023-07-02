@@ -73,35 +73,6 @@ u64 get_line_number(char* cmd) {
   return out;
 }
 
-u8 is_valid_varname(char* cmd) {
-  /*
-   * Check if a valid variable name starts at *cmd
-   *
-   * Args:
-   *   cmd - sting that contains a basic command
-   *
-   * Return:
-   *   If *cmd contains first character of a valid variable name, return its length
-   *   returns 0 otherwise
-   */
-  if (!isalpha(*cmd)) {
-    // must start with a letter
-    return 0;
-  }
-  for (int i=1; i<7; ++i) {
-    if (!isalphanum(cmd[i])) {
-      // if non alphanum character occurs then varname lenght is less than 7, return it
-      return i;
-    }
-  }
-  if (isalphanum(cmd[7])) {
-    // varname too long
-    return 0;
-  }
-  // valid varname of max length (eq 7)
-  return 7;
-}
-
 u64 get_str_len(char* cmd) {
   u64 len = 0;
   for (int i=0; cmd[i] != '"' && cmd[i] != '\0'; ++i,++len) {
@@ -159,7 +130,7 @@ char* consume_whitespaces(char* cmd) {
 }
 
 
-void execute_command(Session* env, char* cmd) {
+void execute_command(sessionS* env, char* cmd) {
 
   DEBUG("[*] execute_command(%s)\n", cmd);
 
@@ -186,7 +157,7 @@ void execute_command(Session* env, char* cmd) {
   add_instruction(env, ln, instrbuf);
 }
 
-void interprete_command(Session* env, char* cmd, u64 line_number) {
+void interprete_command(sessionS* env, char* cmd, u64 line_number) {
   char buf[32];
   cmd = consume_whitespaces(cmd);
   tokenE tok = get_next_token(cmd, buf);

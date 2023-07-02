@@ -10,7 +10,7 @@
 
 char* print_prompt(char* cmd);
 
-void input_instr(Session* env, char* cmd) {
+void input_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   char varname[8] = {0};
   tokenE tok = TOK_NONE;
