@@ -82,7 +82,6 @@ typedef union VariableData {
     char *string;
 } VariableData;
 
-typedef struct Variable {
 typedef struct variableS {
     char name[7];
     u8 type;
