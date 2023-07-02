@@ -6,7 +6,7 @@
 #include "mm.h"
 
 
-void let_instr(Session* env, char* cmd) {
+void let_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   char varname[8] = {0};
   bool isStr = false;
@@ -65,16 +65,10 @@ void let_instr(Session* env, char* cmd) {
     ERROR("[!] Invalid token: %s\n", buf);
     return;
   }
-  if (tok != TOK_NUMBER) {
-    ERROR("[!] LET supports only numbers\n");
-    return;
-  }
-  s64 value = str2s64(cmd);
+  variableDataU value;
+  s8 value_type = eval_expr(env, &cmd, &value);
   cmd += strlen(buf);
   cmd = consume_whitespaces(cmd);
-
-  // add_variable(env, value, TYPE);
-  DEBUG("[*] Add variable %s = %ld\n", varname, value);
-  add_integer_variable(env, (s32)value, varname);
+  add_variable(env, value, varname, value_type);
   return;
 }

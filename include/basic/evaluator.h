@@ -3,12 +3,8 @@
 
 #include "types.h"
 #include "session.h"
+#include "variable.h"
 
-void get_expression_type(char* expr);
-s64 eval_int_expr(char* expr);
-float eval_float_expr(char* expr);
-bool eval_bool_expr(Session* env, char* expr);
-void eval_expr(void*, char* expr);
+u8 eval_expr(sessionS *s, char** expr, variableDataU *result);
 
-
-#endif /* _INTERPRETER_H */
+#endif /* _EVALUATOR_H */
