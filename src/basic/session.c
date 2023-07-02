@@ -205,55 +205,23 @@ void delete_all_variables(sessionS *s) {
   }
 }
 
-void add_integer_variable(Session *s, s32 data, char *name) {
-    VariableData var_data;
-    var_data.integer = data;
-    check_and_add_variable(s, var_data, name, INTEGER);
-}
-
-void add_floating_point_variable(Session *s, double data, char *name) {
-    VariableData var_data;
-    var_data.floating_point = data;
-    check_and_add_variable(s, var_data, name, FLOATING_POINT);
-}
-
-void add_boolean_variable(Session *s, bool data, char *name) {
-    VariableData var_data;
-    var_data.boolean = data;
-    check_and_add_variable(s, var_data, name, BOOLEAN);
-}
-
-void add_string_variable(Session *s, char *data, char *name) {
-    VariableData var_data;
-    var_data.string = data;
-    check_and_add_variable(s, var_data, name, STRING);
-}
-
-void print_variables(Session *s) {
-    printf("Variables:\n");
-    Variable var;
-    for(u8 i = 0; i < s->metadata.variables_number; i++){
-        var = s->variables[i];
-        switch(var.type) {
-            case INTEGER:
-                printf("int %s = %d\n", var.name, var.data.integer);
-                break;
-            case FLOATING_POINT:
-                printf("float %s = %f\n", var.name, var.data.floating_point);
-                break;
-            case BOOLEAN:
-                if (var.data.boolean) {
-                    printf("bool %s = true\n", var.name);
-                } else {
-                    printf("bool %s = false\n", var.name);
-                }
-                break;
-            case STRING:
-                printf("string %s = %s\n", var.name, var.data);
-                break;
-            default:
-                printf("not supporting yet\n");
-                break;
+void print_variables(sessionS *s) {
+  printf("variables:\n");
+  variableS var;
+  for(u8 i = 0; i < s->metadata.variables_number; i++){
+    var = s->variables[i];
+    switch(var.type) {
+      case INTEGER:
+        printf("int %s = %ld\n", var.name, var.data.integer);
+        break;
+      case FLOATING_POINT:
+        printf("float %s = %f\n", var.name, (s64)(var.data.floating_point));
+        break;
+      case BOOLEAN:
+        if (var.data.boolean) {
+          printf("bool %s = true\n", var.name);
+        } else {
+          printf("bool %s = false\n", var.name);
         }
         break;
       case STRING:
@@ -265,6 +233,7 @@ void print_variables(Session *s) {
     }
   }
 }
+
 
 /* INSTRUCTIONS */
 instructionS *create_node(instructionS *previous, instructionS *next, u64 line_number, char *instruction) {
