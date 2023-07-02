@@ -52,7 +52,7 @@ static void li2a (long num, char * bf) {
 
 #endif
 
-static void ui2a(unsigned int num, unsigned int base, int uc,char * bf) {
+static int ui2a(unsigned int num, unsigned int base, int uc,char * bf) {
   int n=0;
   unsigned int d=1;
   while (num/d >= base)
@@ -67,6 +67,7 @@ static void ui2a(unsigned int num, unsigned int base, int uc,char * bf) {
     }
   }
   *bf=0;
+  return n;
 }
 
 static void i2a (int num, char * bf) {
@@ -75,6 +76,43 @@ static void i2a (int num, char * bf) {
     *bf++ = '-';
   }
   ui2a(num,10,0,bf);
+}
+
+static void f2a(double num, char *bf) {
+  if(num < 0) {
+    num = -num;
+    *bf++ = '-';
+  }
+
+  unsigned int int_num = (unsigned int) num;
+  int precision = 1000000;
+  double rest = (num - int_num) * precision;
+  int round = ((int)(rest * 10.0) % 10) < 5 ? 0 : 1;
+  int i_rest = (int)(rest) + round;
+
+  if(i_rest >= precision){
+    int_num++;
+    i_rest = 0;
+  }
+  int len = ui2a(int_num, 10, 0, bf);
+  bf += len;
+  *bf++ = '.';
+
+  if(i_rest){
+    precision /= 10;
+    while(i_rest < precision){
+      *bf++ = '0';
+      precision /= 10;
+    }
+    ui2a(i_rest, 10, 0, bf);
+  }
+  else{
+    while(precision > 1){
+      *bf++ = '0';
+      precision /=10;
+    }
+    *bf = 0;
+  }
 }
 
 static int a2d(char ch) {
@@ -115,7 +153,7 @@ static void putchw(void* putp,putcf putf,int n, char z, char* bf) {
 }
 
 void tfp_format(void* putp,putcf putf,char *fmt, va_list va) {
-  char bf[12];
+  char bf[24];
 
   char ch;
 
@@ -163,6 +201,11 @@ void tfp_format(void* putp,putcf putf,char *fmt, va_list va) {
           else
 #endif
             i2a(va_arg(va, int),bf);
+          putchw(putp,putf,w,lz,bf);
+          break;
+        }
+        case 'f' : {
+          f2a(va_arg(va, double), bf);
           putchw(putp,putf,w,lz,bf);
           break;
         }

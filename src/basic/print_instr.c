@@ -92,7 +92,11 @@ char* print_instr_var(Session* env, char* cmd, char* varname) {
     case STRING:
       printf(vardata.string);
       break;
-    
+
+    case FLOATING_POINT:
+      printf("%f", vardata.floating_point);
+      break;
+
     default:
       ERROR("[!] Frobidden vartype in PRINT!\n");
       break;
