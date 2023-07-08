@@ -4,6 +4,7 @@
 #include "mm.h"
 #include "types.h"
 #include "variable.h"
+#include "debug.h"
 
 /*
 
@@ -30,13 +31,6 @@ types:
  - pointer to array
 
 */
-
-// #define DEBUG_MODE 1
-#if DEBUG_MODE
-#define DEBUG(...)  printf(__VA_ARGS__)
-#else
-#define DEBUG(...)
-#endif
 
 #define RET_ADDR_STACK_SIZE        256
 #define RET_ADDR_STACK_MAX_FIELD  (RET_ADDR_STACK_SIZE / sizeof(u64)) - 1

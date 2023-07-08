@@ -4,14 +4,7 @@
 #include "session.h"
 #include "types.h"
 #include "printf.h"
-
-#define ERROR(...)  printf(__VA_ARGS__)
-// #define DEBUG_MODE 1
-#if DEBUG_MODE
-#define DEBUG(...)  printf(__VA_ARGS__)
-#else
-#define DEBUG(...)
-#endif
+#include "debug.h"
 
 
 enum errorE {
