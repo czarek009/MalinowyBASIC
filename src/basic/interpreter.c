@@ -92,7 +92,7 @@ tokenE get_next_token(char* cmd, char* dest) {
       dest[i] = cmd[i];
     }
     dest[i] = '\0';
-    if (isin(cmd[i], " +-*/=<>") || cmd[i] == '\0') {
+    if (isin(cmd[i], " +-*/=<>.") || cmd[i] == '\0') {
       DEBUG(" 1 token read = \"%s\"\n", dest);
       return TOK_NUMBER;
     }
