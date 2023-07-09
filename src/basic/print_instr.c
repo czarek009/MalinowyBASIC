@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "parser.h"
 #include "instructions.h"
 #include "session.h"
 #include "evaluator.h"
@@ -18,28 +19,20 @@ void print_instr_eval(variableDataU *eval_res, u8 eval_type);
 void print_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
-  cmd = consume_whitespaces(cmd);
 
-  tok = get_next_token(cmd, buf);
-
+  tok = get_next_token(&cmd, buf, TOK_ANY);
   switch (tok) {
     case TOK_QUOTE:
-      cmd += strlen(buf);
       cmd = print_instr_string(cmd);
       break;
-
     case TOK_VAR:
-      cmd += strlen(buf);
-      cmd = print_instr_var(env, cmd, buf);
-      break;
     case TOK_NUMBER:
     case TOK_LPAREN:
     case TOK_FN:
-      {
-        variableDataU eval_res;
-        u8 eval_type = eval_expr(env, &cmd, &eval_res);
-        print_instr_eval(&eval_res, eval_type);
-      }
+      cmd -= strlen(buf);
+      variableDataU eval_res;
+      u8 eval_type = eval_expr(env, &cmd, &eval_res);
+      print_instr_eval(&eval_res, eval_type);
       break;
 
     case TOK_NONE:
@@ -53,20 +46,17 @@ void print_instr(sessionS* env, char* cmd) {
       break;
   }
 
-  cmd = consume_whitespaces(cmd);
-  tok = get_next_token(cmd, buf);
+  tok = get_next_token(&cmd, buf, TOK_ANY);
   if (tok == TOK_COMMA) {
-    cmd += strlen(buf);
-    cmd = consume_whitespaces(cmd);
     printf("\n");
-  }
-  if (tok == TOK_SEMICOLON) {
-    cmd += strlen(buf);
-    cmd = consume_whitespaces(cmd);
-  }
-  if (tok == TOK_NONE || tok == TOK_ERROR) {
+  } else if (tok == TOK_SEMICOLON) {
+    /* nothing */
+  } else if (tok == TOK_NONE || tok == TOK_ERROR) {
+    /* end of instruction */
     printf("\n");
     return;
+  } else {
+    cmd -= strlen(buf);
   }
   print_instr(env, cmd);
 }

@@ -1,5 +1,6 @@
 #include "instructions.h"
 #include "interpreter.h"
+#include "parser.h"
 #include "evaluator.h"
 #include "session.h"
 #include "butils.h"
@@ -7,68 +8,49 @@
 
 
 void let_instr(sessionS* env, char* cmd) {
-  char buf[32] = {0};
   char varname[8] = {0};
+  char buf[32] = {0};
   bool isStr = false;
-
   tokenE tok = TOK_NONE;
-  cmd = consume_whitespaces(cmd);
 
   /* varname */
-  tok = get_next_token(cmd, buf);
-  if (tok != TOK_VAR) {
-    ERROR("[!] Invalid token: %s\n", buf);
-    return;
-  }
-  cmd += strlen(buf);
-  cmd = consume_whitespaces(cmd);
+  tok = get_next_token(&cmd, buf, TOK_VAR); // copy straight to varname instead buf?
+  if (tok == TOK_ERROR) return; // PARSING ERROR
   strncpy(varname, buf, 8);
 
-  /* $ */
-  tok = get_next_token(cmd, buf);
+  /* $ = */
+  tok = get_next_token(&cmd, buf, TOK_ANY);
   if (tok == TOK_DOLAR) {
-    cmd += strlen(buf);
-    cmd = consume_whitespaces(cmd);
     isStr = true;
+    tok = get_next_token(&cmd, buf, TOK_EQ);
+    if (tok == TOK_ERROR) return; // PARSING ERROR
+  } else if (tok != TOK_EQ) {
+    return; // PARSING ERROR
   }
-
-  /* = */
-  tok = get_next_token(cmd, buf);
-  if (tok != TOK_EQ) {
-    ERROR("[!] Invalid token: %s\n", buf);
-    return;
-  }
-  cmd += strlen(buf);
-  cmd = consume_whitespaces(cmd);
 
   /* value */
-  /* string */
-  tok = get_next_token(cmd, buf);
   if (isStr) {
-    if (tok != TOK_QUOTE) {
-      ERROR("[!] Expected string: %s\n", buf);
-      return;
-    }
-    ++cmd;
-    u64 len = get_str_len(cmd);
-    strncpy(buf, cmd, len);
-    buf[len] = '\0';
-    cmd += len+2;
-
-    DEBUG("[*] Add string variable %s = %s\n", varname, buf);
+    /* string */ 
+    tok = get_next_token(&cmd, buf, TOK_QUOTE);
+    if (tok == TOK_ERROR) return; // PARSING ERROR
+    get_const_str(&cmd, buf);
     add_string_variable(env, buf, varname);
-    return;
+  } else {
+    /* number */
+    tok = get_next_token(&cmd, buf, TOK_ANY);
+    if (tok != TOK_NUMBER && tok != TOK_LPAREN && tok != TOK_VAR && tok != TOK_FN) {
+      return; // PARSING ERROR
+    }
+    cmd -= strlen(buf);
+    variableDataU value;
+    s8 value_type = eval_expr(env, &cmd, &value);
+    DEBUG(" value_type: %u\n", (u32)value_type);
+    DEBUG(" value: %ld\n", value.integer);
+    add_variable(env, value, varname, value_type);
   }
 
+  tok = get_next_token(&cmd, buf, TOK_NONE);
+  if (tok == TOK_ERROR) return; // PARSING ERROR
 
-  if (tok != TOK_NUMBER && tok != TOK_LPAREN && tok != TOK_VAR && tok != TOK_FN) {
-    ERROR("[!] Invalid token: %s\n", buf);
-    return;
-  }
-  variableDataU value;
-  s8 value_type = eval_expr(env, &cmd, &value);
-  cmd += strlen(buf);
-  cmd = consume_whitespaces(cmd);
-  add_variable(env, value, varname, value_type);
-  return;
+  return; // SUCCESS
 }
