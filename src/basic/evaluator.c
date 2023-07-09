@@ -3,6 +3,7 @@
 #include "butils.h"
 #include "printf.h"
 #include "mm.h"
+#include "debug.h"
 
 #define ERROR(...)  printf(__VA_ARGS__)
 
@@ -816,6 +817,7 @@ dataU get_str(char **expr, u8 *type) {
 
 
 u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
+  DEBUG(" EVAL EXPRESSION: '%s'\n", *expr);
   exprDataS expr_data = init_exprDataS();
   opStackS op_stack = init_opStackS();
   u8 type = NOT_DECLARED;

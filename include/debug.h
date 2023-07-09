@@ -1,7 +1,7 @@
 #ifndef _DEBUG_H
 #define _DEBUG_H
 
-// #define DEBUG_MODE
+#define DEBUG_MODE
 #ifdef DEBUG_MODE
 #define DEBUG(...)  printf(__VA_ARGS__)
 #else

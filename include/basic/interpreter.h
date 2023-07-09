@@ -18,6 +18,7 @@ enum errorE {
 enum tokenE {
   TOK_NONE,
   TOK_ERROR,
+  TOK_ANY,
 
   TOK_NUMBER,
   TOK_VAR,
@@ -78,9 +79,11 @@ struct tokenS {
 } typedef tokenS;
 
 
-tokenE get_next_token(char* cmd, char* dest);
+void report_error(tokenE expected_token, char* found, char* cmd);
+tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token);
 char* consume_whitespaces(char* cmd);
 u64 get_str_len(char* cmd);
+void get_const_str(char** cmd_p, char* dest);
 
 void execute_command(sessionS* env, char* cmd);
 void interprete_command(sessionS* env, char* cmd, u64 line_number);

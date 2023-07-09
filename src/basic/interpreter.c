@@ -5,6 +5,7 @@
 #include "printf.h"
 #include "types.h"
 #include "mm.h"
+#include "debug.h"
 
 
 tokenS tokens[] = {
@@ -59,6 +60,20 @@ tokenS tokens[] = {
 };
 
 
+char* get_tokname(tokenE tok) {
+  for (tokenS* t = tokens; t->tok_id != TOK_NONE; ++t) {
+    if (t->tok_id == tok) {
+      return t->tok_name;
+    }
+  }
+  return NULL;
+}
+
+void report_error(tokenE expected_token, char* found, char* cmd) {
+  ERROR(" ERROR: expected token '%s' got '%s'\n", get_tokname(expected_token), found);
+  ERROR("        %s\n", cmd);
+}
+
 u64 get_line_number(char* cmd) {
   if (!isdigit(cmd[0])) {
     return ~0;
@@ -81,44 +96,89 @@ u64 get_str_len(char* cmd) {
   return len;
 }
 
+void get_const_str(char** cmd_p, char* dest) {
+  char* cmd = *cmd_p;
+  for (int i=0; cmd[i] != '"' && cmd[i] != '\0'; ++i) {
+    dest[i] = cmd[i];
+    *cmd_p += 1;
+  }
 
-tokenE get_next_token(char* cmd, char* dest) {
+  return;
+}
+
+
+tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
+  *cmd_p = consume_whitespaces(*cmd_p);
+  char* cmd = *cmd_p;
   DEBUG("[*] get_next_token(%s)\n", cmd);
 
+  /* EOL */
+  if (*cmd == '\0') {
+    dest[0] = '\0';
+    if (expected_token != TOK_ANY && expected_token != TOK_NONE) {
+      ERROR("[*] ERROR: unexpected eol\n", 0);
+      return TOK_ERROR;
+    }
+    return TOK_NONE;
+  }
+
+  /* NUMBER */
   if (isdigit(*cmd) || *cmd == '-' || *cmd == '+') {
     dest[0] = cmd[0];
     int i = 1;
-    for (; isdigit(cmd[i]); ++i) {
+    for (; isdigit(cmd[i]) || cmd[i] == '.'; ++i) {
       dest[i] = cmd[i];
     }
     dest[i] = '\0';
-    if (isin(cmd[i], " +-*/=<>.") || cmd[i] == '\0') {
+
+    if (isin(cmd[i], " +-*/=<>") || cmd[i] == '\0') {
       DEBUG(" 1 token read = \"%s\"\n", dest);
+      *cmd_p += i;
+      if (expected_token != TOK_ANY && expected_token != TOK_NUMBER) {
+        report_error(expected_token, "number", cmd);
+        return TOK_ERROR;
+      }
       return TOK_NUMBER;
     }
+
     ERROR(" this should be a number, bud idk what this is '%c'\n", cmd[i]);
+    dest[0] = '\0';
     return TOK_ERROR;
   }
 
+  /* KEYWORD OR OPERATOR */
   for (tokenS* t = tokens; t->tok_id != TOK_NONE; ++t) {
     if (strncmp(cmd, t->tok_name, strlen(t->tok_name)) == 0) {
-      strncpy(dest, cmd, strlen(t->tok_name));
-      dest[strlen(t->tok_name)] = '\0';
+      size_t tok_len = strlen(t->tok_name);
+      strncpy(dest, cmd, tok_len);
+      dest[tok_len] = '\0';
+      *cmd_p += tok_len;
       DEBUG(" 2 token read = \"%s\"\n", dest);
+      if (expected_token != TOK_ANY && expected_token != t->tok_id) {
+        report_error(expected_token, get_tokname(t->tok_id), cmd);
+        return TOK_ERROR;
+      }
       return t->tok_id;
     }
   }
 
+  /* VARIABLE */
   u8 varlen = is_valid_varname(cmd);
   if (varlen) {
     strncpy(dest, cmd, varlen);
     dest[varlen] = '\0';
+    *cmd_p += varlen;
     DEBUG(" 3 token read = \"%s\"\n", dest);
+    if (expected_token != TOK_ANY && expected_token != TOK_VAR) {
+      report_error(expected_token, "variable", cmd);
+      return TOK_ERROR;
+    }
     return TOK_VAR;
   }
 
+  /* UNKNOWN TOKEN */
   dest[0] = '\0';
-  DEBUG("[*] no token\n", 0);
+  ERROR("[*] ERROR: unknown token: %s\n", cmd);
   return TOK_ERROR;
 }
 
@@ -159,10 +219,10 @@ void execute_command(sessionS* env, char* cmd) {
 
 void interprete_command(sessionS* env, char* cmd, u64 line_number) {
   char buf[32];
-  cmd = consume_whitespaces(cmd);
-  tokenE tok = get_next_token(cmd, buf);
-  cmd += strlen(buf);
-  cmd = consume_whitespaces(cmd);
+  // cmd = consume_whitespaces(cmd);
+  tokenE tok = get_next_token(&cmd, buf, TOK_ANY);
+  // cmd += strlen(buf);
+  // cmd = consume_whitespaces(cmd);
 
   switch (tok) {
     case TOK_LET:

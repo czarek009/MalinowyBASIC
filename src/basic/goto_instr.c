@@ -12,21 +12,15 @@ void goto_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
 
-  cmd = consume_whitespaces(cmd);
-  tok = get_next_token(cmd, buf);
-  cmd += strlen(buf);
+  tok = get_next_token(&cmd, buf, TOK_NUMBER);
+  if (tok == TOK_ERROR) return; // PARSING ERROR
 
-  if (tok != TOK_NUMBER) {
-    ERROR(" GOTO: expected number, got '%s'\n", buf);
-    return;
-  }
+  s64 jump_addr = str2s64(buf);
 
-  s64 ln = str2s64(buf);
-
-  if (ln < 1) {
+  if (jump_addr < 1) {
     ERROR("GOTO: line number must be > 0\n");
     return;
   }
 
-  set_jump_flag(env, ln);
+  set_jump_flag(env, jump_addr);
 }

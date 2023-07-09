@@ -11,52 +11,52 @@
 char* print_prompt(char* cmd);
 
 void input_instr(sessionS* env, char* cmd) {
-  char buf[32] = {0};
   char varname[8] = {0};
-  tokenE tok = TOK_NONE;
+  char buf[32] = {0};
   bool isStr = false;
-  cmd = consume_whitespaces(cmd);
+  tokenE tok = TOK_NONE;
 
-  tok = get_next_token(cmd, buf);
-  cmd += strlen(buf);
+  tok = get_next_token(&cmd, buf, TOK_ANY);
+  if (tok == TOK_ERROR) return; // PARSING ERROR
 
   if (tok == TOK_QUOTE) {
+    /* prompt */
     cmd = print_prompt(cmd);
-    cmd = consume_whitespaces(cmd);
-    tok = get_next_token(cmd, buf);
-    cmd += strlen(buf);
-  }
-
-  if (tok != TOK_VAR) {
+    tok = get_next_token(&cmd, buf, TOK_VAR);
+    if (tok == TOK_ERROR) return; // PARSING ERROR
+    strncpy(varname, buf, 8);
+  } else if (tok == TOK_VAR) {
+    /* no prompt */
+    strncpy(varname, buf, 8);
+  } else {
     ERROR("[!] Invalid token in INPUT: %s\n", buf);
-    return;
+    return; // PARSING ERROR
   }
-  strncpy(varname, buf, strlen(buf));
 
-  tok = get_next_token(cmd, buf);
+  tok = get_next_token(&cmd, buf, TOK_ANY);
   if (tok == TOK_DOLAR) {
-    cmd += strlen(buf);
-    cmd = consume_whitespaces(cmd);
     isStr = true;
   }
 
   char input[256];
   readline(input, ":");
-
   DEBUG("[*] INPUT to var %s: %s\n", buf, input);
-
   if (isStr) {
+    /* string */
     u64 len = strlen(input);
     char* vardata = malloc(len+1);
     strncpy(vardata, input, strlen(input));
     vardata[len] = '\0';
     add_string_variable(env, vardata, varname);
-    return;
+  } else {
+    /* number */
+    variableDataU value;
+    s8 value_type = eval_expr(env, &cmd, &value);
+    add_variable(env, value, varname, value_type);
   }
-
-  s64 value = str2s64(input);
-  add_integer_variable(env, value, varname);
+  return;
 }
+
 
 char* print_prompt(char* cmd) {
   DEBUG("[*] print_prompt(%s)\n", cmd);
