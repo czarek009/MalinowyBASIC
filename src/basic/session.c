@@ -1,6 +1,6 @@
+#include "interpreter.h"
 #include "session.h"
 #include "printf.h"
-#include "interpreter.h"
 #include "butils.h"
 
 /* SESSION */
@@ -17,8 +17,8 @@ sessionS *session_init(void) {
   s->metadata.return_address_stackpointer = 0;
   s->metadata.data_stackpointer = 0;
   s->metadata.variables_number = 0;
-  s->metadata.errno = 0;
-  s->metadata.status = NEW;
+  s->metadata.error_code = INTERP_SUCCESS;
+  s->metadata.status = SESSION_NEW;
   s->metadata.jump_flag = 0;
   DEBUG("Init session\n");
   return s;

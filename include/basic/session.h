@@ -5,6 +5,7 @@
 #include "types.h"
 #include "variable.h"
 #include "debug.h"
+#include "interpreter.h"
 
 /*
 
@@ -42,11 +43,11 @@ types:
 #define VARIABLE_NAME_SIZE        7
 
 typedef enum {
-    RUNNING = 0,
-    STOPPED = 1,
-    FINISHED = 2,
-    MODIFIED = 3,
-    NEW = 4
+    SESSION_RUNNING = 0,
+    SESSION_STOPPED = 1,
+    SESSION_FINISHED = 2,
+    SESSION_MODIFIED = 3,
+    SESSION_NEW = 4,
 } sessionStatusE;
 
 typedef struct instructionS {
@@ -59,13 +60,13 @@ typedef struct instructionS {
 typedef struct metadataS {
     instructionS *instructions_start;
     instructionS *instructions_end;
+    interpreterResultE error_code;
+    sessionStatusE status;
+    u64 jump_flag;
     u8 return_address_stackpointer;
     u8 data_stackpointer;
     u8 variables_number;
-    u8 errno;
-    u64 jump_flag;
-    sessionStatusE status;
-    u8 reserved[220];
+    u8 reserved[217];
 } metadataS;
 
 typedef union VariableData {
@@ -118,6 +119,7 @@ void delete_single_instruction(sessionS *s, u64 line_number);
 void delete_all_instructions(sessionS *s);
 void print_instructions(sessionS *s);
 void run_program(sessionS *s);
+void set_error_code(sessionS *s, interpreterResultE error_code);
 
 u64 get_next_instr_line(sessionS *s, u64 ln);
 

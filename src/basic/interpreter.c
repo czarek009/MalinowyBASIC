@@ -39,12 +39,10 @@ void interpreter_process_input(sessionS* env, char* cmd) {
   add_instruction(env, ln, instrbuf);
 }
 
-void interpreter_execute_command(sessionS* env, char* cmd, u64 line_number) {
+interpreterResultE interpreter_execute_command(sessionS* env, char* cmd, u64 line_number) {
+  interpreterResultE result = INTERP_SUCCESS;
   char buf[32];
-  // cmd = consume_whitespaces(cmd);
   tokenE tok = get_next_token(&cmd, buf, TOK_ANY);
-  // cmd += strlen(buf);
-  // cmd = consume_whitespaces(cmd);
 
   switch (tok) {
     case TOK_LET:
@@ -89,10 +87,12 @@ void interpreter_execute_command(sessionS* env, char* cmd, u64 line_number) {
     
     default:
       // report invald token error
-      ERROR("[!] Invalid token: %s\n", buf);
+      ERROR("[INTERPRETER ERROR] Unknown token: '%s'\n", buf);
+      result = INTERP_UNKNOWN_TOKEN;
       break;
   }
-  // printf("\n");
+
+  return result;
 }
 
 
