@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "parser.h"
 #include "instructions.h"
 #include "evaluator.h"
 #include "session.h"
@@ -21,6 +22,9 @@ void goto_instr(sessionS* env, char* cmd) {
     ERROR("GOTO: line number must be > 0\n");
     return;
   }
+
+  tok = get_next_token(&cmd, buf, TOK_NONE);
+  if (tok == TOK_ERROR) return; // PARSING ERROR
 
   set_jump_flag(env, jump_addr);
 }

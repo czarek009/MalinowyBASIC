@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "parser.h"
 #include "instructions.h"
 #include "session.h"
 #include "evaluator.h"

@@ -344,7 +344,7 @@ void print_instructions(sessionS *s) {
 void run_program(sessionS *s) {
   instructionS *node = s->metadata.instructions_start;
   while(node != NULL){
-    interprete_command(s, node->instruction, node->line_number);
+    interpreter_execute_command(s, node->instruction, node->line_number);
     if(s->metadata.jump_flag != 0){
       node = find_instruction(s->metadata.instructions_start, s->metadata.jump_flag);
       s->metadata.jump_flag = 0;

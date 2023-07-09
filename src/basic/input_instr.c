@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "parser.h"
 #include "instructions.h"
 #include "evaluator.h"
 #include "session.h"
@@ -54,6 +55,10 @@ void input_instr(sessionS* env, char* cmd) {
     s8 value_type = eval_expr(env, &cmd, &value);
     add_variable(env, value, varname, value_type);
   }
+
+  tok = get_next_token(&cmd, buf, TOK_NONE);
+  if (tok == TOK_ERROR) return; // PARSING ERROR
+
   return;
 }
 

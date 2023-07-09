@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "parser.h"
 #include "instructions.h"
 #include "evaluator.h"
 #include "session.h"
@@ -21,6 +22,9 @@ void gosub_instr(sessionS* env, char* cmd, u64 ln) {
     ERROR("GOSUB: line number must be > 0\n");
     return;
   }
+
+  tok = get_next_token(&cmd, buf, TOK_NONE);
+  if (tok == TOK_ERROR) return; // PARSING ERROR
 
   u64 next_instr = get_next_instr_line(env, ln);
   push_return_address_to_stack(env, next_instr);

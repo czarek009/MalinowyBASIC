@@ -1,5 +1,6 @@
 #include "instructions.h"
 #include "interpreter.h"
+#include "parser.h"
 #include "evaluator.h"
 #include "session.h"
 #include "butils.h"
@@ -47,6 +48,9 @@ void let_instr(sessionS* env, char* cmd) {
     DEBUG(" value: %ld\n", value.integer);
     add_variable(env, value, varname, value_type);
   }
+
+  tok = get_next_token(&cmd, buf, TOK_NONE);
+  if (tok == TOK_ERROR) return; // PARSING ERROR
 
   return; // SUCCESS
 }
