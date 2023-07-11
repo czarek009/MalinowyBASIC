@@ -4,8 +4,8 @@
 #include "mm.h"
 #include "types.h"
 #include "variable.h"
-#include "debug.h"
-#include "interpreter.h"
+// #include "debug.h"
+// #include "interpreter.h"
 
 /*
 
@@ -42,12 +42,24 @@ types:
 #define VARIABLES_MAX_FIELD       63
 #define VARIABLE_NAME_SIZE        7
 
+typedef enum sessionErrorCodeE {
+  SESSION_NO_ERROR,
+  SESSION_UNKNOWN_ERROR,
+  SESSION_PARSING_ERROR,
+  SESSION_UNKNOWN_TOKEN,
+  SESSION_INVALID_JUMP,
+  SESSION_INVALID_VAR_NAME,
+  SESSION_INVALID_EXPR,
+  SESSION_EMPTY_STACK,
+} sessionErrorCodeE;
+
 typedef enum {
-    SESSION_RUNNING = 0,
-    SESSION_STOPPED = 1,
-    SESSION_FINISHED = 2,
-    SESSION_MODIFIED = 3,
-    SESSION_NEW = 4,
+    SESSION_STATUS_RUNNING = 0,
+    SESSION_STATUS_STOPPED = 1,
+    SESSION_STATUS_FINISHED = 2,
+    SESSION_STATUS_MODIFIED = 3,
+    SESSION_STATUS_NEW = 4,
+    SESSION_STATUS_ERROR,
 } sessionStatusE;
 
 typedef struct instructionS {
@@ -60,13 +72,14 @@ typedef struct instructionS {
 typedef struct metadataS {
     instructionS *instructions_start;
     instructionS *instructions_end;
-    interpreterResultE error_code;
+    instructionS *resume_from;
+    sessionErrorCodeE error_code;
     sessionStatusE status;
     u64 jump_flag;
     u8 return_address_stackpointer;
     u8 data_stackpointer;
     u8 variables_number;
-    u8 reserved[217];
+    u8 reserved[209];
 } metadataS;
 
 typedef union VariableData {
@@ -118,10 +131,10 @@ void add_instruction(sessionS *s, u64 line_number, char *instruction);
 void delete_single_instruction(sessionS *s, u64 line_number);
 void delete_all_instructions(sessionS *s);
 void print_instructions(sessionS *s);
-void run_program(sessionS *s);
-void set_error_code(sessionS *s, interpreterResultE error_code);
+sessionErrorCodeE run_program(sessionS *s);
 
 u64 get_next_instr_line(sessionS *s, u64 ln);
+void print_session_info(sessionS* s);
 
 void session_end(sessionS *s);
 

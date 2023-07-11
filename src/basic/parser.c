@@ -51,8 +51,10 @@ tokenS tokens[] = {
   {.tok_name="REM",     .tok_id=TOK_REM},
   {.tok_name="RESTORE", .tok_id=TOK_RESTORE},
   {.tok_name="RETURN",  .tok_id=TOK_RETURN},
+  {.tok_name="CONT",    .tok_id=TOK_CONT},
   {.tok_name="STOP",    .tok_id=TOK_STOP},
 
+  {.tok_name="SINFO",   .tok_id=TOK_SINFO},
   {.tok_name="ENV",     .tok_id=TOK_ENV},
   {.tok_name="LIST",    .tok_id=TOK_LIST},
   {.tok_name="MEM",     .tok_id=TOK_MEM},

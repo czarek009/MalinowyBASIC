@@ -11,27 +11,27 @@
 
 char* print_prompt(char* cmd);
 
-void input_instr(sessionS* env, char* cmd) {
+sessionErrorCodeE input_instr(sessionS* env, char* cmd) {
   char varname[8] = {0};
   char buf[32] = {0};
   bool isStr = false;
   tokenE tok = TOK_NONE;
 
   tok = get_next_token(&cmd, buf, TOK_ANY);
-  if (tok == TOK_ERROR) return; // PARSING ERROR
+  if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
 
   if (tok == TOK_QUOTE) {
     /* prompt */
     cmd = print_prompt(cmd);
     tok = get_next_token(&cmd, buf, TOK_VAR);
-    if (tok == TOK_ERROR) return; // PARSING ERROR
+    if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
     strncpy(varname, buf, 8);
   } else if (tok == TOK_VAR) {
     /* no prompt */
     strncpy(varname, buf, 8);
   } else {
     ERROR("[!] Invalid token in INPUT: %s\n", buf);
-    return; // PARSING ERROR
+    return SESSION_PARSING_ERROR; // PARSING ERROR
   }
 
   tok = get_next_token(&cmd, buf, TOK_ANY);
@@ -57,9 +57,9 @@ void input_instr(sessionS* env, char* cmd) {
   }
 
   tok = get_next_token(&cmd, buf, TOK_NONE);
-  if (tok == TOK_ERROR) return; // PARSING ERROR
+  if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
 
-  return;
+  return SESSION_NO_ERROR;
 }
 
 

@@ -7,7 +7,7 @@
 #include "mm.h"
 
 
-void let_instr(sessionS* env, char* cmd) {
+sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
   char varname[8] = {0};
   char buf[32] = {0};
   bool isStr = false;
@@ -15,7 +15,7 @@ void let_instr(sessionS* env, char* cmd) {
 
   /* varname */
   tok = get_next_token(&cmd, buf, TOK_VAR); // copy straight to varname instead buf?
-  if (tok == TOK_ERROR) return; // PARSING ERROR
+  if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
   strncpy(varname, buf, 8);
 
   /* $ = */
@@ -23,23 +23,23 @@ void let_instr(sessionS* env, char* cmd) {
   if (tok == TOK_DOLAR) {
     isStr = true;
     tok = get_next_token(&cmd, buf, TOK_EQ);
-    if (tok == TOK_ERROR) return; // PARSING ERROR
+    if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
   } else if (tok != TOK_EQ) {
-    return; // PARSING ERROR
+    return SESSION_PARSING_ERROR; // PARSING ERROR
   }
 
   /* value */
   if (isStr) {
     /* string */ 
     tok = get_next_token(&cmd, buf, TOK_QUOTE);
-    if (tok == TOK_ERROR) return; // PARSING ERROR
+    if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
     get_const_str(&cmd, buf);
     add_string_variable(env, buf, varname);
   } else {
     /* number */
     tok = get_next_token(&cmd, buf, TOK_ANY);
     if (tok != TOK_NUMBER && tok != TOK_LPAREN && tok != TOK_VAR && tok != TOK_FN) {
-      return; // PARSING ERROR
+      return SESSION_PARSING_ERROR; // PARSING ERROR
     }
     cmd -= strlen(buf);
     variableDataU value;
@@ -50,7 +50,7 @@ void let_instr(sessionS* env, char* cmd) {
   }
 
   tok = get_next_token(&cmd, buf, TOK_NONE);
-  if (tok == TOK_ERROR) return; // PARSING ERROR
+  if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
 
-  return; // SUCCESS
+  return SESSION_NO_ERROR; // SUCCESS
 }

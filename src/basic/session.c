@@ -14,11 +14,12 @@ sessionS *session_init(void) {
   sessionS *s = malloc(sizeof(sessionS));
   s->metadata.instructions_start = NULL;
   s->metadata.instructions_end = NULL;
+  s->metadata.resume_from = NULL;
   s->metadata.return_address_stackpointer = 0;
   s->metadata.data_stackpointer = 0;
   s->metadata.variables_number = 0;
-  s->metadata.error_code = INTERP_SUCCESS;
-  s->metadata.status = SESSION_NEW;
+  s->metadata.error_code = SESSION_NO_ERROR;
+  s->metadata.status = SESSION_STATUS_NEW;
   s->metadata.jump_flag = 0;
   DEBUG("Init session\n");
   return s;
@@ -82,8 +83,8 @@ u64 pop_return_address_from_stack(sessionS *s) {
     return data;
   }
   else {
-    DEBUG("POP - return address stack is empty\n");
-    return 0;
+    ERROR("POP - return address stack is empty\n");
+    return ~0;
   }
 }
 
@@ -341,11 +342,34 @@ void print_instructions(sessionS *s) {
   }
 }
 
-void run_program(sessionS *s) {
-  instructionS *node = s->metadata.instructions_start;
+sessionErrorCodeE run_program(sessionS *s) {
+  sessionErrorCodeE out = SESSION_NO_ERROR;
+  instructionS *node = NULL;
+
+  if (s->metadata.resume_from == NULL) {
+    node = s->metadata.instructions_start;
+  } else {
+    node = s->metadata.resume_from->next;
+    s->metadata.resume_from = NULL;
+  }
+
+  s->metadata.status = SESSION_STATUS_RUNNING;
   while(node != NULL){
-    interpreter_execute_command(s, node->instruction, node->line_number);
-    if(s->metadata.jump_flag != 0){
+    out = interpreter_execute_command(s, node->instruction, node->line_number);
+
+    if (out != SESSION_NO_ERROR) {
+      ERROR("ERROR occured during program execution!\n");
+      s->metadata.error_code = out;
+      s->metadata.status = SESSION_STATUS_ERROR;
+      return out;
+    }
+
+    if (s->metadata.status == SESSION_STATUS_STOPPED) {
+      s->metadata.resume_from = node;
+      return SESSION_NO_ERROR;
+    }
+
+    if(s->metadata.jump_flag != 0) {
       node = find_instruction(s->metadata.instructions_start, s->metadata.jump_flag);
       s->metadata.jump_flag = 0;
     }
@@ -353,6 +377,10 @@ void run_program(sessionS *s) {
       node = node->next;
     }
   }
+
+  s->metadata.error_code = SESSION_NO_ERROR;
+  s->metadata.status = SESSION_STATUS_FINISHED;
+  return SESSION_NO_ERROR;
 }
 
 u64 get_next_instr_line(sessionS *s, u64 ln) {
@@ -368,6 +396,18 @@ u64 get_next_instr_line(sessionS *s, u64 ln) {
   }
   return 0;
 }
+
+void print_session_info(sessionS* s) {
+  printf("SESSION DATA:\n");
+  print_variables(s);
+  print_return_address_stack(s);
+  print_data_stack(s);
+  printf("Status: %d\n", s->metadata.status);
+  printf("Error code: %d\n", s->metadata.error_code);
+  printf("Jump flag: %lu\n", s->metadata.jump_flag);
+  printf("Resume from: %lu\n", s->metadata.resume_from->line_number);
+}
+
 
 void session_end(sessionS *s) {
   delete_all_instructions(s);

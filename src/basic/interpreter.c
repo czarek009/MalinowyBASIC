@@ -14,15 +14,15 @@ static u64 get_line_number(char** cmd_p);
 
 
 /* PUBLIC FUNCTIONS DEFINITIONS */
-void interpreter_process_input(sessionS* env, char* cmd) {
+sessionErrorCodeE interpreter_process_input(sessionS* env, char* cmd) {
   DEBUG("[*] interpreter_process_input(%s)\n", cmd);
 
   u64 ln = get_line_number(&cmd);
 
   if (ln == ~0) {
     DEBUG("   no line number\n", 0);
-    interpreter_execute_command(env, cmd, 0);
-    return;
+    sessionErrorCodeE out = interpreter_execute_command(env, cmd, 0);
+    return out;
   }
   while (isdigit(*cmd)) {
     ++cmd;
@@ -37,62 +37,77 @@ void interpreter_process_input(sessionS* env, char* cmd) {
   strncpy(instrbuf, cmd, instrlen);
   instrbuf[instrlen] = '\0';
   add_instruction(env, ln, instrbuf);
+
+  return SESSION_NO_ERROR;
 }
 
-interpreterResultE interpreter_execute_command(sessionS* env, char* cmd, u64 line_number) {
-  interpreterResultE result = INTERP_SUCCESS;
+sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line_number) {
+  sessionErrorCodeE out = SESSION_NO_ERROR;
   char buf[32];
   tokenE tok = get_next_token(&cmd, buf, TOK_ANY);
 
   switch (tok) {
     case TOK_LET:
-      let_instr(env, cmd);
+      out = let_instr(env, cmd);
       break;
 
     case TOK_PRINT:
-      print_instr(env, cmd);
+      out = print_instr(env, cmd);
       break;
 
     case TOK_INPUT:
-      input_instr(env, cmd);
+      out = input_instr(env, cmd);
       break;
 
+    case TOK_CONT:
     case TOK_RUN:
-      run_program(env);
+      out = run_program(env);
       break;
 
     case TOK_LIST:
+      // what could go wrong?
       print_instructions(env);
       break;
 
     case TOK_ENV:
+      // what could go wrong?
       print_variables(env);
       break;
 
     case TOK_MEM:
+      // what could go wrong?
       print_memory_map();
       break;
 
     case TOK_GOTO:
-      goto_instr(env, cmd);
+      out = goto_instr(env, cmd);
       break;
 
     case TOK_GOSUB:
-      gosub_instr(env, cmd, line_number);
+      out = gosub_instr(env, cmd, line_number);
       break;
 
     case TOK_RETURN:
-      return_instr(env, cmd);
+      out = return_instr(env, cmd);
       break;
-    
+
+    case TOK_STOP:
+      printf("Program execution stopped\n");
+      set_session_status(env, SESSION_STATUS_STOPPED);
+      break;
+
+    case TOK_SINFO:
+      print_session_info(env);
+      break;
+
     default:
       // report invald token error
       ERROR("[INTERPRETER ERROR] Unknown token: '%s'\n", buf);
-      result = INTERP_UNKNOWN_TOKEN;
+      out = SESSION_UNKNOWN_TOKEN;
       break;
   }
 
-  return result;
+  return out;
 }
 
 

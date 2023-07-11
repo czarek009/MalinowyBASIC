@@ -9,22 +9,24 @@
 #include "io.h"
 
 
-void goto_instr(sessionS* env, char* cmd) {
+sessionErrorCodeE goto_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
 
   tok = get_next_token(&cmd, buf, TOK_NUMBER);
-  if (tok == TOK_ERROR) return; // PARSING ERROR
+  if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
 
   s64 jump_addr = str2s64(buf);
 
   if (jump_addr < 1) {
     ERROR("GOTO: line number must be > 0\n");
-    return;
+    return SESSION_INVALID_JUMP;
   }
 
   tok = get_next_token(&cmd, buf, TOK_NONE);
-  if (tok == TOK_ERROR) return; // PARSING ERROR
+  if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
 
   set_jump_flag(env, jump_addr);
+
+  return SESSION_NO_ERROR;
 }
