@@ -32,6 +32,7 @@ void print_instr(sessionS* env, char* cmd) {
       cmd -= strlen(buf);
       variableDataU eval_res;
       u8 eval_type = eval_expr(env, &cmd, &eval_res);
+      if(eval_type == EVAL_ERROR) return; // EVAL ERROR
       print_instr_eval(&eval_res, eval_type);
       break;
 

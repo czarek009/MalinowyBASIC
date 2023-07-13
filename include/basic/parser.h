@@ -8,13 +8,13 @@
 
 
 enum tokenE {
-  TOK_NONE, TOK_ERROR, TOK_ANY,
+  TOK_NONE, TOK_ERROR, TOK_ANY, TOK_NOTNUMBER,
 
   TOK_NUMBER, TOK_VAR, TOK_FN,
 
   /* single char */
   TOK_COMMA, TOK_QUOTE, TOK_SEMICOLON,
-  TOK_ADD, TOK_SUB, TOK_DIV, TOK_MULT,TOK_MOD,
+  TOK_ADD, TOK_SUB, TOK_DIV, TOK_MULT, TOK_MOD, TOK_POW,
   TOK_AND, TOK_OR, TOK_NEG,
   TOK_LT, TOK_GT, TOK_EQ,
   TOK_LPAREN, TOK_RPAREN, TOK_LSQUARE, TOK_RSQUARE,
@@ -40,6 +40,7 @@ struct tokenS {
 
 
 tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token);
+void reverse_get_next_token(char** cmd_p, char* buf);
 void report_error(char* expected, char* found, char* cmd);
 void get_const_str(char** cmd_p, char* dest);
 

@@ -30,7 +30,7 @@ void let_instr(sessionS* env, char* cmd) {
 
   /* value */
   if (isStr) {
-    /* string */ 
+    /* string */
     tok = get_next_token(&cmd, buf, TOK_QUOTE);
     if (tok == TOK_ERROR) return; // PARSING ERROR
     get_const_str(&cmd, buf);
@@ -44,6 +44,7 @@ void let_instr(sessionS* env, char* cmd) {
     cmd -= strlen(buf);
     variableDataU value;
     s8 value_type = eval_expr(env, &cmd, &value);
+    if(value_type == EVAL_ERROR) return; // EVAL ERROR
     DEBUG(" value_type: %u\n", (u32)value_type);
     DEBUG(" value: %ld\n", value.integer);
     add_variable(env, value, varname, value_type);

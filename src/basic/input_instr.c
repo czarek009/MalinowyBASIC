@@ -53,6 +53,7 @@ void input_instr(sessionS* env, char* cmd) {
     /* number */
     variableDataU value;
     s8 value_type = eval_expr(env, &cmd, &value);
+    if(value_type == EVAL_ERROR) return; // EVAL ERROR
     add_variable(env, value, varname, value_type);
   }
 
