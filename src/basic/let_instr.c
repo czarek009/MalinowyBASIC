@@ -43,7 +43,7 @@ void let_instr(sessionS* env, char* cmd) {
     }
     cmd -= strlen(buf);
     variableDataU value;
-    s8 value_type = eval_expr(env, &cmd, &value);
+    u8 value_type = eval_expr(env, &cmd, &value);
     if(value_type == EVAL_ERROR) return; // EVAL ERROR
     DEBUG(" value_type: %u\n", (u32)value_type);
     DEBUG(" value: %ld\n", value.integer);
