@@ -14,15 +14,15 @@ static u64 get_line_number(char** cmd_p);
 
 
 /* PUBLIC FUNCTIONS DEFINITIONS */
-void interpreter_process_input(sessionS* env, char* cmd) {
+sessionErrorCodeE interpreter_process_input(sessionS* env, char* cmd) {
   DEBUG("[*] interpreter_process_input(%s)\n", cmd);
 
   u64 ln = get_line_number(&cmd);
 
   if (ln == ~0) {
     DEBUG("   no line number\n", 0);
-    interpreter_execute_command(env, cmd, 0);
-    return;
+    sessionErrorCodeE out = interpreter_execute_command(env, cmd, NO_LINE_NUMBER);
+    return out;
   }
   while (isdigit(*cmd)) {
     ++cmd;
@@ -37,62 +37,100 @@ void interpreter_process_input(sessionS* env, char* cmd) {
   strncpy(instrbuf, cmd, instrlen);
   instrbuf[instrlen] = '\0';
   add_instruction(env, ln, instrbuf);
+
+  return SESSION_NO_ERROR;
 }
 
-void interpreter_execute_command(sessionS* env, char* cmd, u64 line_number) {
+sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line_number) {
+  sessionErrorCodeE out = SESSION_NO_ERROR;
   char buf[32];
-  // cmd = consume_whitespaces(cmd);
   tokenE tok = get_next_token(&cmd, buf, TOK_ANY);
-  // cmd += strlen(buf);
-  // cmd = consume_whitespaces(cmd);
 
   switch (tok) {
     case TOK_LET:
-      let_instr(env, cmd);
+      out = let_instr(env, cmd);
       break;
 
     case TOK_PRINT:
-      print_instr(env, cmd);
+      out = print_instr(env, cmd);
       break;
 
     case TOK_INPUT:
-      input_instr(env, cmd);
+      out = input_instr(env, cmd);
       break;
 
+    case TOK_GOTO:
+      out = goto_instr(env, cmd);
+      break;
+
+    case TOK_GOSUB:
+      out = gosub_instr(env, cmd, line_number);
+      break;
+
+    case TOK_RETURN:
+      out = return_instr(env, cmd);
+      break;
+
+    case TOK_STOP:
+      printf("Program execution stopped\n");
+      set_session_status(env, SESSION_STATUS_STOPPED);
+      break;
+
+    /* ONLY DIRECT MODE */
     case TOK_RUN:
-      run_program(env);
+    case TOK_CONT:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      out = run_program(env);
+      break;
+
+    case TOK_SINFO:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      print_session_info(env);
       break;
 
     case TOK_LIST:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
       print_instructions(env);
       break;
 
     case TOK_ENV:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
       print_variables(env);
       break;
 
     case TOK_MEM:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
       print_memory_map();
       break;
 
-    case TOK_GOTO:
-      goto_instr(env, cmd);
-      break;
 
-    case TOK_GOSUB:
-      gosub_instr(env, cmd, line_number);
-      break;
-
-    case TOK_RETURN:
-      return_instr(env, cmd);
-      break;
-    
     default:
-      // report invald token error
-      ERROR("[!] Invalid token: %s\n", buf);
+      ERROR("[INTERPRETER ERROR] Unknown token: '%s'\n", buf);
+      out = SESSION_UNKNOWN_TOKEN;
       break;
   }
-  // printf("\n");
+
+  return out;
 }
 
 
@@ -104,7 +142,7 @@ static u64 get_line_number(char** cmd_p) {
 
   char* cmd = *cmd_p;
   if (!isdigit(cmd[0])) {
-    return ~0;
+    return NO_LINE_NUMBER;
   }
   u64 out = 0;
 

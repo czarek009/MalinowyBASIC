@@ -30,7 +30,7 @@ enum tokenE {
   TOK_REM, TOK_STOP, TOK_CONT,
 
   /* additional instructions */
-  TOK_ENV, TOK_LIST, TOK_MEM, TOK_RUN,
+  TOK_ENV, TOK_LIST, TOK_MEM, TOK_RUN, TOK_SINFO,
 } typedef tokenE;
 
 struct tokenS {
