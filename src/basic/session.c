@@ -83,7 +83,7 @@ u64 pop_return_address_from_stack(sessionS *s) {
     return data;
   }
   else {
-    ERROR("POP - return address stack is empty\n");
+    ERROR("[SESSION ERROR] Return address stack is empty\n");
     return ~0;
   }
 }
@@ -163,7 +163,7 @@ void add_variable(sessionS *s, variableDataU var_data, char *name, u8 type){
       check_and_add_variable(s, var_data, name, type);
       break;
     default:
-      ERROR("[!] SESSION - add_variable: unknown type\n");
+      ERROR("[SESSION ERROR] add_variable: unknown type\n");
       break;
   }
 }
@@ -358,7 +358,7 @@ sessionErrorCodeE run_program(sessionS *s) {
     out = interpreter_execute_command(s, node->instruction, node->line_number);
 
     if (out != SESSION_NO_ERROR) {
-      ERROR("ERROR occured during program execution!\n");
+      ERROR("[SESSION ERROR] Program execution failed\n");
       s->metadata.error_code = out;
       s->metadata.status = SESSION_STATUS_ERROR;
       return out;

@@ -47,6 +47,10 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
     DEBUG(" value_type: %u\n", (u32)value_type);
     DEBUG(" value: %ld\n", value.integer);
     add_variable(env, value, varname, value_type);
+    if (value_type >= 253) {
+      ERROR("[INSTRICTOION ERROR] Expression evaluation error\n", 0);
+      return SESSION_EVAL_ERROR;
+    }
   }
 
   tok = get_next_token(&cmd, buf, TOK_NONE);

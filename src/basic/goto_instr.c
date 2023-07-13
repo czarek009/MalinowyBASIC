@@ -19,7 +19,7 @@ sessionErrorCodeE goto_instr(sessionS* env, char* cmd) {
   s64 jump_addr = str2s64(buf);
 
   if (jump_addr < 1) {
-    ERROR("GOTO: line number must be > 0\n");
+    ERROR("[INSTRUCTION ERROR] Jump address must be > 0\n");
     return SESSION_INVALID_JUMP;
   }
 

@@ -43,7 +43,7 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
 
     default:
       // report invald token error
-      ERROR("[!] Invalid token in PRINT: %s\n", buf);
+      ERROR("[INSTRUCTION ERROR] Invalid token in PRINT: %s\n", buf);
       return SESSION_PARSING_ERROR;
   }
 
@@ -98,7 +98,7 @@ char* print_instr_var(sessionS* env, char* cmd, char* varname) {
       break;
 
     default:
-      ERROR("[!] Frobidden vartype in PRINT!\n");
+      ERROR("[INSTRUCTION ERROR] Frobidden vartype in PRINT\n");
       break;
   }
   return cmd;
@@ -120,10 +120,10 @@ void print_instr_eval(variableDataU *eval_res, u8 eval_type) {
       free(eval_res->string);
       break;
     case EVAL_ERROR:
-      ERROR("[!] There was an error in EVAL!\n");
+      ERROR("[INSTRUCTION ERROR] There was an error in EVAL\n");
       break;
     default:
-      ERROR("[!] Frobidden eval_type in PRINT!\n");
+      ERROR("[INSTRUCTION ERROR] Frobidden eval_type in PRINT\n");
       break;
   }
 }

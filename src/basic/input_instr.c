@@ -7,6 +7,7 @@
 #include "butils.h"
 #include "printf.h"
 #include "io.h"
+#include "variable.h"
 
 
 char* print_prompt(char* cmd);
@@ -30,7 +31,7 @@ sessionErrorCodeE input_instr(sessionS* env, char* cmd) {
     /* no prompt */
     strncpy(varname, buf, 8);
   } else {
-    ERROR("[!] Invalid token in INPUT: %s\n", buf);
+    ERROR("[INSTRUCTION ERROR] Invalid token in INPUT: %s\n", buf);
     return SESSION_PARSING_ERROR; // PARSING ERROR
   }
 
@@ -53,6 +54,10 @@ sessionErrorCodeE input_instr(sessionS* env, char* cmd) {
     /* number */
     variableDataU value;
     s8 value_type = eval_expr(env, &cmd, &value);
+    if (value_type >= 253) {
+      ERROR("[INSTRICTOION ERROR] Expression evaluation error\n", 0);
+      return SESSION_EVAL_ERROR;
+    }
     add_variable(env, value, varname, value_type);
   }
 

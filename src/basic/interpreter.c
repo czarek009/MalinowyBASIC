@@ -21,7 +21,7 @@ sessionErrorCodeE interpreter_process_input(sessionS* env, char* cmd) {
 
   if (ln == ~0) {
     DEBUG("   no line number\n", 0);
-    sessionErrorCodeE out = interpreter_execute_command(env, cmd, 0);
+    sessionErrorCodeE out = interpreter_execute_command(env, cmd, NO_LINE_NUMBER);
     return out;
   }
   while (isdigit(*cmd)) {
@@ -59,26 +59,6 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       out = input_instr(env, cmd);
       break;
 
-    case TOK_CONT:
-    case TOK_RUN:
-      out = run_program(env);
-      break;
-
-    case TOK_LIST:
-      // what could go wrong?
-      print_instructions(env);
-      break;
-
-    case TOK_ENV:
-      // what could go wrong?
-      print_variables(env);
-      break;
-
-    case TOK_MEM:
-      // what could go wrong?
-      print_memory_map();
-      break;
-
     case TOK_GOTO:
       out = goto_instr(env, cmd);
       break;
@@ -96,12 +76,55 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       set_session_status(env, SESSION_STATUS_STOPPED);
       break;
 
+    /* ONLY DIRECT MODE */
+    case TOK_RUN:
+    case TOK_CONT:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      out = run_program(env);
+      break;
+
     case TOK_SINFO:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
       print_session_info(env);
       break;
 
+    case TOK_LIST:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      print_instructions(env);
+      break;
+
+    case TOK_ENV:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      print_variables(env);
+      break;
+
+    case TOK_MEM:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      print_memory_map();
+      break;
+
+
     default:
-      // report invald token error
       ERROR("[INTERPRETER ERROR] Unknown token: '%s'\n", buf);
       out = SESSION_UNKNOWN_TOKEN;
       break;
@@ -119,7 +142,7 @@ static u64 get_line_number(char** cmd_p) {
 
   char* cmd = *cmd_p;
   if (!isdigit(cmd[0])) {
-    return ~0;
+    return NO_LINE_NUMBER;
   }
   u64 out = 0;
 

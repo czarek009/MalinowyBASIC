@@ -19,7 +19,7 @@ sessionErrorCodeE gosub_instr(sessionS* env, char* cmd, u64 ln) {
   s64 jump_addr = str2s64(buf);
 
   if (jump_addr < 1) {
-    ERROR("GOSUB: line number must be > 0\n");
+    ERROR("[INSTRUCTION ERROR] Jump address must be > 0\n");
     return SESSION_INVALID_JUMP;
   }
 
