@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "evaluator.h"
 #include "session.h"
 #include "printf.h"
 #include "butils.h"
@@ -18,6 +19,7 @@ sessionS *session_init(void) {
   s->metadata.return_address_stackpointer = 0;
   s->metadata.data_stackpointer = 0;
   s->metadata.variables_number = 0;
+  s->metadata.functions_number = 0;
   s->metadata.error_code = SESSION_NO_ERROR;
   s->metadata.status = SESSION_STATUS_NEW;
   s->metadata.jump_flag = 0;
@@ -170,6 +172,57 @@ void add_variable(sessionS *s, variableDataU var_data, char *name, u8 type){
       ERROR("[SESSION ERROR] add_variable: unknown type\n");
       break;
   }
+}
+
+void add_function(sessionS *s, char* funname, char* argname, char* body) {
+  u8 fnum = s->metadata.functions_number;
+  char* new_body = malloc(strlen(body)+1);
+  strncpy(new_body, body, strlen(body)+1);
+
+  strncpy(s->functions[fnum].funname, funname, 7);
+  strncpy(s->functions[fnum].argname, argname, 7);
+  s->functions[fnum].body = new_body;
+
+  s->metadata.functions_number++;
+}
+
+static functionS* find_function(sessionS* s, char* funname) {
+
+  for (int i = 0; i < s->metadata.functions_number; ++i) {
+    if (strcmp(funname, s->functions[i].funname) == 0) {
+      return &(s->functions[i]);
+    }
+  }
+  return NULL;
+}
+
+u8 apply_functions(sessionS *s, char* funname, variableDataU arg, u8 argtype, variableDataU* result) {
+  functionS* fun = NULL;
+  u8 saved_var_type = NOT_FOUND;
+  u8 out_type = NOT_FOUND;
+  variableDataU saved_var_value = {0};
+  char* new_body = NULL;
+
+  fun = find_function(s, funname);
+  if (fun == NULL) {
+    ERROR("[SESSION ERROR] Function '%s' not found\n", funname);
+    return NOT_FOUND;
+  }
+
+  saved_var_type = get_variable_value(s, fun->argname, &saved_var_value);
+  add_variable(s, arg, fun->argname, argtype);
+
+  new_body = malloc(strlen(fun->body)+1);
+  strncpy(new_body, fun->body, strlen(fun->body));
+  out_type = eval_expr(s, new_body, result);
+
+  if (saved_var_type < 252) {
+    add_variable(s, saved_var_value, fun->argname, saved_var_type);
+  }
+
+  free(new_body);
+
+  return out_type;
 }
 
 void add_integer_variable(sessionS *s, s64 data, char *name) {

@@ -142,13 +142,28 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     }
   }
 
-  /* VARIABLE */
+  /* VARIABLE OR FUNCTION */
   u8 varlen = is_valid_varname(cmd);
   if (varlen) {
     strncpy(dest, cmd, varlen);
     dest[varlen] = '\0';
     *cmd_p += varlen;
     DEBUG(" 3 token read = \"%s\"\n", dest);
+
+    if (varlen == 2 && dest[0] == 'F' && dest[1] == 'N') {
+      /* name cannot be just 'fn' */
+      ERROR("[PARSER ERROR] Invalid variable name 'FN'\n", 0);
+      return TOK_ERROR;
+    }
+    /* check if this is a function name */
+    if (varlen > 2 && dest[0] == 'F' && dest[1] == 'N') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_FN) {
+        report_error(get_tokname(expected_token), "function", cmd);
+        return TOK_ERROR;
+      }
+      return TOK_FN;
+    }
+
     if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_VAR) {
       report_error(get_tokname(expected_token), "variable", cmd);
       return TOK_ERROR;
