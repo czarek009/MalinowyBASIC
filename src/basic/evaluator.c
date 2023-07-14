@@ -58,30 +58,29 @@ typedef enum {
 
 
 /* GLOBAL VARIABLES */
-evalErrorE error_g;
 /*                       +  -  /  *  ^  %  (  ) && ||  ! == !=  >  <  >= <=  */
 u8 op_precedenceA[17] = {3, 3, 4, 4, 5, 4, 0, 0, 2, 1, 4, 1, 1, 2, 2, 2, 2};
 
 
 /* PRIVATE FUNCTIONS DECLARATIONS */
 opStackS init_opStackS(void);
-void push_opStackS(opStackS *data, u8 op);
+evalErrorE push_opStackS(opStackS *data, u8 op);
 u8 pop_opStackS(opStackS *data);
 u8 peek_opStackS(opStackS *data);
 void print_opStackS(opStackS *data);
 char* str_opE(opE op);
 exprDataS init_exprDataS(void);
 u8 pop_exprDataS(exprDataS *expr_data, dataU *data);
-void push_exprDataS(exprDataS *expr_data, dataU data, u8 type);
+evalErrorE push_exprDataS(exprDataS *expr_data, dataU data, u8 type);
 u8 pop_result(exprDataS *expr_data, variableDataU *data);
 void free_exprDataS(exprDataS *expr_data);
 void print_exprDataS(exprDataS *expr_data);
 dataU get_number(u8 *type, char *str);
-dataU get_var(sessionS *s, u8 *type, char *str);
-dataU get_str(char **expr, u8 *type);
-void add_operator(opStackS *op_stack, exprDataS *expr_data, opE op);
-void move_op_to_expr(opStackS *op_stack, exprDataS *expr_data);
-void add_remaining_op(opStackS *op_stack, exprDataS *expr_data);
+evalErrorE get_var(sessionS *s, dataU *data, u8 *type, char *str);
+evalErrorE get_str(char **expr, dataU *data);
+evalErrorE add_operator(opStackS *op_stack, exprDataS *expr_data, opE op);
+evalErrorE move_op_to_expr(opStackS *op_stack, exprDataS *expr_data);
+evalErrorE add_remaining_op(opStackS *op_stack, exprDataS *expr_data);
 u8 eval_bin(dataU first, dataU second, u8 first_type, u8 second_type, dataU *res, opE op);
 u8 eval_int(s64 first, s64 second, dataU *res, opE op);
 u8 eval_double(double first, double second, dataU *res, opE op);
@@ -99,7 +98,7 @@ double powff(double x, double p);
 u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
   DEBUG(" EVAL EXPRESSION: '%s'\n", *expr);
 
-  error_g = EVAL_SUCCESS;
+  evalErrorE ret_code = EVAL_SUCCESS;
 
   exprDataS expr_data = init_exprDataS();
   opStackS op_stack = init_opStackS();
@@ -115,87 +114,90 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
     switch (tok) {
       case TOK_NUMBER:
         data = get_number(&type, buf);
-        push_exprDataS(&expr_data, data, type);
+        ret_code = push_exprDataS(&expr_data, data, type);
         expected_tok = TOK_NOTNUMBER;
         break;
       case TOK_VAR:
-        data = get_var(s, &type, buf);
-        push_exprDataS(&expr_data, data, type);
+        ret_code = get_var(s, &data, &type, buf);
+        if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
+        ret_code = push_exprDataS(&expr_data, data, type);
         expected_tok = TOK_NOTNUMBER;
         break;
       case TOK_QUOTE:
-        data = get_str(expr, &type);
-        push_exprDataS(&expr_data, data, type);
+        ret_code = get_str(expr, &data);
+        if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
+        ret_code = push_exprDataS(&expr_data, data, STRING);
+        expected_tok = TOK_NOTNUMBER;
         break;
       case TOK_LPAREN:
-        push_opStackS(&op_stack, OP_LPAREN);
+        ret_code = push_opStackS(&op_stack, OP_LPAREN);
         break;
       case TOK_RPAREN:
-        move_op_to_expr(&op_stack, &expr_data);
+        ret_code = move_op_to_expr(&op_stack, &expr_data);
         expected_tok = TOK_NOTNUMBER;
         break;
       case TOK_ADD:
-        add_operator(&op_stack, &expr_data, OP_ADD);
+        ret_code = add_operator(&op_stack, &expr_data, OP_ADD);
         break;
       case TOK_SUB:
-        add_operator(&op_stack, &expr_data, OP_SUB);
+        ret_code = add_operator(&op_stack, &expr_data, OP_SUB);
         break;
       case TOK_DIV:
-        add_operator(&op_stack, &expr_data, OP_DIV);
+        ret_code = add_operator(&op_stack, &expr_data, OP_DIV);
         break;
       case TOK_MULT:
-        add_operator(&op_stack, &expr_data, OP_MULT);
+        ret_code = add_operator(&op_stack, &expr_data, OP_MULT);
         break;
       case TOK_MOD:
-        add_operator(&op_stack, &expr_data, OP_MOD);
+        ret_code = add_operator(&op_stack, &expr_data, OP_MOD);
         break;
       case TOK_POW:
-        add_operator(&op_stack, &expr_data, OP_POW);
+        ret_code = add_operator(&op_stack, &expr_data, OP_POW);
         break;
       case TOK_AND:
         tok = get_next_token(expr, buf, TOK_AND);
         if(tok == TOK_ERROR) return EVAL_ERROR;
-        add_operator(&op_stack, &expr_data, OP_AND);
+        ret_code = add_operator(&op_stack, &expr_data, OP_AND);
         break;
       case TOK_OR:
         tok = get_next_token(expr, buf, TOK_OR);
         if(tok == TOK_ERROR) return EVAL_ERROR;
-        add_operator(&op_stack, &expr_data, OP_OR);
+        ret_code = add_operator(&op_stack, &expr_data, OP_OR);
         break;
       case TOK_NEG:
         tok = get_next_token(expr, buf, TOK_ANY);
         if(tok == TOK_EQ){
-          add_operator(&op_stack, &expr_data, OP_NEQ);
+          ret_code = add_operator(&op_stack, &expr_data, OP_NEQ);
         }
         else{
           reverse_get_next_token(expr, buf);
-          add_operator(&op_stack, &expr_data, OP_NEG);
+          ret_code = add_operator(&op_stack, &expr_data, OP_NEG);
         }
         break;
       case TOK_LT:
         tok = get_next_token(expr, buf, TOK_ANY);
         if(tok == TOK_EQ){
-          add_operator(&op_stack, &expr_data, OP_LEQ);
+          ret_code = add_operator(&op_stack, &expr_data, OP_LEQ);
         }
         else{
           reverse_get_next_token(expr, buf);
-          add_operator(&op_stack, &expr_data, OP_LT);
+          ret_code = add_operator(&op_stack, &expr_data, OP_LT);
         }
         break;
       case TOK_GT:
         tok = get_next_token(expr, buf, TOK_ANY);
         if(tok == TOK_EQ){
-          add_operator(&op_stack, &expr_data, OP_GEQ);
+          ret_code = add_operator(&op_stack, &expr_data, OP_GEQ);
         }
         else{
           reverse_get_next_token(expr, buf);
-          add_operator(&op_stack, &expr_data, OP_GT);
+          ret_code = add_operator(&op_stack, &expr_data, OP_GT);
         }
         break;
       case TOK_EQ:
         tok = get_next_token(expr, buf, TOK_EQ);
         if(tok == TOK_ERROR) return EVAL_ERROR;
-        add_operator(&op_stack, &expr_data, OP_EQ);
+        ret_code = add_operator(&op_stack, &expr_data, OP_EQ);
         break;
       case TOK_ERROR:
         return EVAL_ERROR;
@@ -204,12 +206,10 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
         tok = TOK_NONE;
         break;
     }
-    if(error_g == EVAL_INTERNAL_ERROR){
-      return EVAL_ERROR;
-    }
-  } while (tok != TOK_NONE);
-  add_remaining_op(&op_stack, &expr_data);
-  if(error_g == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
+  } while (tok != TOK_NONE && ret_code == EVAL_SUCCESS);
+  if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
+  ret_code = add_remaining_op(&op_stack, &expr_data);
+  if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
   return pop_result(&expr_data, result);
 }
 
@@ -223,14 +223,14 @@ opStackS init_opStackS(void) {
   return stack;
 }
 
-void push_opStackS(opStackS *data, u8 op) {
+evalErrorE push_opStackS(opStackS *data, u8 op) {
   if(data->stack_pointer < MAX_OPERATOR_NUMBER) {
     data->stack[data->stack_pointer] = op;
     data->stack_pointer++;
-    return;
+    return EVAL_SUCCESS;
   }
-  error_g = EVAL_INTERNAL_ERROR;
   ERROR("[!] EVAL - push_opStackS: stack is FULL\n");
+  return EVAL_INTERNAL_ERROR;
 }
 
 u8 pop_opStackS(opStackS *data) {
@@ -295,7 +295,6 @@ char* str_opE(opE op) {
       return "<=";
     default:
       ERROR("[!] EVAL - print_opE: there in no such an operator: %d\n", op);
-      error_g = EVAL_INTERNAL_ERROR;
       return "";
   }
 }
@@ -316,16 +315,21 @@ u8 pop_exprDataS(exprDataS *expr_data, dataU *data) {
   return NOT_FOUND;
 }
 
-void push_exprDataS(exprDataS *expr_data, dataU data, u8 type) {
+evalErrorE push_exprDataS(exprDataS *expr_data, dataU data, u8 type) {
   if(type == OPERATOR) {
     dataU second;
     opE op = data.op;
-    u8 second_type = pop_exprDataS(expr_data, &second);
-    if(second_type == NOT_FOUND || second_type == OPERATOR){
-      error_g = EVAL_INTERNAL_ERROR;
-      ERROR("[!] EVAL - expression is incorrect: operator %s is missing components\n", str_opE(op));
-      return;
+    if(op == OP_LPAREN){
+      ERROR("[!] EVAL - parentheses don't match\n");
+      return EVAL_INTERNAL_ERROR;
     }
+    u8 second_type = pop_exprDataS(expr_data, &second);
+
+    if(second_type == NOT_FOUND || second_type == OPERATOR){
+      ERROR("[!] EVAL - expression is incorrect: operator %s is missing components\n", str_opE(op));
+      return EVAL_INTERNAL_ERROR;
+    }
+
     if(op == OP_NEG) {
       type = eval_not(second, second_type, &data);
     }
@@ -333,24 +337,24 @@ void push_exprDataS(exprDataS *expr_data, dataU data, u8 type) {
       dataU first;
       u8 first_type = pop_exprDataS(expr_data, &first);
       if(first_type == NOT_FOUND || first_type == OPERATOR){
-        error_g = EVAL_INTERNAL_ERROR;
         ERROR("[!] EVAL - expression is incorrect: operator %s is missing second component\n", str_opE(op));
-        return;
+        return EVAL_INTERNAL_ERROR;
       }
       type = eval_bin(first, second, first_type, second_type, &data, op);
     }
   }
+
   if(type == EVAL_ERROR){
-    return;
+    return EVAL_INTERNAL_ERROR;
   }
   if (expr_data->expr_number < MAX_DATA_NUMBER) {
     expr_data->exprs[expr_data->expr_number] = data;
     expr_data->types[expr_data->expr_number] = type;
     expr_data->expr_number++;
-    return;
+    return EVAL_SUCCESS;
   }
-  error_g = EVAL_INTERNAL_ERROR;
   ERROR("[!] EVAL - push_exprDataS: expr_data is FULL\n");
+  return EVAL_ERROR;
 }
 
 u8 pop_result(exprDataS *expr_data, variableDataU *data) {
@@ -387,6 +391,7 @@ void free_exprDataS(exprDataS *expr_data) {
 }
 
 void print_exprDataS(exprDataS *expr_data) {
+  printf("expr_data\n");
   for(u8 i = 0; i < expr_data->expr_number; i++) {
     switch(expr_data->types[i]) {
       case INTEGER:
@@ -410,7 +415,6 @@ void print_exprDataS(exprDataS *expr_data) {
         printf("%s ", str_opE(expr_data->exprs[i].op));
         break;
       default:
-        error_g = EVAL_INTERNAL_ERROR;
         ERROR("[!] EVAL - print_exprDataS: type not supported = %d\n", expr_data->types[i]);
         break;
     }
@@ -450,22 +454,21 @@ dataU get_number(u8 *type, char *str) {
   return result;
 }
 
-dataU get_var(sessionS *s, u8 *type, char *str) {
+evalErrorE get_var(sessionS *s, dataU *data, u8 *type, char *str) {
   u8 type_var;
   variableDataU var_data;
-  dataU result;
   type_var = get_variable_value(s, str, &var_data);
   switch(type_var){
     case INTEGER:
-      result.integer = var_data.integer;
+      data->integer = var_data.integer;
       *type = INTEGER;
       break;
     case FLOATING_POINT:
-      result.floating_point = var_data.floating_point;
+      data->floating_point = var_data.floating_point;
       *type = FLOATING_POINT;
       break;
     case BOOLEAN:
-      result.boolean = var_data.boolean;
+      data->boolean = var_data.boolean;
       *type = BOOLEAN;
       break;
     case STRING:
@@ -474,79 +477,76 @@ dataU get_var(sessionS *s, u8 *type, char *str) {
         char *str = malloc(size + 1);
         memcpy(str, var_data.string, size);
         str[size] = '\0';
-        result.string = str;
+        data->string = str;
       }
       *type = STRING;
       break;
     case NOT_FOUND:
-      error_g = EVAL_INTERNAL_ERROR;
       ERROR("[!] EVAL - get_var: variable: %s NOT FOUND\n", str);
-      *type = EVAL_ERROR;
-      break;
+      return EVAL_INTERNAL_ERROR;
     default:
-      error_g = EVAL_INTERNAL_ERROR;
       ERROR("[!] EVAL - get_var: data type not compatible\n");
-      *type = EVAL_ERROR;
-      break;
+      return EVAL_INTERNAL_ERROR;
   }
-  return result;
+  return EVAL_SUCCESS;
 }
 
-dataU get_str(char **expr, u8 *type) {
+evalErrorE get_str(char **expr, dataU *data) {
   char *expr_str = *expr;
-  dataU data;
   u8 i = 0;
-  *type = STRING;
   while(expr_str[i] != '\"' && expr_str[i] != '\0'){
     i++;
   }
   if(expr_str[i] == '\0'){
-    error_g = EVAL_INTERNAL_ERROR;
-    data.string = NULL;
+    data->string = NULL;
     ERROR("[!] EVAL - get_str: string does not end with quotes\n");
-    *type = EVAL_ERROR;
-    return data;
+    return EVAL_INTERNAL_ERROR;
   }
   char *str = malloc(i + 1);
   memcpy(str, expr_str, i+1);
   str[i] = '\0';
-  data.string = str;
+  data->string = str;
   *expr = *expr + i + 1;
-  return data;
+  return EVAL_SUCCESS;
 }
 
-void add_operator(opStackS *op_stack, exprDataS *expr_data, opE op) {
+evalErrorE add_operator(opStackS *op_stack, exprDataS *expr_data, opE op) {
   u8 peek_op = peek_opStackS(op_stack);
   dataU data;
-  while((peek_op != OP_NONE) && (op_precedenceA[op] <= op_precedenceA[peek_op])){
+  evalErrorE ret = EVAL_SUCCESS;
+  while((peek_op != OP_NONE) && (op_precedenceA[op] <= op_precedenceA[peek_op]) && (ret == EVAL_SUCCESS)){
     data.op = pop_opStackS(op_stack);
-    push_exprDataS(expr_data, data, OPERATOR);
+    ret = push_exprDataS(expr_data, data, OPERATOR);
     peek_op = peek_opStackS(op_stack);
   }
-  push_opStackS(op_stack, op);
+  if(ret == EVAL_INTERNAL_ERROR) return EVAL_INTERNAL_ERROR;
+  return push_opStackS(op_stack, op);
 }
 
-void move_op_to_expr(opStackS *op_stack, exprDataS *expr_data) {
+evalErrorE move_op_to_expr(opStackS *op_stack, exprDataS *expr_data) {
   opE op = pop_opStackS(op_stack);
   dataU data;
-  while((op != OP_LPAREN) && (op != OP_NONE)){
+  evalErrorE ret = EVAL_SUCCESS;
+  while((op != OP_LPAREN) && (op != OP_NONE) && (ret == EVAL_SUCCESS)){
     data.op = op;
-    push_exprDataS(expr_data, data, OPERATOR);
+    ret = push_exprDataS(expr_data, data, OPERATOR);
     op = pop_opStackS(op_stack);
   }
   if(op == OP_NONE){
-    error_g = EVAL_INTERNAL_ERROR;
     ERROR("[!] EVAL - parentheses don't match\n");
+    return EVAL_INTERNAL_ERROR;
   }
+  return ret;
 }
 
-void add_remaining_op(opStackS *op_stack, exprDataS *expr_data) {
+evalErrorE add_remaining_op(opStackS *op_stack, exprDataS *expr_data) {
   dataU data;
-  while(op_stack->stack_pointer > 0){
+  evalErrorE ret = EVAL_SUCCESS;
+  while(op_stack->stack_pointer > 0 && ret == EVAL_SUCCESS){
     data.op = pop_opStackS(op_stack);
-    push_exprDataS(expr_data, data, OPERATOR);
-    if(error_g == EVAL_INTERNAL_ERROR) return;
+    ret = push_exprDataS(expr_data, data, OPERATOR);
   }
+  return ret;
 }
 
 /* EVAL */
@@ -556,7 +556,6 @@ u8 eval_bin(dataU first, dataU second, u8 first_type, u8 second_type, dataU *res
       case STRING:
         return eval_string(first.string, second.string, res, op);
       default:
-        error_g = EVAL_INTERNAL_ERROR;
         ERROR("[!] EVAL - eval_bin: operation between string and other type\n");
         return EVAL_ERROR;
     }
@@ -570,7 +569,6 @@ u8 eval_bin(dataU first, dataU second, u8 first_type, u8 second_type, dataU *res
       case BOOLEAN:
         return eval_int(first.integer, (s64)second.boolean, res, op);
       default:
-        error_g = EVAL_INTERNAL_ERROR;
         ERROR("[!] EVAL - eval_bin: operation between integer and type that dont match\n");
         return EVAL_ERROR;
     }
@@ -584,7 +582,6 @@ u8 eval_bin(dataU first, dataU second, u8 first_type, u8 second_type, dataU *res
       case BOOLEAN:
         return eval_double(first.floating_point, (double)second.boolean, res, op);
       default:
-        error_g = EVAL_INTERNAL_ERROR;
         ERROR("[!] EVAL - eval_bin: operation between floating_point and type that dont match\n");
         return EVAL_ERROR;
     }
@@ -598,13 +595,11 @@ u8 eval_bin(dataU first, dataU second, u8 first_type, u8 second_type, dataU *res
       case BOOLEAN:
         return eval_int((s64)first.boolean, (s64)second.boolean, res, op);
       default:
-        error_g = EVAL_INTERNAL_ERROR;
         ERROR("[!] EVAL - eval_bin: operation between boolean and type that dont match\n");
         return EVAL_ERROR;
     }
   }
   else {
-    error_g = EVAL_INTERNAL_ERROR;
     ERROR("[!] EVAL - eval_bin: type of operand is invalid\n");
     return EVAL_ERROR;
   }
@@ -622,7 +617,6 @@ u8 eval_int(s64 first, s64 second, dataU *res, opE op) {
       if(second == 0){
         res->integer = 0;
         ERROR("[!] EVAL - division by zero!\n");
-        error_g = EVAL_INTERNAL_ERROR;
         return EVAL_ERROR;
       }
       res->integer = first / second;
@@ -661,7 +655,6 @@ u8 eval_int(s64 first, s64 second, dataU *res, opE op) {
       res->boolean = first <= second;
       return BOOLEAN;
     default:
-      error_g = EVAL_INTERNAL_ERROR;
       ERROR("[!] EVAL - eval_int: unknown operator\n");
       return EVAL_ERROR;
   }
@@ -679,7 +672,6 @@ u8 eval_double(double first, double second, dataU *res, opE op) {
       if(second == 0.0){
         res->floating_point = 0.0;
         ERROR("[!] EVAL - division by zero!\n");
-        error_g = EVAL_INTERNAL_ERROR;
         return EVAL_ERROR;
       }
       res->floating_point = first / second;
@@ -691,7 +683,6 @@ u8 eval_double(double first, double second, dataU *res, opE op) {
       res->floating_point = powff(first, second);
       return FLOATING_POINT;
     case OP_MOD:
-      error_g = EVAL_INTERNAL_ERROR;
       ERROR("[!] EVAL - eval_double: modulo operands must be integers\n");
       return EVAL_ERROR;
     case OP_AND:
@@ -719,7 +710,6 @@ u8 eval_double(double first, double second, dataU *res, opE op) {
       res->boolean = first <= second;
       return BOOLEAN;
     default:
-      error_g = EVAL_INTERNAL_ERROR;
       ERROR("[!] EVAL - eval_double: unknown operator\n");
       return EVAL_ERROR;
   }
@@ -755,7 +745,6 @@ u8 eval_string(char *first, char *second, dataU *res, opE op){
       free(second);
       return BOOLEAN;
     default:
-      error_g = EVAL_INTERNAL_ERROR;
       ERROR("[!] EVAL - eval_string: operator cannot be used on string\n");
       free(first);
       free(second);
@@ -778,7 +767,6 @@ u8 eval_not(dataU data, u8 type, dataU *res) {
       res->boolean = !data.string;
       break;
     default:
-      error_g = EVAL_INTERNAL_ERROR;
       ERROR("[!] EVAL - eval_not: unknown operator\n");
       return EVAL_ERROR;
   }

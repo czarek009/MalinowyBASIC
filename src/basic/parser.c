@@ -54,8 +54,10 @@ tokenS tokens[] = {
   {.tok_name="REM",     .tok_id=TOK_REM},
   {.tok_name="RESTORE", .tok_id=TOK_RESTORE},
   {.tok_name="RETURN",  .tok_id=TOK_RETURN},
+  {.tok_name="CONT",    .tok_id=TOK_CONT},
   {.tok_name="STOP",    .tok_id=TOK_STOP},
 
+  {.tok_name="SINFO",   .tok_id=TOK_SINFO},
   {.tok_name="ENV",     .tok_id=TOK_ENV},
   {.tok_name="LIST",    .tok_id=TOK_LIST},
   {.tok_name="MEM",     .tok_id=TOK_MEM},
@@ -94,7 +96,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     for (; isdigit(cmd[i]) || cmd[i] == '.'; ++i) {
       if (cmd[i] == '.') {
         if (isFloat) {
-          ERROR(" PARSING ERROR: invalid float: %s\n", cmd);
+          ERROR(" [PARSER ERROR] Invalid float: %s\n", cmd);
           dest[0] = '\0';
           return TOK_ERROR;
         }
@@ -103,7 +105,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
       dest[i] = cmd[i];
     }
     if (cmd[i-1] == '.') {
-      ERROR(" PARSING ERROR: invalid float: %s\n", cmd);
+      ERROR(" [PARSER ERROR] Invalid float: %s\n", cmd);
       dest[0] = '\0';
       return TOK_ERROR;
     }
@@ -119,7 +121,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
       return TOK_NUMBER;
     }
 
-    ERROR(" this should be a number, bud idk what this is '%c'\n", cmd[i]);
+    ERROR(" [PARSER ERROR] Unexpected char while parsing number '%c'\n", cmd[i]);
     dest[0] = '\0';
     return TOK_ERROR;
   }
@@ -156,7 +158,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
 
   /* UNKNOWN TOKEN */
   dest[0] = '\0';
-  ERROR("[*] ERROR: unknown token: %s\n", cmd);
+  ERROR("[PARSER ERROR] Unknown token: %s\n", cmd);
   return TOK_ERROR;
 }
 
@@ -166,7 +168,7 @@ void reverse_get_next_token(char** cmd_p, char* buf) {
 }
 
 void report_error(char* expected, char* found, char* cmd) {
-  ERROR(" ERROR: expected '%s' got '%s'\n", expected, found);
+  ERROR(" [PARSER ERROR] Expected '%s' got '%s'\n", expected, found);
   ERROR("        %s\n", cmd);
 }
 

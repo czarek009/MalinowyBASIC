@@ -4,11 +4,11 @@
 #include "session.h"
 #include "types.h"
 
-void let_instr(sessionS* env, char* cmd);
-void print_instr(sessionS* env, char* cmd);
-void input_instr(sessionS* env, char* cmd);
-void goto_instr(sessionS* env, char* cmd);
-void gosub_instr(sessionS* env, char* cmd, u64 ln);
-void return_instr(sessionS* env, char* cmd);
+sessionErrorCodeE let_instr(sessionS* env, char* cmd);
+sessionErrorCodeE print_instr(sessionS* env, char* cmd);
+sessionErrorCodeE input_instr(sessionS* env, char* cmd);
+sessionErrorCodeE goto_instr(sessionS* env, char* cmd);
+sessionErrorCodeE gosub_instr(sessionS* env, char* cmd, u64 ln);
+sessionErrorCodeE return_instr(sessionS* env, char* cmd);
 
 #endif /* _INSTRUCTIONS_H */

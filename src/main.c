@@ -47,8 +47,13 @@ void main(void){
 
   while (1) {
     char buf[256] = {0};
+    sessionErrorCodeE result = SESSION_NO_ERROR;
     readline(buf, "$> ");
-    interpreter_process_input(current_session, buf);
+    result = interpreter_process_input(current_session, buf);
+
+    if (result != SESSION_NO_ERROR) {
+      ERROR("ERROR\n");
+    }
   }
   session_end(current_session);
 }

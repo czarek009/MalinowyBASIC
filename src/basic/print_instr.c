@@ -16,7 +16,7 @@ void print_instr_eval(variableDataU *eval_res, u8 eval_type);
 /*
  * One PRINT instruction can print many things separated by comma
  */
-void print_instr(sessionS* env, char* cmd) {
+sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
 
@@ -32,19 +32,23 @@ void print_instr(sessionS* env, char* cmd) {
       cmd -= strlen(buf);
       variableDataU eval_res;
       u8 eval_type = eval_expr(env, &cmd, &eval_res);
-      if(eval_type == EVAL_ERROR) return; // EVAL ERROR
+      if (eval_type >= 253) {
+      ERROR("[INSTRICTOION ERROR] Expression evaluation error\n", 0);
+      return SESSION_EVAL_ERROR;
+      }
       print_instr_eval(&eval_res, eval_type);
       break;
 
     case TOK_NONE:
-    case TOK_ERROR:
       // empty print
       break;
+    case TOK_ERROR:
+      return SESSION_PARSING_ERROR;
 
     default:
       // report invald token error
-      ERROR("[!] Invalid token in PRINT: %s\n", buf);
-      break;
+      ERROR("[INSTRUCTION ERROR] Invalid token in PRINT: %s\n", buf);
+      return SESSION_PARSING_ERROR;
   }
 
   tok = get_next_token(&cmd, buf, TOK_ANY);
@@ -55,11 +59,12 @@ void print_instr(sessionS* env, char* cmd) {
   } else if (tok == TOK_NONE || tok == TOK_ERROR) {
     /* end of instruction */
     printf("\n");
-    return;
+    return SESSION_NO_ERROR;
   } else {
     cmd -= strlen(buf);
   }
   print_instr(env, cmd);
+  return SESSION_NO_ERROR;
 }
 
 char* print_instr_string(char* cmd) {
@@ -97,7 +102,7 @@ char* print_instr_var(sessionS* env, char* cmd, char* varname) {
       break;
 
     default:
-      ERROR("[!] Frobidden vartype in PRINT!\n");
+      ERROR("[INSTRUCTION ERROR] Frobidden vartype in PRINT\n");
       break;
   }
   return cmd;
@@ -119,10 +124,10 @@ void print_instr_eval(variableDataU *eval_res, u8 eval_type) {
       free(eval_res->string);
       break;
     case EVAL_ERROR:
-      ERROR("[!] There was an error in EVAL!\n");
+      ERROR("[INSTRUCTION ERROR] There was an error in EVAL\n");
       break;
     default:
-      ERROR("[!] Frobidden eval_type in PRINT!\n");
+      ERROR("[INSTRUCTION ERROR] Frobidden eval_type in PRINT\n");
       break;
   }
 }
