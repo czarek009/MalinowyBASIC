@@ -38,4 +38,6 @@ sessionErrorCodeE  def_instr(sessionS* env, char* cmd) {
   if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
 
   add_function(env, funname, argname, cmd);
+
+  return SESSION_NO_ERROR;
 }

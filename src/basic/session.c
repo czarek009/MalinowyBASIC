@@ -213,14 +213,15 @@ u8 apply_functions(sessionS *s, char* funname, variableDataU arg, u8 argtype, va
   add_variable(s, arg, fun->argname, argtype);
 
   new_body = malloc(strlen(fun->body)+1);
+  char* aux = new_body;
   strncpy(new_body, fun->body, strlen(fun->body));
-  out_type = eval_expr(s, new_body, result);
+  out_type = eval_expr(s, &new_body, result);
 
   if (saved_var_type < 252) {
     add_variable(s, saved_var_value, fun->argname, saved_var_type);
   }
 
-  free(new_body);
+  free(aux);
 
   return out_type;
 }
