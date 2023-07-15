@@ -108,7 +108,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     }
     dest[i] = '\0';
 
-    if (isin(cmd[i], " +-*/=<>") || cmd[i] == '\0') {
+    if (isin(cmd[i], " +-*/=<>,;") || cmd[i] == '\0') {
       DEBUG(" 1 token read = \"%s\"\n", dest);
       *cmd_p += i;
       if (expected_token != TOK_ANY && expected_token != TOK_NUMBER) {
