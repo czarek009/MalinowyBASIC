@@ -75,7 +75,7 @@ evalErrorE push_exprDataS(exprDataS *expr_data, dataU data, u8 type);
 u8 pop_result(exprDataS *expr_data, variableDataU *data);
 void free_exprDataS(exprDataS *expr_data);
 void print_exprDataS(exprDataS *expr_data);
-dataU get_number(u8 *type, char *str);
+evalErrorE get_number(dataU *data, u8 *type, char *str);
 evalErrorE get_var(sessionS *s, dataU *data, u8 *type, char *str);
 evalErrorE get_str(char **expr, dataU *data);
 evalErrorE add_operator(opStackS *op_stack, exprDataS *expr_data, opE op);
@@ -113,7 +113,11 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
     expected_tok = TOK_ANY;
     switch (tok) {
       case TOK_NUMBER:
-        data = get_number(&type, buf);
+        if(get_number(&data, &type, buf) == EVAL_INTERNAL_ERROR) {
+          reverse_get_next_token(expr, buf);
+          expected_tok = TOK_NOTNUMBER;
+          break;
+        }
         ret_code = push_exprDataS(&expr_data, data, type);
         expected_tok = TOK_NOTNUMBER;
         break;
@@ -423,8 +427,7 @@ void print_exprDataS(exprDataS *expr_data) {
 }
 
 /* TRANSFORM */
-dataU get_number(u8 *type, char *str) {
-  dataU result;
+evalErrorE get_number(dataU *data, u8 *type, char *str) {
   s64 res_integer = 0;
   s64 neg_integer = 1;
   double res_double = 0.0;
@@ -439,19 +442,20 @@ dataU get_number(u8 *type, char *str) {
     res_integer = res_integer * 10 + (s64)(str[i] - '0');
     res_double = res_double * 10.0 + (double)(str[i] - '0');
   }
+  if(neg_integer == -1 && i == 1) return EVAL_INTERNAL_ERROR;
   if(str[i] == '.') {
     i++;
     for(double j = 0.1; isdigit(str[i]); i++, j*=0.1){
       res_double = res_double + j * (double)(str[i] - '0');
     }
-    result.floating_point = res_double * neg_double;
+    data->floating_point = res_double * neg_double;
     *type = FLOATING_POINT;
   }
   else {
-    result.integer = res_integer * neg_integer;
+    data->integer = res_integer * neg_integer;
     *type = INTEGER;
   }
-  return result;
+  return EVAL_SUCCESS;
 }
 
 evalErrorE get_var(sessionS *s, dataU *data, u8 *type, char *str) {
