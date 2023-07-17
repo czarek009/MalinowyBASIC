@@ -176,6 +176,20 @@ void add_variable(sessionS *s, variableDataU var_data, char *name, u8 type){
 
 void add_function(sessionS *s, char* funname, char* argname, char* body) {
   u8 fnum = s->metadata.functions_number;
+  for (int i = 0; i < fnum; ++i) {
+    if ( !strcmp(funname, s->functions[i].funname) ) {
+      free(s->functions[i].body);
+      char* new_body = malloc(strlen(body)+1);
+      strncpy(new_body, body, strlen(body)+1);
+
+      strncpy(s->functions[i].funname, funname, 7);
+      strncpy(s->functions[i].argname, argname, 7);
+      s->functions[i].body = new_body;
+
+      return;
+    }
+  }
+
   char* new_body = malloc(strlen(body)+1);
   strncpy(new_body, body, strlen(body)+1);
 
@@ -196,7 +210,12 @@ static functionS* find_function(sessionS* s, char* funname) {
   return NULL;
 }
 
-u8 apply_functions(sessionS *s, char* funname, variableDataU arg, u8 argtype, variableDataU* result) {
+u8 apply_function(sessionS *s, char* funname, variableDataU arg, u8 argtype, variableDataU* result) {
+  DEBUG("[DEBUG SESSION] apply_function: %s(", funname);
+  if (argtype == INTEGER) {
+    DEBUG("%ld) = ", arg.integer);
+  }
+
   functionS* fun = NULL;
   u8 saved_var_type = NOT_FOUND;
   u8 out_type = NOT_FOUND;
@@ -212,10 +231,19 @@ u8 apply_functions(sessionS *s, char* funname, variableDataU arg, u8 argtype, va
   saved_var_type = get_variable_value(s, fun->argname, &saved_var_value);
   add_variable(s, arg, fun->argname, argtype);
 
-  new_body = malloc(strlen(fun->body)+1);
+  new_body = malloc(strlen(fun->body)+3);
   char* aux = new_body;
-  strncpy(new_body, fun->body, strlen(fun->body));
+  strncpy(new_body+1, fun->body, strlen(fun->body));
+  new_body[0] = '(';
+  new_body[strlen(fun->body)+3-2] = ')';
+  new_body[strlen(fun->body)+3-1] = '\0';
   out_type = eval_expr(s, &new_body, result);
+
+  if (out_type == INTEGER) {
+    DEBUG("%ld\n", result->integer);
+  } else {
+    DEBUG(" WRONG OUT TYPE! %u\n", (u32)out_type);
+  }
 
   if (saved_var_type < 252) {
     add_variable(s, saved_var_value, fun->argname, saved_var_type);
@@ -455,6 +483,15 @@ u64 get_next_instr_line(sessionS *s, u64 ln) {
   return 0;
 }
 
+void print_functions(sessionS* s) {
+  for (u64 i = 0; i < s->metadata.functions_number; ++i) {
+    printf("  funname: '%s'  argname: '%s'  body: '%s'\n",
+          s->functions[i].funname,
+          s->functions[i].argname,
+          s->functions[i].body);
+  }
+}
+
 void print_session_info(sessionS* s) {
   printf("SESSION DATA:\n");
   print_variables(s);
@@ -464,6 +501,8 @@ void print_session_info(sessionS* s) {
   printf("Error code: %d\n", s->metadata.error_code);
   printf("Jump flag: %lu\n", s->metadata.jump_flag);
   printf("Resume from: %lu\n", s->metadata.resume_from->line_number);
+  printf("Functions number: %lu\n", s->metadata.functions_number);
+  print_functions(s);
 }
 
 

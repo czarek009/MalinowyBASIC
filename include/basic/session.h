@@ -139,7 +139,7 @@ void add_string_variable(sessionS *s, char *data, char *name);
 void print_variables(sessionS *s);
 
 void add_function(sessionS *s, char* funname, char* argname, char* body);
-u8 apply_functions(sessionS *s, char* funname, variableDataU arg, u8 argtype, variableDataU* result);
+u8 apply_function(sessionS *s, char* funname, variableDataU arg, u8 argtype, variableDataU* result);
 
 void add_instruction(sessionS *s, u64 line_number, char *instruction);
 void delete_single_instruction(sessionS *s, u64 line_number);

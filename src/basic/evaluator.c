@@ -63,6 +63,7 @@ u8 op_precedenceA[17] = {3, 3, 4, 4, 5, 4, 0, 0, 2, 1, 4, 1, 1, 2, 2, 2, 2};
 
 
 /* PRIVATE FUNCTIONS DECLARATIONS */
+u64 find_closing_parenthesis(char* expr);
 opStackS init_opStackS(void);
 evalErrorE push_opStackS(opStackS *data, u8 op);
 u8 pop_opStackS(opStackS *data);
@@ -124,6 +125,36 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
       case TOK_VAR:
         ret_code = get_var(s, &data, &type, buf);
         if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
+        ret_code = push_exprDataS(&expr_data, data, type);
+        expected_tok = TOK_NOTNUMBER;
+        break;
+      case TOK_FN:
+        char funname[8] = {0};
+        strncpy(funname, buf, strlen(buf));
+        tok = get_next_token(expr, buf, TOK_LPAREN);
+        if (tok == TOK_ERROR) return EVAL_ERROR;
+        u64 pos = find_closing_parenthesis(*expr);
+        char* expr_tmp = malloc(pos+1);
+        char* aux = expr_tmp;
+        strncpy(expr_tmp, *expr, pos);
+        expr_tmp[pos] = '\0';
+        variableDataU argval;
+        u8 argtype = eval_expr(s, &expr_tmp, &argval);
+        free(aux);
+        *expr += pos;
+        tok = get_next_token(expr, buf, TOK_RPAREN);
+        if (tok == TOK_ERROR) return EVAL_ERROR;
+        variableDataU funval;
+        type = apply_function(s, funname, argval, argtype, &funval);
+        if (type == INTEGER) {
+          data.integer = funval.integer;
+        } else if (type == FLOATING_POINT) {
+          data.floating_point = funval.floating_point;
+        } else if (type == BOOLEAN) {
+          data.boolean = funval.boolean;
+        } else if (type == STRING) {
+          data.string = funval.string;
+        }
         ret_code = push_exprDataS(&expr_data, data, type);
         expected_tok = TOK_NOTNUMBER;
         break;
@@ -219,6 +250,25 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
 
 
 /* PRIVATE FUNCTIONS DEFINITIONS */
+u64 find_closing_parenthesis(char* expr) {
+  u64 idx = 0;
+  int pnum = 1;
+
+  while (pnum && *expr != '\n') {
+    if (expr[idx] == ')') {
+      --pnum;
+      if (pnum == 0) {
+        return idx;
+      }
+    } else if (expr[idx] == '(') {
+      ++pnum;
+    }
+    ++idx;
+  }
+
+  ERROR("[EVALUATOR ERROR] Lack of closing parenthesis: '%s'\n", expr);
+  return 0;
+}
 
 /* opStackS */
 opStackS init_opStackS(void) {
