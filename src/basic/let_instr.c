@@ -30,7 +30,7 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
 
   /* value */
   if (isStr) {
-    /* string */ 
+    /* string */
     tok = get_next_token(&cmd, buf, TOK_QUOTE);
     if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
     get_const_str(&cmd, buf);
@@ -43,7 +43,7 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
     }
     cmd -= strlen(buf);
     variableDataU value;
-    s8 value_type = eval_expr(env, &cmd, &value);
+    u8 value_type = eval_expr(env, &cmd, &value);
     DEBUG(" value_type: %u\n", (u32)value_type);
     DEBUG(" value: %ld\n", value.integer);
     add_variable(env, value, varname, value_type);
