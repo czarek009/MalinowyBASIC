@@ -11,5 +11,6 @@ sessionErrorCodeE goto_instr(sessionS* env, char* cmd);
 sessionErrorCodeE gosub_instr(sessionS* env, char* cmd, u64 ln);
 sessionErrorCodeE on_instr(sessionS* env, char* cmd, u64 ln);
 sessionErrorCodeE return_instr(sessionS* env, char* cmd);
+sessionErrorCodeE def_instr(sessionS* env, char* cmd);
 
 #endif /* _INSTRUCTIONS_H */
