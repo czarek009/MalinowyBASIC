@@ -81,6 +81,7 @@ typedef struct metadataS {
   u64 jump_flag;
   u8 return_address_stackpointer;
   u8 data_stackpointer;
+  u8 for_stackpointer;
   u8 variables_number;
   u8 functions_number;
   u8 reserved[208];
@@ -106,8 +107,17 @@ typedef struct functionS {
   char* body;
 } functionS;
 
+typedef struct forS {
+  u64 line;
+  u64 limit;
+  u64 step;
+  u64 next_line;
+  char iterator[8];
+} forS;
+
 typedef struct sessionS {
   metadataS metadata;
+  forS for_stack[8];
   u64 return_address_stack[32];
   s32 data_stack[128];
   variableS variables[64];

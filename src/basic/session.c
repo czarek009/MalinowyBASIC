@@ -18,6 +18,7 @@ sessionS *session_init(void) {
   s->metadata.resume_from = NULL;
   s->metadata.return_address_stackpointer = 0;
   s->metadata.data_stackpointer = 0;
+  s->metadata.for_stackpointer = 0;
   s->metadata.variables_number = 0;
   s->metadata.functions_number = 0;
   s->metadata.error_code = SESSION_NO_ERROR;
@@ -125,7 +126,7 @@ variableS *get_variable_ptr(sessionS *s, char* name) {
 u8 get_variable_value(sessionS *s, char* name, variableDataU *var_data) {
   variableS *var = get_variable_ptr(s, name);
   if (var == NULL) {
-    DEBUG("variableS not found\n");
+    DEBUG("variable '%s' not found\n", name);
     return NOT_FOUND;
   }
   *var_data = var->data;

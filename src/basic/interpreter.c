@@ -71,6 +71,14 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       out = gosub_instr(env, cmd, line_number);
       break;
 
+    case TOK_FOR:
+      out = for_instr(env, cmd, line_number);
+      break;
+
+    case TOK_NEXT:
+      out = next_instr(env, cmd, line_number);
+      break;
+
     case TOK_ON:
       out = on_instr(env, cmd, line_number);
       break;
