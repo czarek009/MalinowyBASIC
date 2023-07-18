@@ -9,6 +9,7 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd);
 sessionErrorCodeE input_instr(sessionS* env, char* cmd);
 sessionErrorCodeE goto_instr(sessionS* env, char* cmd);
 sessionErrorCodeE gosub_instr(sessionS* env, char* cmd, u64 ln);
+sessionErrorCodeE on_instr(sessionS* env, char* cmd, u64 ln);
 sessionErrorCodeE return_instr(sessionS* env, char* cmd);
 
 #endif /* _INSTRUCTIONS_H */
