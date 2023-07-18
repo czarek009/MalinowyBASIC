@@ -19,8 +19,11 @@ tokenS tokens[] = {
   {.tok_name="-",  .tok_id=TOK_SUB},
   {.tok_name="/",  .tok_id=TOK_DIV},
   {.tok_name="*",  .tok_id=TOK_MULT},
+  {.tok_name="%",  .tok_id=TOK_MOD},
+  {.tok_name="^",  .tok_id=TOK_POW},
   {.tok_name="&",  .tok_id=TOK_AND},
   {.tok_name="|",  .tok_id=TOK_OR},
+  {.tok_name="!",  .tok_id=TOK_NEG},
   {.tok_name="(",  .tok_id=TOK_LPAREN},
   {.tok_name=")",  .tok_id=TOK_RPAREN},
   {.tok_name="#",  .tok_id=TOK_HASH},
@@ -78,15 +81,15 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
   /* EOL */
   if (*cmd == '\0') {
     dest[0] = '\0';
-    if (expected_token != TOK_ANY && expected_token != TOK_NONE) {
-      ERROR("[PARSER ERROR] Unexpected EOL\n", 0);
+    if (expected_token != TOK_NOTNUMBER && expected_token != TOK_ANY && expected_token != TOK_NONE) {
+      ERROR("[*] ERROR: unexpected eol\n", 0);
       return TOK_ERROR;
     }
     return TOK_NONE;
   }
 
   /* NUMBER */
-  if (isdigit(*cmd) || *cmd == '-' || *cmd == '+') {
+  if (expected_token != TOK_NOTNUMBER && (isdigit(*cmd) || *cmd == '-' || *cmd == '+')) {
     bool isFloat = false;
     dest[0] = cmd[0];
     int i = 1;
@@ -108,7 +111,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     }
     dest[i] = '\0';
 
-    if (isin(cmd[i], " +-*/=<>,;") || cmd[i] == '\0') {
+    if (isin(cmd[i], " +-*/=<>)%^,;") || cmd[i] == '\0') {
       DEBUG(" 1 token read = \"%s\"\n", dest);
       *cmd_p += i;
       if (expected_token != TOK_ANY && expected_token != TOK_NUMBER) {
@@ -131,7 +134,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
       dest[tok_len] = '\0';
       *cmd_p += tok_len;
       DEBUG(" 2 token read = \"%s\"\n", dest);
-      if (expected_token != TOK_ANY && expected_token != t->tok_id) {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != t->tok_id) {
         report_error(get_tokname(expected_token), get_tokname(t->tok_id), cmd);
         return TOK_ERROR;
       }
@@ -146,7 +149,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     dest[varlen] = '\0';
     *cmd_p += varlen;
     DEBUG(" 3 token read = \"%s\"\n", dest);
-    if (expected_token != TOK_ANY && expected_token != TOK_VAR) {
+    if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_VAR) {
       report_error(get_tokname(expected_token), "variable", cmd);
       return TOK_ERROR;
     }
@@ -157,6 +160,11 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
   dest[0] = '\0';
   ERROR("[PARSER ERROR] Unknown token: %s\n", cmd);
   return TOK_ERROR;
+}
+
+void reverse_get_next_token(char** cmd_p, char* buf) {
+  size_t length = strlen(buf);
+  *cmd_p -= length;
 }
 
 void report_error(char* expected, char* found, char* cmd) {

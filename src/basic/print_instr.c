@@ -32,6 +32,10 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
       cmd -= strlen(buf);
       variableDataU eval_res;
       u8 eval_type = eval_expr(env, &cmd, &eval_res);
+      if (eval_type >= 253) {
+      ERROR("[INSTRICTOION ERROR] Expression evaluation error\n", 0);
+      return SESSION_EVAL_ERROR;
+      }
       print_instr_eval(&eval_res, eval_type);
       break;
 

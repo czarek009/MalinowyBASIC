@@ -97,12 +97,16 @@ void print_return_address_stack(sessionS *s) {
 
 /* VARIABLE */
 bool compare_name(char *variable_name, char* name) {
-  for(u8 i = 0; (i < VARIABLE_NAME_SIZE && (variable_name[i] != '\0' && name[i] != '\0') && (isalphanum(name[i]))); i++){
+  u8 i = 0;
+  for(; (i < VARIABLE_NAME_SIZE && variable_name[i] != '\0' && name[i] != '\0'); i++){
     if((variable_name[i] != name[i])){
       return false;
     }
   }
-  return true;
+  if(i == VARIABLE_NAME_SIZE || (variable_name[i] == '\0' && name[i] == '\0')){
+    return true;
+  }
+  return false;
 }
 
 variableS *get_variable_ptr(sessionS *s, char* name) {

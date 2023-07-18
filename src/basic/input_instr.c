@@ -53,7 +53,7 @@ sessionErrorCodeE input_instr(sessionS* env, char* cmd) {
   } else {
     /* number */
     variableDataU value;
-    s8 value_type = eval_expr(env, &cmd, &value);
+    u8 value_type = eval_expr(env, &cmd, &value);
     if (value_type >= 253) {
       ERROR("[INSTRICTOION ERROR] Expression evaluation error\n", 0);
       return SESSION_EVAL_ERROR;
