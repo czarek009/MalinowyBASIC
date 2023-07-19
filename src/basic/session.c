@@ -402,6 +402,7 @@ void delete_node(instructionS *node, sessionS *s) {
     node->previous->next = node->next;
     node->next->previous = node->previous;
   }
+  free(node->instruction);
   free(node);
 }
 
