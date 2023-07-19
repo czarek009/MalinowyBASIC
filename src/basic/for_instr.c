@@ -29,7 +29,7 @@ sessionErrorCodeE for_instr(sessionS* env, char* cmd, u64 ln) {
     variableDataU iter_val;
     (void)get_variable_value(env, env->for_stack[sp-1].iterator, &iter_val);
     u64 iterator = iter_val.integer;
-    add_integer_variable(env, iterator+1, meta->iterator);
+    add_integer_variable(env, iterator+meta->step, meta->iterator);
     if (iterator >= meta->limit) {
       DEBUG(" FOR INSTRUCTION END\n", 0);
       env->metadata.for_stackpointer -= 1;
@@ -74,9 +74,9 @@ sessionErrorCodeE for_instr(sessionS* env, char* cmd, u64 ln) {
 
   /* iterator limit */
   expr_end = find_substring("STEP", cmd);
-  if (expr_end == strlen(cmd)) {
-    ERROR("[INSTRUCTION ERROR] Cannot find expression end: %s\n", cmd);
-    return SESSION_PARSING_ERROR;
+  bool no_step = false;
+  if (expr_end == strlen(cmd)) { /* NO STEP */
+    no_step = true;
   }
   new_expr = malloc(expr_end+1);
   aux = new_expr;
@@ -91,6 +91,38 @@ sessionErrorCodeE for_instr(sessionS* env, char* cmd, u64 ln) {
   }
   cmd += expr_end;
   free(aux);
+
+  if (iterator_val.integer >= limit_val.integer) {
+    u64 next_ln = find_next(env, ln);
+    if (next_ln == 0) {
+      ERROR("[INSTRUCTION ERROR] Cannot find NEXT\n");
+      return SESSION_UNKNOWN_ERROR;
+    }
+
+    env->for_stack[sp].line = ln;
+    env->for_stack[sp].limit = limit_val.integer;
+    env->for_stack[sp].step = 1;
+    env->for_stack[sp].next_line = 0;
+    strncpy(env->for_stack[sp].iterator, varname, strlen(varname)+1);
+    env->metadata.for_stackpointer += 1;
+    add_integer_variable(env, iterator_val.integer, varname);
+
+    set_jump_flag(env, next_ln);
+
+    return SESSION_NO_ERROR;
+  }
+
+  if (no_step) {
+    env->for_stack[sp].line = ln;
+    env->for_stack[sp].limit = limit_val.integer;
+    env->for_stack[sp].step = 1;
+    env->for_stack[sp].next_line = 0;
+    strncpy(env->for_stack[sp].iterator, varname, strlen(varname)+1);
+    env->metadata.for_stackpointer += 1;
+    add_integer_variable(env, iterator_val.integer, varname);
+
+    return SESSION_NO_ERROR;
+  }
 
   tok = get_next_token(&cmd, buf, TOK_STEP);
   if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR

@@ -139,6 +139,8 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       print_memory_map();
       break;
 
+    case TOK_NONE:
+      break;
 
     default:
       ERROR("[INTERPRETER ERROR] Unknown token: '%s'\n", buf);

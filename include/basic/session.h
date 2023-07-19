@@ -156,6 +156,7 @@ void delete_single_instruction(sessionS *s, u64 line_number);
 void delete_all_instructions(sessionS *s);
 void print_instructions(sessionS *s);
 sessionErrorCodeE run_program(sessionS *s);
+u64 find_next(sessionS *s, u64 ln);
 
 u64 get_next_instr_line(sessionS *s, u64 ln);
 void print_session_info(sessionS* s);

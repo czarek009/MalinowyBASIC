@@ -3,6 +3,7 @@
 #include "session.h"
 #include "printf.h"
 #include "butils.h"
+#include "parser.h"
 
 /* SESSION */
 void print_structures_size(void) {
@@ -468,6 +469,36 @@ sessionErrorCodeE run_program(sessionS *s) {
   s->metadata.error_code = SESSION_NO_ERROR;
   s->metadata.status = SESSION_STATUS_FINISHED;
   return SESSION_NO_ERROR;
+}
+
+u64 find_next(sessionS *s, u64 ln) {
+  s32 counter = 0;
+  instructionS *node = s->metadata.instructions_start;
+  while(node != NULL){
+    if (node->line_number == ln) {
+      break;
+    }
+    node = node->next;
+  }
+
+  while(node != NULL) {
+    char* aux = node->instruction;
+    char buf[64];
+    tokenE tok = get_next_token(&aux, buf, TOK_ANY);
+    if (tok == TOK_FOR) {
+      counter++;
+    }
+    if (tok == TOK_NEXT) {
+      counter--;
+    }
+    if (counter == 0) {
+      return node->line_number;
+    }
+
+    node = node->next;
+  }
+
+  return 0;
 }
 
 u64 get_next_instr_line(sessionS *s, u64 ln) {
