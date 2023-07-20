@@ -60,24 +60,14 @@ sessionErrorCodeE if_instr(sessionS* env, char* cmd, u64 ln) {
 
     reverse_get_next_token(&cmd, buf);
 
-    char *else_keyword = cmd;
-    char *then_body = cmd;
-
     /* check for else keyword in instruction */
-    while(tok != TOK_ELSE && tok != TOK_NONE){
-      tok = get_next_token(&else_keyword, buf, TOK_ANY);
-      if (tok == TOK_ERROR) return SESSION_PARSING_ERROR;
-    }
-    if (tok == TOK_ELSE) {
-      reverse_get_next_token(&else_keyword, buf);
-      size_t length = else_keyword - cmd;
-      then_body = malloc(length + 1);
-      memcpy(then_body, cmd, length);
-      then_body[length] = '\0';
-    }
+    size_t length = find_last_substring("ELSE", cmd);
+    char *then_body = malloc(length + 1);
+    memcpy(then_body, cmd, length);
+    then_body[length] = '\0';
 
     sessionErrorCodeE exec_err = interpreter_execute_command(env, then_body, ln);
-    if (tok == TOK_ELSE) free(then_body);
+    free(then_body);
     if (exec_err != SESSION_NO_ERROR) return exec_err;
 
     instructionS *next_instr = get_next_instruction(env, ln);
@@ -100,10 +90,9 @@ sessionErrorCodeE if_instr(sessionS* env, char* cmd, u64 ln) {
   /* ELSE */
   else {
     /* check for else keyword in instruction */
-    while(tok != TOK_ELSE && tok != TOK_NONE){
-      tok = get_next_token(&cmd, buf, TOK_ANY);
-      if (tok == TOK_ERROR) return SESSION_PARSING_ERROR;
-    }
+    size_t length = find_last_substring("ELSE", cmd);
+    cmd += length;
+    tok = get_next_token(&cmd, buf, TOK_ANY);
     if (tok == TOK_ELSE) {
       tok = get_next_token(&cmd, buf, TOK_ANY);
       if (tok == TOK_ERROR) return SESSION_PARSING_ERROR;
