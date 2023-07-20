@@ -45,6 +45,13 @@ void main(void){
 
   sessionS *current_session = session_init();
 
+  add_instruction(current_session, 10, "FOR X = 0 TO 9 STEP 1");
+  add_instruction(current_session, 20, "FOR Y = 0 TO 9 STEP 1");
+  add_instruction(current_session, 30, "PRINT X; Y; \" \"");
+  add_instruction(current_session, 40, "NEXT");
+  add_instruction(current_session, 50, "NEXT");
+  add_instruction(current_session, 60, "PRINT \"End\",");
+
   while (1) {
     char buf[256] = {0};
     sessionErrorCodeE result = SESSION_NO_ERROR;
