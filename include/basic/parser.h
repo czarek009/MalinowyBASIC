@@ -31,6 +31,7 @@ enum tokenE {
 
   /* additional instructions */
   TOK_ENV, TOK_LIST, TOK_MEM, TOK_RUN, TOK_SINFO,
+  TOK_SESSEND,
 } typedef tokenE;
 
 struct tokenS {
