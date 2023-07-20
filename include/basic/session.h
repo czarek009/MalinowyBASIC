@@ -148,6 +148,7 @@ void print_instructions(sessionS *s);
 sessionErrorCodeE run_program(sessionS *s);
 
 u64 get_next_instr_line(sessionS *s, u64 ln);
+instructionS *get_next_instruction(sessionS *s, u64 line_number);
 void print_session_info(sessionS* s);
 
 void session_end(sessionS *s);
