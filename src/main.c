@@ -45,15 +45,32 @@ void main(void){
 
   sessionS *current_session = session_init();
 
-  while (1) {
-    char buf[256] = {0};
-    sessionErrorCodeE result = SESSION_NO_ERROR;
-    readline(buf, "$> ");
-    result = interpreter_process_input(current_session, buf);
+  add_instruction(current_session, 10, "FOR X = 0 TO 9 STEP 1");
+  add_instruction(current_session, 20, "FOR Y = 0 TO 9 STEP 1");
+  add_instruction(current_session, 30, "PRINT X; Y; \" \"");
+  add_instruction(current_session, 40, "NEXT");
+  add_instruction(current_session, 50, "NEXT");
+  add_instruction(current_session, 60, "PRINT \"End\",");
 
-    if (result != SESSION_NO_ERROR) {
-      ERROR("ERROR\n");
+  while (1) {
+    printf("START SESSION\n");
+    sessionS *current_session = session_init();
+
+    while (1) {
+      char buf[256] = {0};
+      sessionErrorCodeE result = SESSION_NO_ERROR;
+      readline(buf, "$> ");
+      result = interpreter_process_input(current_session, buf);
+
+      if (result == SESSION_END) {
+        printf("SESSION END\n");
+        break;
+      }
+      if (result != SESSION_NO_ERROR) {
+        ERROR("ERROR\n");
+      }
     }
+    session_end(current_session);
+    lickitung_check();
   }
-  session_end(current_session);
 }

@@ -3,6 +3,7 @@
 #include "session.h"
 #include "printf.h"
 #include "butils.h"
+#include "parser.h"
 
 /* SESSION */
 void print_structures_size(void) {
@@ -18,6 +19,7 @@ sessionS *session_init(void) {
   s->metadata.resume_from = NULL;
   s->metadata.return_address_stackpointer = 0;
   s->metadata.data_stackpointer = 0;
+  s->metadata.for_stackpointer = 0;
   s->metadata.variables_number = 0;
   s->metadata.functions_number = 0;
   s->metadata.error_code = SESSION_NO_ERROR;
@@ -125,7 +127,7 @@ variableS *get_variable_ptr(sessionS *s, char* name) {
 u8 get_variable_value(sessionS *s, char* name, variableDataU *var_data) {
   variableS *var = get_variable_ptr(s, name);
   if (var == NULL) {
-    DEBUG("variableS not found\n");
+    DEBUG("variable '%s' not found\n", name);
     return NOT_FOUND;
   }
   *var_data = var->data;
@@ -402,6 +404,7 @@ void delete_node(instructionS *node, sessionS *s) {
     node->previous->next = node->next;
     node->next->previous = node->previous;
   }
+  free(node->instruction);
   free(node);
 }
 
@@ -467,6 +470,36 @@ sessionErrorCodeE run_program(sessionS *s) {
   s->metadata.error_code = SESSION_NO_ERROR;
   s->metadata.status = SESSION_STATUS_FINISHED;
   return SESSION_NO_ERROR;
+}
+
+u64 find_next(sessionS *s, u64 ln) {
+  s32 counter = 0;
+  instructionS *node = s->metadata.instructions_start;
+  while(node != NULL){
+    if (node->line_number == ln) {
+      break;
+    }
+    node = node->next;
+  }
+
+  while(node != NULL) {
+    char* aux = node->instruction;
+    char buf[64];
+    tokenE tok = get_next_token(&aux, buf, TOK_ANY);
+    if (tok == TOK_FOR) {
+      counter++;
+    }
+    if (tok == TOK_NEXT) {
+      counter--;
+    }
+    if (counter == 0) {
+      return node->line_number;
+    }
+
+    node = node->next;
+  }
+
+  return 0;
 }
 
 u64 get_next_instr_line(sessionS *s, u64 ln) {

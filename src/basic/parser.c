@@ -63,6 +63,8 @@ tokenS tokens[] = {
   {.tok_name="MEM",     .tok_id=TOK_MEM},
   {.tok_name="RUN",     .tok_id=TOK_RUN},
 
+  {.tok_name="SESSEND", .tok_id=TOK_SESSEND},
+
   {.tok_name="", .tok_id=TOK_NONE}
 };
 
@@ -77,6 +79,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
   *cmd_p = consume_whitespaces(*cmd_p);
   char* cmd = *cmd_p;
   DEBUG("[*] get_next_token(%s)\n", cmd);
+  // printf("get_next_token(%s)\n", cmd);
 
   /* EOL */
   if (*cmd == '\0') {

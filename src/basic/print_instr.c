@@ -58,7 +58,7 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
     /* nothing */
   } else if (tok == TOK_NONE || tok == TOK_ERROR) {
     /* end of instruction */
-    printf("\n");
+    // printf("\n");
     return SESSION_NO_ERROR;
   } else {
     cmd -= strlen(buf);

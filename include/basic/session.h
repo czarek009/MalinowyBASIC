@@ -44,16 +44,17 @@ types:
 
 
 typedef enum sessionErrorCodeE {
-SESSION_NO_ERROR,
-SESSION_UNKNOWN_ERROR,
-SESSION_PARSING_ERROR,
-SESSION_UNKNOWN_TOKEN,
-SESSION_EVAL_ERROR,
-SESSION_INVALID_INSTRUCTION,
-SESSION_INVALID_JUMP,
-SESSION_INVALID_VAR_NAME,
-SESSION_INVALID_EXPR,
-SESSION_EMPTY_STACK,
+  SESSION_NO_ERROR,
+  SESSION_UNKNOWN_ERROR,
+  SESSION_PARSING_ERROR,
+  SESSION_UNKNOWN_TOKEN,
+  SESSION_EVAL_ERROR,
+  SESSION_INVALID_INSTRUCTION,
+  SESSION_INVALID_JUMP,
+  SESSION_INVALID_VAR_NAME,
+  SESSION_INVALID_EXPR,
+  SESSION_EMPTY_STACK,
+  SESSION_END,
 } sessionErrorCodeE;
 
 typedef enum {
@@ -81,6 +82,7 @@ typedef struct metadataS {
   u64 jump_flag;
   u8 return_address_stackpointer;
   u8 data_stackpointer;
+  u8 for_stackpointer;
   u8 variables_number;
   u8 functions_number;
   u8 reserved[208];
@@ -106,8 +108,17 @@ typedef struct functionS {
   char* body;
 } functionS;
 
+typedef struct forS {
+  u64 line;
+  u64 limit;
+  u64 step;
+  u64 next_line;
+  char iterator[8];
+} forS;
+
 typedef struct sessionS {
   metadataS metadata;
+  forS for_stack[8];
   u64 return_address_stack[32];
   s32 data_stack[128];
   variableS variables[64];
@@ -146,6 +157,7 @@ void delete_single_instruction(sessionS *s, u64 line_number);
 void delete_all_instructions(sessionS *s);
 void print_instructions(sessionS *s);
 sessionErrorCodeE run_program(sessionS *s);
+u64 find_next(sessionS *s, u64 ln);
 
 u64 get_next_instr_line(sessionS *s, u64 ln);
 instructionS *get_next_instruction(sessionS *s, u64 line_number);
