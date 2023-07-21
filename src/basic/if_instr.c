@@ -62,9 +62,9 @@ sessionErrorCodeE if_instr(sessionS* env, char* cmd, u64 ln) {
 
     /* check for else keyword in instruction */
     size_t length = find_last_substring("ELSE", cmd);
-    char *then_body = malloc(length + 1);
-    memcpy(then_body, cmd, length);
-    then_body[length] = '\0';
+    char *then_body = malloc(length + 2);
+    memcpy(then_body, cmd, length+2);
+    then_body[length+1] = '\0';
 
     sessionErrorCodeE exec_err = interpreter_execute_command(env, then_body, ln);
     free(then_body);
