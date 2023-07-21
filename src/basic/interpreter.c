@@ -83,6 +83,10 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       out = on_instr(env, cmd, line_number);
       break;
 
+    case TOK_IF:
+      out = if_instr(env, cmd, line_number);
+      break;
+
     case TOK_RETURN:
       out = return_instr(env, cmd);
       break;

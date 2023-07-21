@@ -132,3 +132,21 @@ u64 find_substring(char* str1, char* str2) {
 
   return strlen(str2);
 }
+
+u64 find_last_substring(char* str1, char* str2) {
+  size_t len1 = strlen(str1) - 1;
+  size_t len2 = strlen(str2) - 1;
+  for (s64 i = len2; 0 <= i; i--) {
+    bool found = true;
+    for (s64 j = len1; 0 < j; j--) {
+      if (str2[i+j] != str1[j]) {
+        found = false;
+        break;
+      }
+    }
+    if (found) {
+      return i;
+    }
+  }
+  return len2;
+}

@@ -516,6 +516,12 @@ u64 get_next_instr_line(sessionS *s, u64 ln) {
   return 0;
 }
 
+instructionS *get_next_instruction(sessionS *s, u64 line_number) {
+  instructionS *node = find_instruction(s->metadata.instructions_start, line_number);
+  if(node == NULL) return node;
+  return node->next;
+}
+
 void print_functions(sessionS* s) {
   for (u64 i = 0; i < s->metadata.functions_number; ++i) {
     printf("  funname: '%s'  argname: '%s'  body: '%s'\n",
