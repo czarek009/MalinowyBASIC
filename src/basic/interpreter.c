@@ -47,8 +47,20 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
   tokenE tok = get_next_token(&cmd, buf, TOK_ANY);
 
   switch (tok) {
+    case TOK_DATA:
+      out = data_instr(env, cmd);
+      break;
+
+    case TOK_READ:
+      out = read_instr(env, cmd);
+      break;
+
+    case TOK_RESTORE:
+      out = restore_instr(env, cmd);
+      break;
+
     case TOK_DEF:
-      def_instr(env, cmd);
+      out = def_instr(env, cmd);
       break;
 
     case TOK_LET:
