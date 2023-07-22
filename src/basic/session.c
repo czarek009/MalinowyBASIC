@@ -465,6 +465,11 @@ sessionErrorCodeE run_program(sessionS *s) {
       return SESSION_NO_ERROR;
     }
 
+    if (s->metadata.status == SESSION_STATUS_FINISHED) {
+      s->metadata.resume_from = NULL;
+      return SESSION_NO_ERROR;
+    }
+
     if(s->metadata.jump_flag != 0) {
       node = find_instruction(s->metadata.instructions_start, s->metadata.jump_flag);
       s->metadata.jump_flag = 0;

@@ -107,6 +107,11 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       printf("Program execution stopped\n");
       set_session_status(env, SESSION_STATUS_STOPPED);
       break;
+    
+    case TOK_END:
+      printf("Program finished\n");
+      set_session_status(env, SESSION_STATUS_FINISHED);
+      break;
 
     /* ONLY DIRECT MODE */
     case TOK_RUN:
