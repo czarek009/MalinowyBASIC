@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#define POINTER             ((u8)0)
+#define ARRAY               ((u8)0)
 #define INTEGER             ((u8)1)
 #define FLOATING_POINT      ((u8)2)
 #define BOOLEAN             ((u8)3)
@@ -14,9 +14,9 @@
 #define EVAL_ERROR          ((u8)255)
 
 typedef union variableDataU {
-    u64 *pointer;
+    void *array;
     s64 integer;
-    float floating_point;
+    double floating_point;
     bool boolean;
     char *string;
 } variableDataU;

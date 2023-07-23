@@ -88,14 +88,6 @@ typedef struct metadataS {
   u8 reserved[208];
 } metadataS;
 
-typedef union VariableData {
-  u64 *pointer;
-  s32 integer;
-  double floating_point;
-  bool boolean;
-  char *string;
-} VariableData;
-
 typedef struct variableS {
   char name[7];
   u8 type;
@@ -144,13 +136,18 @@ variableS *get_variable_ptr(sessionS *s, char* name);
 u8 get_variable_value(sessionS *s, char* name, variableDataU *var_data);
 void add_variable(sessionS *s, variableDataU var_data, char *name, u8 type);
 void add_integer_variable(sessionS *s, s64 data, char *name);
-void add_floating_point_variable(sessionS *s, float data, char *name);
+void add_floating_point_variable(sessionS *s, double data, char *name);
 void add_boolean_variable(sessionS *s, bool data, char *name);
 void add_string_variable(sessionS *s, char *data, char *name);
 void print_variables(sessionS *s);
 
 void add_function(sessionS *s, char* funname, char* argname, char* body);
 u8 apply_function(sessionS *s, char* funname, variableDataU arg, u8 argtype, variableDataU* result);
+
+void add_array_variable(sessionS *s, char *name, u8 dimentions, u8 *dim_sizes, u8 arr_type);
+u8 get_array_dimentions_and_type(sessionS *s, char *name, u8 *dimentions);
+sessionErrorCodeE update_array(sessionS *s, char *name, variableDataU value, u8 *idxs);
+sessionErrorCodeE get_array_element(sessionS *s, char *name, u8 *idxs, variableDataU *data);
 
 void add_instruction(sessionS *s, u64 line_number, char *instruction);
 void delete_single_instruction(sessionS *s, u64 line_number);

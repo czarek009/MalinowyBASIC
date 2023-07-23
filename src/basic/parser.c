@@ -26,6 +26,7 @@ tokenS tokens[] = {
   {.tok_name="!",  .tok_id=TOK_NEG},
   {.tok_name="(",  .tok_id=TOK_LPAREN},
   {.tok_name=")",  .tok_id=TOK_RPAREN},
+  {.tok_name="]",  .tok_id=TOK_RSQUARE},
   {.tok_name="#",  .tok_id=TOK_HASH},
   {.tok_name="<",  .tok_id=TOK_LT},
   {.tok_name=">",  .tok_id=TOK_GT},
@@ -114,7 +115,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     }
     dest[i] = '\0';
 
-    if (isin(cmd[i], " +-*/=<>)%^,;") || cmd[i] == '\0') {
+    if (isin(cmd[i], " +-*/=<>)]%^,;") || cmd[i] == '\0') {
       DEBUG(" 1 token read = \"%s\"\n", dest);
       *cmd_p += i;
       if (expected_token != TOK_ANY && expected_token != TOK_NUMBER) {
@@ -166,6 +167,23 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
       }
       return TOK_FN;
     }
+    /* check if this is an array name */
+    if ((*cmd_p)[0] == '[') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_ARRAY_INT) {
+        report_error(get_tokname(expected_token), "array int", cmd);
+        return TOK_ERROR;
+      }
+      *cmd_p += 1;
+      return TOK_ARRAY_INT;
+    }
+    if ((*cmd_p)[0] == '%' && (*cmd_p)[1]== '[') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_ARRAY_FLOAT) {
+        report_error(get_tokname(expected_token), "array float", cmd);
+        return TOK_ERROR;
+      }
+      *cmd_p += 2;
+      return TOK_ARRAY_FLOAT;
+    }
 
     if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_VAR) {
       report_error(get_tokname(expected_token), "variable", cmd);
@@ -183,6 +201,47 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
 void reverse_get_next_token(char** cmd_p, char* buf) {
   size_t length = strlen(buf);
   *cmd_p -= length;
+}
+
+sessionErrorCodeE parse_array_dimentions(char *cmd, u8 *dimentions) {
+  char buf[32] = {0};
+  tokenE tok = TOK_NONE;
+  u8 dim = 0;
+  while (tok != TOK_RSQUARE) {
+    tok = get_next_token(&cmd, buf, TOK_NUMBER);
+    switch (tok) {
+      case TOK_NUMBER:
+        dim++;
+        break;
+      default:
+        return SESSION_PARSING_ERROR;
+    }
+    tok = get_next_token(&cmd, buf, TOK_ANY);
+    switch (tok) {
+      case TOK_COMMA:
+      case TOK_RSQUARE:
+        break;
+      default:
+        return SESSION_PARSING_ERROR;
+    }
+  }
+  *dimentions = dim;
+  return SESSION_NO_ERROR;
+}
+
+u8 *parse_array(char** cmd, u8 dimentions) {
+  char buf[32] = {0};
+  tokenE tok = TOK_NONE;
+  u8 dim_nr = 0;
+  u8 *dims = malloc(dimentions);
+  while(tok != TOK_RSQUARE) {
+    tok = get_next_token(cmd, buf, TOK_ANY);
+    if(tok == TOK_NUMBER) {
+      dims[dim_nr] = (u8)str2s64(buf);
+      dim_nr++;
+    }
+  }
+  return dims;
 }
 
 void report_error(char* expected, char* found, char* cmd) {

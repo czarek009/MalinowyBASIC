@@ -10,7 +10,7 @@
 enum tokenE {
   TOK_NONE, TOK_ERROR, TOK_ANY, TOK_NOTNUMBER,
 
-  TOK_NUMBER, TOK_VAR, TOK_FN,
+  TOK_NUMBER, TOK_VAR, TOK_FN, TOK_ARRAY_INT, TOK_ARRAY_FLOAT,
 
   /* single char */
   TOK_COMMA, TOK_QUOTE, TOK_SEMICOLON,
@@ -44,5 +44,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token);
 void reverse_get_next_token(char** cmd_p, char* buf);
 void report_error(char* expected, char* found, char* cmd);
 void get_const_str(char** cmd_p, char* dest);
+u8 *parse_array(char** cmd, u8 dimentions);
+sessionErrorCodeE parse_array_dimentions(char *cmd, u8 *dimentions);
 
 #endif /* _PARSER_H */

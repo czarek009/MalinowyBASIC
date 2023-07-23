@@ -79,6 +79,7 @@ void print_exprDataS(exprDataS *expr_data);
 evalErrorE get_number(dataU *data, u8 *type, char *str);
 evalErrorE get_var(sessionS *s, dataU *data, u8 *type, char *str);
 evalErrorE get_str(char **expr, dataU *data);
+evalErrorE get_array_data(sessionS *s, char **expr, char *varname, dataU *data, u8 arr_parsed_type);
 evalErrorE add_operator(opStackS *op_stack, exprDataS *expr_data, opE op);
 evalErrorE move_op_to_expr(opStackS *op_stack, exprDataS *expr_data);
 evalErrorE add_remaining_op(opStackS *op_stack, exprDataS *expr_data);
@@ -159,6 +160,18 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
           ret_code = push_exprDataS(&expr_data, data, type);
           expected_tok = TOK_NOTNUMBER;
         }
+        break;
+      case TOK_ARRAY_INT:
+        ret_code = get_array_data(s, expr, buf, &data, INTEGER);
+        if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
+        ret_code = push_exprDataS(&expr_data, data, INTEGER);
+        expected_tok = TOK_NOTNUMBER;
+        break;
+      case TOK_ARRAY_FLOAT:
+        ret_code = get_array_data(s, expr, buf, &data, FLOATING_POINT);
+        if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
+        ret_code = push_exprDataS(&expr_data, data, FLOATING_POINT);
+        expected_tok = TOK_NOTNUMBER;
         break;
       case TOK_QUOTE:
         ret_code = get_str(expr, &data);
@@ -564,6 +577,38 @@ evalErrorE get_str(char **expr, dataU *data) {
   data->string = str;
   *expr = *expr + i + 1;
   return EVAL_SUCCESS;
+}
+
+evalErrorE get_array_data(sessionS *s, char **expr, char *varname, dataU *data, u8 arr_parsed_type) {
+  u8 dimentions = 0;
+  sessionErrorCodeE array_err = parse_array_dimentions(*expr, &dimentions);
+  if(array_err != SESSION_NO_ERROR) return EVAL_INTERNAL_ERROR;
+  u8 real_dimentions = 0;
+  u8 arr_type = get_array_dimentions_and_type(s, varname, &real_dimentions);
+  if(arr_type == NOT_FOUND) return EVAL_INTERNAL_ERROR;
+  if(arr_type != arr_parsed_type){
+    ERROR("[EVAL ERROR] Array %s is different type than parsed\n", varname);
+    return EVAL_INTERNAL_ERROR;
+  }
+  if(real_dimentions != dimentions){
+    ERROR("[EVAL ERROR] wrong dimentions to varname %s, given dim=%d, rel dim=%d\n", varname, dimentions, real_dimentions);
+    return EVAL_INTERNAL_ERROR;
+  }
+  u8 *idxs = parse_array(expr, dimentions);
+  variableDataU arr_data = {0};
+  array_err = get_array_element(s, varname, idxs, &arr_data);
+  free(idxs);
+  if(array_err != SESSION_NO_ERROR) return EVAL_INTERNAL_ERROR;
+  switch (arr_type) {
+    case INTEGER:
+      data->integer = arr_data.integer;
+      return EVAL_SUCCESS;
+    case FLOATING_POINT:
+      data->floating_point = arr_data.floating_point;
+      return EVAL_SUCCESS;
+    default:
+      return EVAL_INTERNAL_ERROR;
+  }
 }
 
 evalErrorE add_operator(opStackS *op_stack, exprDataS *expr_data, opE op) {
