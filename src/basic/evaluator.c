@@ -263,6 +263,30 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
   return pop_result(&expr_data, result);
 }
 
+u8 *eval_array_sizes(sessionS *s, char** cmd, u8 dimentions) {
+  char buf[32] = {0};
+  tokenE tok = TOK_COMMA;
+  u8 dim_nr = 0;
+  u8 *dims = malloc(dimentions);
+  while(tok == TOK_COMMA) {
+    variableDataU value;
+    u8 value_type = eval_expr(s, cmd, &value);
+    if(value_type != INTEGER){
+      free(dims);
+      ERROR("[PARSER ERROR] Indexes/sizes of an array must be integers\n");
+      return NULL;
+    }
+    dims[dim_nr] = (u8)value.integer;
+    dim_nr++;
+    tok = get_next_token(cmd, buf, TOK_ANY);
+  }
+  if(tok == TOK_RSQUARE) return dims;
+  if(tok == TOK_NONE) ERROR("[PARSER ERROR] There was no ] at the end of array indexes/sizes\n");
+  else ERROR("[PARSER ERROR] Token '%s' is not allowed in array indexes/sizes\n", buf);
+  free(dims);
+  return NULL;
+}
+
 
 /* PRIVATE FUNCTIONS DEFINITIONS */
 u64 find_closing_parenthesis(char* expr) {
@@ -594,7 +618,8 @@ evalErrorE get_array_data(sessionS *s, char **expr, char *varname, dataU *data, 
     ERROR("[EVAL ERROR] wrong dimentions to varname %s, given dim=%d, rel dim=%d\n", varname, dimentions, real_dimentions);
     return EVAL_INTERNAL_ERROR;
   }
-  u8 *idxs = parse_array(expr, dimentions);
+  u8 *idxs = eval_array_sizes(s, expr, dimentions);
+  if(idxs == NULL) return EVAL_INTERNAL_ERROR;
   variableDataU arr_data = {0};
   array_err = get_array_element(s, varname, idxs, &arr_data);
   free(idxs);

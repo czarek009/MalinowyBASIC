@@ -204,44 +204,22 @@ void reverse_get_next_token(char** cmd_p, char* buf) {
 }
 
 sessionErrorCodeE parse_array_dimentions(char *cmd, u8 *dimentions) {
-  char buf[32] = {0};
-  tokenE tok = TOK_NONE;
-  u8 dim = 0;
-  while (tok != TOK_RSQUARE) {
-    tok = get_next_token(&cmd, buf, TOK_NUMBER);
-    switch (tok) {
-      case TOK_NUMBER:
-        dim++;
-        break;
-      default:
+  if(cmd[0] == ']'){
+    ERROR("[PARSER ERROR] No indexes/sizes in array brackets\n");
+    return SESSION_PARSING_ERROR;
+  }
+  u8 dim = 1;
+  for(u64 i = 1; cmd[i] != ']' && cmd[i] != '\0'; i++) {
+    if(cmd[i] == ',') {
+      if(cmd[i - 1] == ',') {
+        ERROR("[PARSER ERROR] Consecutive commas in array indexes/sizes\n");
         return SESSION_PARSING_ERROR;
-    }
-    tok = get_next_token(&cmd, buf, TOK_ANY);
-    switch (tok) {
-      case TOK_COMMA:
-      case TOK_RSQUARE:
-        break;
-      default:
-        return SESSION_PARSING_ERROR;
+      }
+      dim++;
     }
   }
   *dimentions = dim;
   return SESSION_NO_ERROR;
-}
-
-u8 *parse_array(char** cmd, u8 dimentions) {
-  char buf[32] = {0};
-  tokenE tok = TOK_NONE;
-  u8 dim_nr = 0;
-  u8 *dims = malloc(dimentions);
-  while(tok != TOK_RSQUARE) {
-    tok = get_next_token(cmd, buf, TOK_ANY);
-    if(tok == TOK_NUMBER) {
-      dims[dim_nr] = (u8)str2s64(buf);
-      dim_nr++;
-    }
-  }
-  return dims;
 }
 
 void report_error(char* expected, char* found, char* cmd) {
