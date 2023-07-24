@@ -184,6 +184,14 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
       *cmd_p += 2;
       return TOK_ARRAY_FLOAT;
     }
+    if ((*cmd_p)[0] == '$' && (*cmd_p)[1]== '[') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_ARRAY_STRING) {
+        report_error(get_tokname(expected_token), "array string", cmd);
+        return TOK_ERROR;
+      }
+      *cmd_p += 2;
+      return TOK_ARRAY_STRING;
+    }
 
     if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_VAR) {
       report_error(get_tokname(expected_token), "variable", cmd);

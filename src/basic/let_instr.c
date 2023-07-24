@@ -15,7 +15,7 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
 
   /* varname */
   tok = get_next_token(&cmd, buf, TOK_ANY); // copy straight to varname instead buf?
-  if (tok != TOK_VAR && tok != TOK_ARRAY_FLOAT && tok != TOK_ARRAY_INT) return SESSION_PARSING_ERROR; // PARSING ERROR
+  if (tok != TOK_VAR && tok != TOK_ARRAY_FLOAT && tok != TOK_ARRAY_INT && tok != TOK_ARRAY_STRING) return SESSION_PARSING_ERROR; // PARSING ERROR
   strncpy(varname, buf, 8);
   if (tok == TOK_VAR) {
     /* $ = */
@@ -60,7 +60,20 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
     u8 real_dimentions = 0;
     u8 arr_type = get_array_dimentions_and_type(env, varname, &real_dimentions);
     if(arr_type == NOT_FOUND) return SESSION_INVALID_VAR_NAME;
-    u8 arr_parsed_type = (tok == TOK_ARRAY_INT) ? INTEGER : FLOATING_POINT;
+    u8 arr_parsed_type;
+    switch(tok){
+      case TOK_ARRAY_INT:
+        arr_parsed_type = INTEGER;
+        break;
+      case TOK_ARRAY_FLOAT:
+        arr_parsed_type = FLOATING_POINT;
+        break;
+      case TOK_ARRAY_STRING:
+        arr_parsed_type = STRING;
+        break;
+      default:
+        return SESSION_PARSING_ERROR;
+    }
     if(arr_type != arr_parsed_type){
       ERROR("[INSTRUCTION ERROR] Array %s is different type than parsed\n", varname);
       return SESSION_PARSING_ERROR;
@@ -94,7 +107,6 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
     free(idxs);
     if(array_err != SESSION_NO_ERROR) return array_err;
   }
-
   tok = get_next_token(&cmd, buf, TOK_NONE);
   if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
 

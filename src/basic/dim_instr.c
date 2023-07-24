@@ -14,8 +14,20 @@ sessionErrorCodeE dim_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
   tok = get_next_token(&cmd, buf, TOK_ANY);
-  if(tok != TOK_ARRAY_FLOAT && tok != TOK_ARRAY_INT) return SESSION_PARSING_ERROR;
-  u8 arr_type = (tok == TOK_ARRAY_INT) ? INTEGER : FLOATING_POINT;
+  u8 arr_type;
+  switch(tok){
+    case TOK_ARRAY_INT:
+      arr_type = INTEGER;
+      break;
+    case TOK_ARRAY_FLOAT:
+      arr_type = FLOATING_POINT;
+      break;
+    case TOK_ARRAY_STRING:
+      arr_type = STRING;
+      break;
+    default:
+      return SESSION_PARSING_ERROR;
+  }
   u8 dimentions = 0;
   sessionErrorCodeE parse_err = parse_array_dimentions(cmd, &dimentions);
   if(parse_err != SESSION_NO_ERROR) return parse_err;

@@ -173,6 +173,12 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
         ret_code = push_exprDataS(&expr_data, data, FLOATING_POINT);
         expected_tok = TOK_NOTNUMBER;
         break;
+      case TOK_ARRAY_STRING:
+        ret_code = get_array_data(s, expr, buf, &data, STRING);
+        if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
+        ret_code = push_exprDataS(&expr_data, data, STRING);
+        expected_tok = TOK_NOTNUMBER;
+        break;
       case TOK_QUOTE:
         ret_code = get_str(expr, &data);
         if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
@@ -630,6 +636,15 @@ evalErrorE get_array_data(sessionS *s, char **expr, char *varname, dataU *data, 
       return EVAL_SUCCESS;
     case FLOATING_POINT:
       data->floating_point = arr_data.floating_point;
+      return EVAL_SUCCESS;
+    case STRING:
+      {
+        size_t size = strlen(arr_data.string);
+        char *str = malloc(size + 1);
+        memcpy(str, arr_data.string, size);
+        str[size] = '\0';
+        data->string = str;
+      }
       return EVAL_SUCCESS;
     default:
       return EVAL_INTERNAL_ERROR;

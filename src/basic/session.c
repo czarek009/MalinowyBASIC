@@ -301,12 +301,24 @@ u8 get_array_dimentions_and_type(sessionS *s, char *name, u8 *dimentions) {
 
 void add_array_variable(sessionS *s, char *name, u8 dimentions, u8 *dim_sizes, u8 arr_type) {
   variableDataU var_data;
-  u8 header_size = TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE);
+  u64 header_size = TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE);
   u64 array_size = 1;
+  switch(arr_type){
+    case INTEGER:
+      array_size = sizeof(s64);
+      break;
+    case FLOATING_POINT:
+      array_size = sizeof(double);
+      break;
+    case STRING:
+      array_size = sizeof(char *);
+      break;
+  }
   for(u8 i = 0; i < dimentions; i++) {
     array_size *= dim_sizes[i];
   }
   u8* array = malloc(header_size + array_size);
+  memzero((u64)array, header_size + array_size);
   *array = arr_type;
   *(array + TYPE_SIZE) = dimentions;
   for(u8 i = 0; i < dimentions; i++) {
@@ -348,13 +360,28 @@ sessionErrorCodeE update_array(sessionS *s, char *name, variableDataU value, u8 
   u8 *dim_size = (header + TYPE_SIZE + DIM_SIZE_SIZE);
   if(!check_array_indexes(dimentions, dim_size, idxs)) return SESSION_INVALID_EXPR;
   u64 offset = array_offset(dimentions, dim_size, idxs);
-  if(arr_type == INTEGER){
-    s64 *arr = (s64 *)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
-    arr[offset] = value.integer;
-  }
-  else {
-    double *arr = (double *)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
-    arr[offset] = value.floating_point;
+  switch(arr_type){
+    case INTEGER:
+      {
+        s64 *arr = (s64 *)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
+        arr[offset] = value.integer;
+      }
+      break;
+    case FLOATING_POINT:
+      {
+        double *arr = (double *)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
+        arr[offset] = value.floating_point;
+      }
+      break;
+    case STRING:
+      {
+        char **arr = (char **)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
+        if(arr[offset] != NULL) free(arr[offset]);
+        arr[offset] = value.string;
+      }
+      break;
+    default:
+      return SESSION_PARSING_ERROR;
   }
   return SESSION_NO_ERROR;
 }
@@ -372,15 +399,53 @@ sessionErrorCodeE get_array_element(sessionS *s, char *name, u8 *idxs, variableD
   u8 *dim_size = (header + TYPE_SIZE + DIM_SIZE_SIZE);
   if(!check_array_indexes(dimentions, dim_size, idxs)) return SESSION_INVALID_EXPR;
   u64 offset = array_offset(dimentions, dim_size, idxs);
-  if(arr_type == INTEGER){
-    s64 *arr = (s64 *)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
-    data->integer = arr[offset];
-  }
-  else {
-    double *arr = (double *)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
-    data->floating_point = arr[offset];
+  switch(arr_type){
+    case INTEGER:
+      {
+        s64 *arr = (s64 *)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
+        data->integer = arr[offset];
+      }
+      break;
+    case FLOATING_POINT:
+      {
+        double *arr = (double *)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
+        data->floating_point = arr[offset];
+      }
+      break;
+    case STRING:
+      {
+        char **arr = (char **)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
+        data->string = arr[offset];
+      }
+      break;
+    default:
+      return SESSION_PARSING_ERROR;
   }
   return SESSION_NO_ERROR;
+}
+
+void delete_array(void *array) {
+  if(array == NULL) return;
+  u8 *header = (u8 *)array;
+  u8 arr_type = *header;
+  if(arr_type != STRING){
+    free(array);
+    return;
+  }
+  u8 dimentions = *(header + TYPE_SIZE);
+  u8 *dim_size = (header + TYPE_SIZE + DIM_SIZE_SIZE);
+  char **elements = (char **)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
+  u64 array_elements = 1;
+  for(u8 i = 0; i < dimentions; i++) {
+    array_elements *= dim_size[i];
+  }
+  for(u64 i = 0; i < array_elements; i++) {
+    char *str = elements[i];
+    if(str != NULL){
+      free(str);
+    }
+  }
+  free(array);
 }
 
 void delete_all_variables(sessionS *s) {
@@ -391,7 +456,7 @@ void delete_all_variables(sessionS *s) {
       free(var.data.string);
     }
     if(var.type == ARRAY) {
-      free(var.data.array);
+      delete_array(var.data.array);
     }
   }
 }

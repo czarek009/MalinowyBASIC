@@ -26,6 +26,7 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
       cmd = print_instr_string(cmd);
       break;
     case TOK_ARRAY_FLOAT:
+    case TOK_ARRAY_STRING:
       cmd -= 1;
     case TOK_ARRAY_INT:
       cmd -= 1;
