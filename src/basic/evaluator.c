@@ -269,12 +269,11 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
   return pop_result(&expr_data, result);
 }
 
-u8 *eval_array_sizes(sessionS *s, char** cmd, u8 dimentions) {
+u64 *eval_array_sizes(sessionS *s, char** cmd, u8 dim_nr) {
   char buf[32] = {0};
   tokenE tok = TOK_COMMA;
-  u8 dim_nr = 0;
-  u8 *dims = malloc(dimentions);
-  while(tok == TOK_COMMA) {
+  u64 *dims = malloc(dim_nr * sizeof(u64));
+  for(u8 i = 0; (i < dim_nr) && (tok == TOK_COMMA); i++) {
     variableDataU value;
     u8 value_type = eval_expr(s, cmd, &value);
     if(value_type != INTEGER){
@@ -282,8 +281,7 @@ u8 *eval_array_sizes(sessionS *s, char** cmd, u8 dimentions) {
       ERROR("[PARSER ERROR] Indexes/sizes of an array must be integers\n");
       return NULL;
     }
-    dims[dim_nr] = (u8)value.integer;
-    dim_nr++;
+    dims[i] = value.integer;
     tok = get_next_token(cmd, buf, TOK_ANY);
   }
   if(tok == TOK_RSQUARE) return dims;
@@ -477,7 +475,7 @@ u8 pop_result(exprDataS *expr_data, variableDataU *data) {
         break;
     }
   }
-  ERROR("[!] EVAL - pop_result: no matching data in eval_stack\n");
+  ERROR("[EVALUATOR ERROR] Expression is not correct\n");
   return EVAL_ERROR;
 }
 
@@ -581,7 +579,6 @@ evalErrorE get_var(sessionS *s, dataU *data, u8 *type, char *str) {
       *type = STRING;
       break;
     case NOT_FOUND:
-      ERROR("[!] EVAL - get_var: variable: %s NOT FOUND\n", str);
       return EVAL_INTERNAL_ERROR;
     default:
       ERROR("[!] EVAL - get_var: data type not compatible\n");
@@ -609,32 +606,23 @@ evalErrorE get_str(char **expr, dataU *data) {
   return EVAL_SUCCESS;
 }
 
-evalErrorE get_array_data(sessionS *s, char **expr, char *varname, dataU *data, u8 arr_parsed_type) {
-  u8 dimentions = 0;
-  sessionErrorCodeE array_err = parse_array_dimentions(*expr, &dimentions);
+evalErrorE get_array_data(sessionS *s, char **expr, char *varname, dataU *data, u8 parsed_type) {
+  u8 dim_nr = 0;
+  sessionErrorCodeE array_err = SESSION_NO_ERROR;
+  array_err = parse_array_dim_nr(*expr, &dim_nr);
   if(array_err != SESSION_NO_ERROR) return EVAL_INTERNAL_ERROR;
-  u8 real_dimentions = 0;
-  u8 arr_type = get_array_dimentions_and_type(s, varname, &real_dimentions);
-  if(arr_type == NOT_FOUND) return EVAL_INTERNAL_ERROR;
-  if(arr_type != arr_parsed_type){
-    ERROR("[EVAL ERROR] Array %s is different type than parsed\n", varname);
+  u64 *idxs = eval_array_sizes(s, expr, dim_nr);
+  if(idxs == NULL) return SESSION_PARSING_ERROR;
+  array_err = check_array_parameters(s, varname, parsed_type, dim_nr, idxs);
+  if(array_err != SESSION_NO_ERROR) {
+    free(idxs);
     return EVAL_INTERNAL_ERROR;
   }
-  if(real_dimentions != dimentions){
-    ERROR("[EVAL ERROR] wrong dimentions to varname %s, given dim=%d, rel dim=%d\n", varname, dimentions, real_dimentions);
-    return EVAL_INTERNAL_ERROR;
-  }
-  u8 *idxs = eval_array_sizes(s, expr, dimentions);
-  if(idxs == NULL) return EVAL_INTERNAL_ERROR;
   variableDataU arr_data = {0};
   array_err = get_array_element(s, varname, idxs, &arr_data);
-  print_memory_map();
-  print_pointer_contents((void *)idxs);
   free(idxs);
-  // LET B[0] = A[0]
-  print_memory_map();
   if(array_err != SESSION_NO_ERROR) return EVAL_INTERNAL_ERROR;
-  switch (arr_type) {
+  switch (parsed_type) {
     case INTEGER:
       data->integer = arr_data.integer;
       return EVAL_SUCCESS;
@@ -642,13 +630,7 @@ evalErrorE get_array_data(sessionS *s, char **expr, char *varname, dataU *data, 
       data->floating_point = arr_data.floating_point;
       return EVAL_SUCCESS;
     case STRING:
-      {
-        size_t size = strlen(arr_data.string);
-        char *str = malloc(size + 1);
-        memcpy(str, arr_data.string, size);
-        str[size] = '\0';
-        data->string = str;
-      }
+      data->string = arr_data.string;
       return EVAL_SUCCESS;
     default:
       return EVAL_INTERNAL_ERROR;

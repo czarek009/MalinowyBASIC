@@ -56,36 +56,19 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
     }
   }
   else {
-    u8 dimentions = 0;
-    sessionErrorCodeE array_err = parse_array_dimentions(cmd, &dimentions);
+    u8 type = get_array_parsed_type(tok);
+    if(type == NOT_FOUND) return SESSION_PARSING_ERROR;
+    u8 dim_nr = 0;
+    sessionErrorCodeE array_err = SESSION_NO_ERROR;
+    array_err = parse_array_dim_nr(cmd, &dim_nr);
     if(array_err != SESSION_NO_ERROR) return array_err;
-    u8 real_dimentions = 0;
-    u8 arr_type = get_array_dimentions_and_type(env, varname, &real_dimentions);
-    if(arr_type == NOT_FOUND) return SESSION_INVALID_VAR_NAME;
-    u8 arr_parsed_type;
-    switch(tok){
-      case TOK_ARRAY_INT:
-        arr_parsed_type = INTEGER;
-        break;
-      case TOK_ARRAY_FLOAT:
-        arr_parsed_type = FLOATING_POINT;
-        break;
-      case TOK_ARRAY_STRING:
-        arr_parsed_type = STRING;
-        break;
-      default:
-        return SESSION_PARSING_ERROR;
-    }
-    if(arr_type != arr_parsed_type){
-      ERROR("[INSTRUCTION ERROR] Array %s is different type than parsed\n", varname);
-      return SESSION_PARSING_ERROR;
-    }
-    if(real_dimentions != dimentions){
-      ERROR("[INSTRUCTION ERROR] wrong dimentions to varname %s, given dim=%d, rel dim=%d\n", varname, dimentions, real_dimentions);
-      return SESSION_PARSING_ERROR;
-    }
-    u8 *idxs = eval_array_sizes(env, &cmd, dimentions);
+    u64 *idxs = eval_array_sizes(env, &cmd, dim_nr);
     if(idxs == NULL) return SESSION_PARSING_ERROR;
+    array_err = check_array_parameters(env, varname, type, dim_nr, idxs);
+    if(array_err != SESSION_NO_ERROR) {
+      free(idxs);
+      return array_err;
+    }
     tok = get_next_token(&cmd, buf, TOK_EQ);
     if (tok == TOK_ERROR) {
       free(idxs);
@@ -100,7 +83,7 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
       ERROR("[INSTRUCTOION ERROR] Expression evaluation error\n", 0);
       return SESSION_EVAL_ERROR;
     }
-    if(arr_type != value_type){
+    if(type != value_type){
       free(idxs);
       ERROR("[INSTRUCTION ERROR] Array type not compatible with eval type\n");
       return SESSION_PARSING_ERROR;

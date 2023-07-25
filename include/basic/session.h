@@ -144,10 +144,10 @@ void print_variables(sessionS *s);
 void add_function(sessionS *s, char* funname, char* argname, char* body);
 u8 apply_function(sessionS *s, char* funname, variableDataU arg, u8 argtype, variableDataU* result);
 
-void add_array_variable(sessionS *s, char *name, u8 dimentions, u8 *dim_sizes, u8 arr_type);
-u8 get_array_dimentions_and_type(sessionS *s, char *name, u8 *dimentions);
-sessionErrorCodeE update_array(sessionS *s, char *name, variableDataU value, u8 *idxs);
-sessionErrorCodeE get_array_element(sessionS *s, char *name, u8 *idxs, variableDataU *data);
+void add_array_variable(sessionS *s, char *name, u8 dim_nr, u64 *dims, u8 type);
+sessionErrorCodeE check_array_parameters(sessionS *s, char *name, u8 parsed_type, u8 parsed_dim_nr, u64 *parsed_dims);
+sessionErrorCodeE update_array(sessionS *s, char *name, variableDataU value, u64 *idxs);
+sessionErrorCodeE get_array_element(sessionS *s, char *name, u64 *idxs, variableDataU *data);
 
 void add_instruction(sessionS *s, u64 line_number, char *instruction);
 void delete_single_instruction(sessionS *s, u64 line_number);

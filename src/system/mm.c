@@ -95,7 +95,6 @@ static word_t *prev_header(word_t *header) {
 }
 
 static void set_header(word_t *header, size_t size, bool is_allocated) {
-  printf("size = %lu\n", size);
   *header = size | is_allocated;
 }
 
@@ -159,7 +158,6 @@ static word_t *coalesce(word_t *first, word_t *second) {
 void ffree(void *ptr) {
   word_t *header = get_header((word_t *)ptr);
   set_header(header, get_size(header), FREE);
-  print_memory_map();
   set_footer(header);
   if (first_header != header) {
     word_t *prev = prev_header(header);
@@ -169,9 +167,7 @@ void ffree(void *ptr) {
   }
   if (last_header != header) {
     word_t *next = next_header(header);
-    printf("ptr = %lu, next = %lu\n", (u64)header, (u64)next);
     if(!is_alocated(next)) {
-      printf("scalanie\n");
       header = coalesce(header, next);
     }
   }
@@ -190,25 +186,6 @@ void print_memory_map(void) {
   }
   printf("----------------------------------------------------------\n");
 }
-
-void print_pointer_contents(void *ptr) {
-  word_t *header = get_header((word_t *)ptr);
-  word_t *footer = header + size_in_blocks(header) - 1;
-  size_t size = size_of_alloc(header);
-  u8 *content = (u8 *)ptr;
-  printf("header address: %lu\n", (u64)header);
-  printf("memory address: %lu\n", (u64)ptr);
-  printf("footer address: %lu\n", (u64)footer);
-  printf("allocated: %d\n", is_alocated(header));
-  printf("sizeof alloc: %lu\n", (u64)size);
-  printf("header content: %u\n", *header);
-  printf("footer content: %u\n", *footer);
-  printf("payload content:\n");
-  for (u8 i = 0; i < size; i++) {
-    printf("%ld\n", content[i]);
-  }
-}
-
 bool lickitung_check(void) {
   bool liks = false;
 

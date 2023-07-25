@@ -44,6 +44,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token);
 void reverse_get_next_token(char** cmd_p, char* buf);
 void report_error(char* expected, char* found, char* cmd);
 void get_const_str(char** cmd_p, char* dest);
-sessionErrorCodeE parse_array_dimentions(char *cmd, u8 *dimentions);
+sessionErrorCodeE parse_array_dim_nr(char *cmd, u8 *dim_nr);
+u8 get_array_parsed_type(tokenE tok);
 
 #endif /* _PARSER_H */

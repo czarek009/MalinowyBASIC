@@ -211,23 +211,40 @@ void reverse_get_next_token(char** cmd_p, char* buf) {
   *cmd_p -= length;
 }
 
-sessionErrorCodeE parse_array_dimentions(char *cmd, u8 *dimentions) {
+sessionErrorCodeE parse_array_dim_nr(char *cmd, u8 *dim_nr) {
   if(cmd[0] == ']'){
     ERROR("[PARSER ERROR] No indexes/sizes in array brackets\n");
     return SESSION_PARSING_ERROR;
   }
-  u8 dim = 1;
+  u8 dim_counter = 1;
   for(u64 i = 1; cmd[i] != ']' && cmd[i] != '\0'; i++) {
     if(cmd[i] == ',') {
       if(cmd[i - 1] == ',') {
         ERROR("[PARSER ERROR] Consecutive commas in array indexes/sizes\n");
         return SESSION_PARSING_ERROR;
       }
-      dim++;
+      if(dim_counter == UINT8_MAX) {
+      ERROR("[PARSER ERROR] Maximum number of array dimentions is 255\n");
+      return SESSION_PARSING_ERROR;
+      }
+      dim_counter++;
     }
   }
-  *dimentions = dim;
+  *dim_nr = dim_counter;
   return SESSION_NO_ERROR;
+}
+
+u8 get_array_parsed_type(tokenE tok) {
+  switch(tok){
+    case TOK_ARRAY_INT:
+      return INTEGER;
+    case TOK_ARRAY_FLOAT:
+      return FLOATING_POINT;
+    case TOK_ARRAY_STRING:
+      return STRING;
+    default:
+      return NOT_FOUND;
+  }
 }
 
 void report_error(char* expected, char* found, char* cmd) {

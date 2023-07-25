@@ -43,9 +43,11 @@ void main(void){
 
   print_greetings();
 
+
   while (1) {
     printf("START SESSION\n");
     sessionS *current_session = session_init();
+    test_arrays(current_session);
 
     while (1) {
       char buf[256] = {0};
