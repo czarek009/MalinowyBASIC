@@ -299,6 +299,24 @@ u8 get_array_dimentions_and_type(sessionS *s, char *name, u8 *dimentions) {
   return *header;
 }
 
+void print_array(void *array) {
+  u8 *header = (u8*)array;
+  u8 dimentions = *(header + TYPE_SIZE);
+  u8 *dim_size = (header + TYPE_SIZE + DIM_SIZE_SIZE);
+  u64 array_elements = 1;
+  printf("type = %d\n", *header);
+  printf("dimentions: ");
+  for(u8 i = 0; i < dimentions; i++) {
+    printf("%d; ", dim_size[i]);
+    array_elements *= dim_size[i];
+  }
+  printf("\n");
+  s64 *arr = (s64 *)(header + TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE));
+  for(u64 i = 0; i < array_elements; i++) {
+    printf("arr = %ld, elem = %ld\n", (u64)(arr + i), arr[i]);
+  }
+}
+
 void add_array_variable(sessionS *s, char *name, u8 dimentions, u8 *dim_sizes, u8 arr_type) {
   variableDataU var_data;
   u64 header_size = TYPE_SIZE + DIM_SIZE_SIZE + (dimentions * DIM_SIZE_SIZE);

@@ -628,7 +628,11 @@ evalErrorE get_array_data(sessionS *s, char **expr, char *varname, dataU *data, 
   if(idxs == NULL) return EVAL_INTERNAL_ERROR;
   variableDataU arr_data = {0};
   array_err = get_array_element(s, varname, idxs, &arr_data);
+  print_memory_map();
+  print_pointer_contents((void *)idxs);
   free(idxs);
+  // LET B[0] = A[0]
+  print_memory_map();
   if(array_err != SESSION_NO_ERROR) return EVAL_INTERNAL_ERROR;
   switch (arr_type) {
     case INTEGER:
