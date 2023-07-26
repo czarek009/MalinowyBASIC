@@ -61,9 +61,11 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
     printf("\n");
   } else if (tok == TOK_SEMICOLON) {
     /* nothing */
+    if (*cmd == '\0')
+    return SESSION_NO_ERROR;
   } else if (tok == TOK_NONE || tok == TOK_ERROR) {
     /* end of instruction */
-    // printf("\n");
+    printf("\n");
     return SESSION_NO_ERROR;
   } else {
     cmd -= strlen(buf);

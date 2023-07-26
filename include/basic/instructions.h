@@ -16,5 +16,8 @@ sessionErrorCodeE if_instr(sessionS* env, char* cmd, u64 ln);
 sessionErrorCodeE for_instr(sessionS* env, char* cmd, u64 ln);
 sessionErrorCodeE next_instr(sessionS* env, char* cmd, u64 ln);
 sessionErrorCodeE dim_instr(sessionS* env, char* cmd);
+sessionErrorCodeE data_instr(sessionS* env, char* cmd);
+sessionErrorCodeE read_instr(sessionS* env, char* cmd);
+sessionErrorCodeE restore_instr(sessionS* env, char* cmd);
 
 #endif /* _INSTRUCTIONS_H */

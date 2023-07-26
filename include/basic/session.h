@@ -36,8 +36,8 @@ types:
 #define RET_ADDR_STACK_SIZE        256
 #define RET_ADDR_STACK_MAX_FIELD  (RET_ADDR_STACK_SIZE / sizeof(u64)) - 1
 
-#define DATA_STACK_SIZE           512
-#define DATA_STACK_MAX_FIELD      (DATA_STACK_SIZE / sizeof(s32)) - 1
+#define data_queue_SIZE           512
+#define data_queue_MAX_FIELD      (data_queue_SIZE / sizeof(s32)) - 1
 
 #define VARIABLES_MAX_FIELD       63
 #define VARIABLE_NAME_SIZE        7
@@ -81,7 +81,8 @@ typedef struct metadataS {
   sessionStatusE status;
   u64 jump_flag;
   u8 return_address_stackpointer;
-  u8 data_stackpointer;
+  u8 data_queue_start;
+  u8 data_queue_end;
   u8 for_stackpointer;
   u8 variables_number;
   u8 functions_number;
@@ -93,6 +94,11 @@ typedef struct variableS {
   u8 type;
   variableDataU data;
 } variableS;
+
+typedef struct dataQueueS {
+  u8 type;
+  variableDataU value;
+} dataQueueS;
 
 typedef struct functionS {
   char funname[7];
@@ -112,7 +118,7 @@ typedef struct sessionS {
   metadataS metadata;
   forS for_stack[8];
   u64 return_address_stack[32];
-  s32 data_stack[128];
+  dataQueueS data_queue[128];
   variableS variables[64];
   functionS functions[64];
 } sessionS;
@@ -124,9 +130,9 @@ sessionStatusE get_session_status(sessionS *s);
 void set_session_status(sessionS *s, sessionStatusE status);
 void set_jump_flag(sessionS *s, u64 line_number);
 
-void push_data_to_stack(sessionS *s, s32 data);
-s32 pop_data_from_stack(sessionS *s);
-void print_data_stack(sessionS *s);
+void push_data_to_queue(sessionS *s, dataQueueS data);
+dataQueueS* read_data_from_queue(sessionS *s);
+void print_data_queue(sessionS *s);
 
 void push_return_address_to_stack(sessionS *s, u64 address);
 u64 pop_return_address_from_stack(sessionS *s);

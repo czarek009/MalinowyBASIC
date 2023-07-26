@@ -18,7 +18,8 @@ sessionS *session_init(void) {
   s->metadata.instructions_end = NULL;
   s->metadata.resume_from = NULL;
   s->metadata.return_address_stackpointer = 0;
-  s->metadata.data_stackpointer = 0;
+  s->metadata.data_queue_start = 0;
+  s->metadata.data_queue_end = 0;
   s->metadata.for_stackpointer = 0;
   s->metadata.variables_number = 0;
   s->metadata.functions_number = 0;
@@ -42,31 +43,37 @@ void set_jump_flag(sessionS *s, u64 line_number) {
 }
 
 /* DATA STACK */
-void push_data_to_stack(sessionS *s, s32 data) {
-  if(s->metadata.data_stackpointer < DATA_STACK_MAX_FIELD){
-    s->data_stack[s->metadata.data_stackpointer] = data;
-    s->metadata.data_stackpointer++;
+void push_data_to_queue(sessionS *s, dataQueueS data) {
+  if(s->metadata.data_queue_end < data_queue_MAX_FIELD){
+    s->data_queue[s->metadata.data_queue_end] = data;
+    s->metadata.data_queue_end++;
     return;
   }
-  DEBUG("PUSH - data stack is full\n");
+  ERROR("PUSH - data stack is full\n");
 }
 
-s32 pop_data_from_stack(sessionS *s) {
-  if(s->metadata.data_stackpointer > 0) {
-    s->metadata.data_stackpointer--;
-    s32 data = s->data_stack[s->metadata.data_stackpointer];
-    return data;
+dataQueueS* read_data_from_queue(sessionS *s) {
+  if(s->metadata.data_queue_end != s->metadata.data_queue_start) {
+    s->metadata.data_queue_start++;
+    // dataS data = s->data_queue[s->metadata.data_queue_end];
+    return &(s->data_queue[s->metadata.data_queue_start-1]);
   }
   else {
-    DEBUG("POP - data stack is empty\n");
-    return 0;
+    ERROR("POP - data queue is empty\n");
+    return NULL;
   }
 }
 
-void print_data_stack(sessionS *s) {
+void print_data_queue(sessionS *s) {
   printf("data stack:\n");
-  for(u8 i = 0; i < s->metadata.data_stackpointer; i++) {
-    printf("field: %u, value: %d\n", i, s->data_stack[i]);
+  for(u8 i = 0; i < s->metadata.data_queue_end; i++) {
+    u8 type = s->data_queue[i].type;
+    if (type == INTEGER)
+      printf("field: %u, value: %ld\n", i, s->data_queue[i].value.integer);
+    if (type == FLOATING_POINT)
+      printf("field: %u, value: %f\n", i, s->data_queue[i].value.floating_point);
+    if (type == STRING)
+      printf("field: %u, value: %s\n", i, s->data_queue[i].value.string);
   }
 }
 
@@ -695,6 +702,11 @@ sessionErrorCodeE run_program(sessionS *s) {
       return SESSION_NO_ERROR;
     }
 
+    if (s->metadata.status == SESSION_STATUS_FINISHED) {
+      s->metadata.resume_from = NULL;
+      return SESSION_NO_ERROR;
+    }
+
     if(s->metadata.jump_flag != 0) {
       node = find_instruction(s->metadata.instructions_start, s->metadata.jump_flag);
       s->metadata.jump_flag = 0;
@@ -772,7 +784,7 @@ void print_session_info(sessionS* s) {
   printf("SESSION DATA:\n");
   print_variables(s);
   print_return_address_stack(s);
-  print_data_stack(s);
+  print_data_queue(s);
   printf("Status: %d\n", s->metadata.status);
   printf("Error code: %d\n", s->metadata.error_code);
   printf("Jump flag: %lu\n", s->metadata.jump_flag);
