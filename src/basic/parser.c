@@ -26,6 +26,7 @@ tokenS tokens[] = {
   {.tok_name="!",  .tok_id=TOK_NEG},
   {.tok_name="(",  .tok_id=TOK_LPAREN},
   {.tok_name=")",  .tok_id=TOK_RPAREN},
+  {.tok_name="]",  .tok_id=TOK_RSQUARE},
   {.tok_name="#",  .tok_id=TOK_HASH},
   {.tok_name="<",  .tok_id=TOK_LT},
   {.tok_name=">",  .tok_id=TOK_GT},
@@ -114,7 +115,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     }
     dest[i] = '\0';
 
-    if (isin(cmd[i], " +-*/=<>)%^,;") || cmd[i] == '\0') {
+    if (isin(cmd[i], " +-*/=<>)]%^,;") || cmd[i] == '\0') {
       DEBUG(" 1 token read = \"%s\"\n", dest);
       *cmd_p += i;
       if (expected_token != TOK_ANY && expected_token != TOK_NUMBER) {
@@ -166,6 +167,31 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
       }
       return TOK_FN;
     }
+    /* check if this is an array name */
+    if ((*cmd_p)[0] == '[') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_ARRAY_INT) {
+        report_error(get_tokname(expected_token), "array int", cmd);
+        return TOK_ERROR;
+      }
+      *cmd_p += 1;
+      return TOK_ARRAY_INT;
+    }
+    if ((*cmd_p)[0] == '%' && (*cmd_p)[1]== '[') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_ARRAY_FLOAT) {
+        report_error(get_tokname(expected_token), "array float", cmd);
+        return TOK_ERROR;
+      }
+      *cmd_p += 2;
+      return TOK_ARRAY_FLOAT;
+    }
+    if ((*cmd_p)[0] == '$' && (*cmd_p)[1]== '[') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_ARRAY_STRING) {
+        report_error(get_tokname(expected_token), "array string", cmd);
+        return TOK_ERROR;
+      }
+      *cmd_p += 2;
+      return TOK_ARRAY_STRING;
+    }
 
     if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_VAR) {
       report_error(get_tokname(expected_token), "variable", cmd);
@@ -183,6 +209,42 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
 void reverse_get_next_token(char** cmd_p, char* buf) {
   size_t length = strlen(buf);
   *cmd_p -= length;
+}
+
+sessionErrorCodeE parse_array_dim_nr(char *cmd, u8 *dim_nr) {
+  if(cmd[0] == ']'){
+    ERROR("[PARSER ERROR] No indexes/sizes in array brackets\n");
+    return SESSION_PARSING_ERROR;
+  }
+  u8 dim_counter = 1;
+  for(u64 i = 1; cmd[i] != ']' && cmd[i] != '\0'; i++) {
+    if(cmd[i] == ',') {
+      if(cmd[i - 1] == ',') {
+        ERROR("[PARSER ERROR] Consecutive commas in array indexes/sizes\n");
+        return SESSION_PARSING_ERROR;
+      }
+      if(dim_counter == UINT8_MAX) {
+      ERROR("[PARSER ERROR] Maximum number of array dimentions is 255\n");
+      return SESSION_PARSING_ERROR;
+      }
+      dim_counter++;
+    }
+  }
+  *dim_nr = dim_counter;
+  return SESSION_NO_ERROR;
+}
+
+u8 get_array_parsed_type(tokenE tok) {
+  switch(tok){
+    case TOK_ARRAY_INT:
+      return INTEGER;
+    case TOK_ARRAY_FLOAT:
+      return FLOATING_POINT;
+    case TOK_ARRAY_STRING:
+      return STRING;
+    default:
+      return NOT_FOUND;
+  }
 }
 
 void report_error(char* expected, char* found, char* cmd) {

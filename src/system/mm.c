@@ -186,7 +186,6 @@ void print_memory_map(void) {
   }
   printf("----------------------------------------------------------\n");
 }
-
 bool lickitung_check(void) {
   bool liks = false;
 

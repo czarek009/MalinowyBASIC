@@ -134,7 +134,7 @@ variableS *get_variable_ptr(sessionS *s, char* name) {
 u8 get_variable_value(sessionS *s, char* name, variableDataU *var_data) {
   variableS *var = get_variable_ptr(s, name);
   if (var == NULL) {
-    DEBUG("variable '%s' not found\n", name);
+    ERROR("[SESSION ERROR] variable '%s' not found\n", name);
     return NOT_FOUND;
   }
   *var_data = var->data;
@@ -165,7 +165,7 @@ void check_and_add_variable(sessionS *s, variableDataU data, char *name, u8 type
     s->metadata.variables_number++;
   }
   else {
-    DEBUG("Cannot add variable - max number of variables reached\n");
+    ERROR("[SESSION ERROR] cannot add variable - max number of variables reached\n");
   }
 }
 
@@ -269,7 +269,7 @@ void add_integer_variable(sessionS *s, s64 data, char *name) {
   check_and_add_variable(s, var_data, name, INTEGER);
 }
 
-void add_floating_point_variable(sessionS *s, float data, char *name) {
+void add_floating_point_variable(sessionS *s, double data, char *name) {
   variableDataU var_data;
   var_data.floating_point = data;
   check_and_add_variable(s, var_data, name, FLOATING_POINT);
@@ -291,12 +291,247 @@ void add_string_variable(sessionS *s, char *data, char *name) {
   check_and_add_variable(s, var_data, name, STRING);
 }
 
+#define DIM_SIZE_SIZE sizeof(u64)
+#define DIM_NR_SIZE sizeof(u8)
+#define TYPE_SIZE sizeof(u8)
+
+void set_array_type(void *array, u8 type) {
+  u8 *type_p = (u8 *)array;
+  *type_p = type;
+}
+
+u8 get_array_type(void *array) {
+  u8 *type_p = (u8 *)array;
+  return *type_p;
+}
+
+void set_array_dim_nr(void *array, u8 dim_nr) {
+  u8 *dim_nr_p = ((u8 *)array) + TYPE_SIZE;
+  *dim_nr_p = dim_nr;
+}
+
+u8 get_array_dim_nr(void *array) {
+  u8 *dim_nr_p = ((u8 *)array) + TYPE_SIZE;
+  return *dim_nr_p;
+}
+
+void set_array_dims(void *array, u8 dim_nr, u64 *dims) {
+  u64 *dims_p = (u64 *)(((u8 *)array) + TYPE_SIZE + DIM_NR_SIZE);
+  for(u8 i = 0; i < dim_nr; i++) {
+    dims_p[i] = dims[i];
+  }
+}
+
+u64 *get_array_dims_ptr(void *array) {
+  return (u64 *)(((u8 *)array) + TYPE_SIZE + DIM_NR_SIZE);
+}
+
+u64 get_array_elements_nr(u8 dim_nr, u64 *dims) {
+  u64 elem_nr = 1;
+  for(u8 i = 0; i < dim_nr; i++) {
+    elem_nr *= dims[i];
+  }
+  return elem_nr;
+}
+
+u64 get_array_element_size(u8 type) {
+  if (type == INTEGER) return sizeof(s64);
+  else if (type == FLOATING_POINT) return sizeof(double);
+  else if (type == STRING) return sizeof(char *);
+  else return 0;
+}
+
+u64 get_array_size(u8 dim_nr, u64 *dims, u8 type) {
+  u64 elements_nr = get_array_elements_nr(dim_nr, dims);
+  u64 element_size = get_array_element_size(type);
+  return elements_nr * element_size;
+}
+
+u64 get_array_header_size(u8 dim_nr) {
+  return TYPE_SIZE + DIM_NR_SIZE + ((u64)dim_nr * DIM_SIZE_SIZE);
+}
+
+void add_array_variable(sessionS *s, char *name, u8 dim_nr, u64 *dims, u8 type) {
+  u64 header_size = get_array_header_size(dim_nr);
+  u64 array_size = get_array_size(dim_nr, dims, type);
+  u64 size = header_size + array_size;
+
+  void *array = malloc(size);
+  array = memset(array, 0, size);
+
+  set_array_type(array, type);
+  set_array_dim_nr(array, dim_nr);
+  set_array_dims(array, dim_nr, dims);
+
+  variableDataU var_data;
+  var_data.array = array;
+  check_and_add_variable(s, var_data, name, ARRAY);
+}
+
+sessionErrorCodeE check_array_parameters(sessionS *s, char *name, u8 parsed_type, u8 parsed_dim_nr, u64 *parsed_dims) {
+  variableDataU var_data;
+  u8 var_type = get_variable_value(s, name, &var_data);
+  if (var_type != ARRAY) {
+    ERROR("[SESSION ERROR] variable %s is not an ARRAY\n", name);
+    return SESSION_INVALID_VAR_NAME;
+  }
+  u8 type = get_array_type(var_data.array);
+  if (type != parsed_type) {
+    ERROR("[INSTRUCTION ERROR] Array %s is different type than parsed\n", name);
+    return SESSION_PARSING_ERROR;
+  }
+  u8 dim_nr = get_array_dim_nr(var_data.array);
+  if(dim_nr != parsed_dim_nr){
+    ERROR("[INSTRUCTION ERROR] Wrong dimentions to array %s, given dim=%d, real dim=%d\n", name, parsed_dim_nr, dim_nr);
+    return SESSION_PARSING_ERROR;
+  }
+  u64 *dims = get_array_dims_ptr(var_data.array);
+  for(u8 i = 0; i < dim_nr; i++) {
+    if(dims[i] <= parsed_dims[i]){
+      ERROR("[PARSING ERROR] Index %u out of range (dim size = %d)\n", parsed_dims[i], dims[i]);
+      return SESSION_PARSING_ERROR;
+    }
+  }
+  return SESSION_NO_ERROR;
+}
+
+u64 array_offset(u8 dim_nr, u64* dims, u64* idxs) {
+  u64 offset = 0;
+  u64 m = 1;
+  for(u8 i = 0; i < dim_nr; i++) {
+    m = 1;
+    for(u8 j = i + 1; j < dim_nr; j++) {
+      m *= dims[j];
+    }
+    offset += (idxs[i] * m);
+  }
+  return offset;
+}
+
+sessionErrorCodeE update_array(sessionS *s, char *name, variableDataU value, u64 *idxs) {
+  variableS *var = get_variable_ptr(s, name);
+  if (var == NULL) return SESSION_INVALID_VAR_NAME;
+  void *array = var->data.array;
+  u8 type = get_array_type(array);
+  u8 dim_nr = get_array_dim_nr(array);
+  u64 *dims = get_array_dims_ptr(array);
+  u64 offset = array_offset(dim_nr, dims, idxs);
+  u8 *header = (u8 *)array;
+  u64 header_size = get_array_header_size(dim_nr);
+  switch(type){
+    case INTEGER:
+      {
+        s64 *elements = (s64 *)(header + header_size);
+        elements[offset] = value.integer;
+      }
+      break;
+    case FLOATING_POINT:
+      {
+        double *elements = (double *)(header + header_size);
+        elements[offset] = value.floating_point;
+      }
+      break;
+    case STRING:
+      {
+        char **elements = (char **)(header + header_size);
+        if(elements[offset] != NULL) free(elements[offset]);
+        elements[offset] = value.string;
+      }
+      break;
+    default:
+      return SESSION_PARSING_ERROR;
+  }
+  return SESSION_NO_ERROR;
+}
+
+sessionErrorCodeE get_array_element(sessionS *s, char *name, u64 *idxs, variableDataU *data) {
+  variableDataU array_data = {0};
+  u8 var_type = get_variable_value(s, name, &array_data);
+  if (var_type != ARRAY) {
+    ERROR("[SESSION ERROR] variable %s is not an ARRAY\n", name);
+    return SESSION_INVALID_VAR_NAME;
+  }
+  void *array = array_data.array;
+  u8 type = get_array_type(array);
+  u8 dim_nr = get_array_dim_nr(array);
+  u64 *dims = get_array_dims_ptr(array);
+  u64 offset = array_offset(dim_nr, dims, idxs);
+  u8 *header = (u8 *)array;
+  u64 header_size = get_array_header_size(dim_nr);
+  switch(type){
+    case INTEGER:
+      {
+        s64 *elements = (s64 *)(header + header_size);
+        data->integer = elements[offset];
+      }
+      break;
+    case FLOATING_POINT:
+      {
+        double *elements = (double *)(header + header_size);
+        data->floating_point = elements[offset];
+      }
+      break;
+    case STRING:
+      {
+        char **elements = (char **)(header + header_size);
+        char *str = elements[offset];
+        size_t size = strlen(str);
+        char *out_str = malloc(size + 1);
+        memcpy(out_str, str, size);
+        out_str[size] = '\0';
+        data->string = out_str;
+      }
+      break;
+    default:
+      return SESSION_PARSING_ERROR;
+  }
+  return SESSION_NO_ERROR;
+}
+
+void print_array_parameters(void *array, char *name) {
+  u8 dim_nr = get_array_dim_nr(array);
+  printf("print array %s\n", name);
+  printf("type: %u\n", get_array_type(array));
+  printf("nr of dimentions: %u\n", dim_nr);
+  printf("dimentions: ");
+  u64 *dims = get_array_dims_ptr(array);
+  for(u8 i = 0; i < dim_nr; i++) {
+    printf("%ld; ", dims[i]);
+  }
+  printf("\n");
+}
+
+void delete_array(void *array) {
+  if(array == NULL) return;
+  u8 type = get_array_type(array);
+  if(type != STRING){
+    free(array);
+    return;
+  }
+  u8 dim_nr = get_array_dim_nr(array);
+  u64 *dims = get_array_dims_ptr(array);
+  u8 *header = (u8 *)array;
+  u64 header_size = get_array_header_size(dim_nr);
+  char **elements = (char **)(header + header_size);
+  u64 array_elements_nr = get_array_elements_nr(dim_nr, dims);
+  for(u64 i = 0; i < array_elements_nr; i++) {
+    char *str = elements[i];
+    if(str != NULL){
+      free(str);
+    }
+  }
+  free(array);
+}
+
 void delete_all_variables(sessionS *s) {
   variableS var;
   for(u8 i = 0; i < s->metadata.variables_number; i++){
     var = s->variables[i];
     if (var.type == STRING) {
       free(var.data.string);
+    }
+    if(var.type == ARRAY) {
+      delete_array(var.data.array);
     }
   }
 }
@@ -411,7 +646,9 @@ void delete_node(instructionS *node, sessionS *s) {
     node->previous->next = node->next;
     node->next->previous = node->previous;
   }
+  printf("DEBUG PRINT 2: before free(node->instruction)\n");
   free(node->instruction);
+  printf("DEBUG PRINT 3: after free(node->instruction)\n");
   free(node);
 }
 
@@ -558,7 +795,9 @@ void print_session_info(sessionS* s) {
 
 
 void session_end(sessionS *s) {
+  printf("DEBUG PRINT 0: before delete_all_instructions\n");
   delete_all_instructions(s);
+  printf("DEBUG PRINT 1: after delete_all_instructions\n");
   delete_all_variables(s);
   free(s);
   DEBUG("sessionS end\n");
