@@ -46,17 +46,17 @@ void test_malloc() {
   print_memory_map();
 }
 
-void test_data_stack(sessionS *s) {
+void test_data_queue(sessionS *s) {
   printf("\nDATA STACK TEST\n");
-  push_data_to_stack(s, (s32)666);
-  push_data_to_stack(s, (s32)69);
-  push_data_to_stack(s, (s32)-42);
-  print_data_stack(s);
-  printf("pop = %d\n", pop_data_from_stack(s));
-  printf("pop = %d\n", pop_data_from_stack(s));
-  printf("pop = %d\n", pop_data_from_stack(s));
+  // push_data_to_queue(s, (s32)666);
+  // push_data_to_queue(s, (s32)69);
+  // push_data_to_queue(s, (s32)-42);
+  print_data_queue(s);
+  printf("pop = %d\n", read_data_from_queue(s));
+  printf("pop = %d\n", read_data_from_queue(s));
+  printf("pop = %d\n", read_data_from_queue(s));
   printf("next pop is on empty stack:\n");
-  printf("pop = %d\n", pop_data_from_stack(s));
+  printf("pop = %d\n", read_data_from_queue(s));
 }
 
 void test_return_sddress_stack(sessionS *s) {
