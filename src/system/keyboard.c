@@ -45,6 +45,5 @@ char code_to_ascii(u16 code) {
       next_is_released = false;
       break;
   }
-  printf("\ncode: %u ascii: %u\n", code, (u32)out);
   return out;
 }
