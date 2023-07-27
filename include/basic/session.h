@@ -168,4 +168,6 @@ void print_session_info(sessionS* s);
 
 void session_end(sessionS *s);
 
+void del_debug(sessionS *s);
+
 #endif /* _SESSION_H */

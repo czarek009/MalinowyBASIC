@@ -1,5 +1,4 @@
 #include "butils.h"
-#include "printf.h"
 
 
 bool isalpha(char c) {

@@ -46,8 +46,6 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
       cmd -= strlen(buf);
       variableDataU value;
       u8 value_type = eval_expr(env, &cmd, &value);
-      DEBUG(" value_type: %u\n", (u32)value_type);
-      DEBUG(" value: %ld\n", value.integer);
       if (value_type >= 253) {
         ERROR("[INSTRUCTOION ERROR] Expression evaluation error\n", 0);
         return SESSION_EVAL_ERROR;
@@ -76,8 +74,6 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
     }
     variableDataU value;
     u8 value_type = eval_expr(env, &cmd, &value);
-    DEBUG(" value_type: %u\n", (u32)value_type);
-    DEBUG(" value: %ld\n", value.integer);
     if (value_type >= 253) {
       free(idxs);
       ERROR("[INSTRUCTOION ERROR] Expression evaluation error\n", 0);

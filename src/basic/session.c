@@ -13,6 +13,7 @@ void print_structures_size(void) {
 }
 
 sessionS *session_init(void) {
+  DEBUG("[DEBUG] session_init()\n");
   sessionS *s = malloc(sizeof(sessionS));
   s->metadata.instructions_start = NULL;
   s->metadata.instructions_end = NULL;
@@ -26,7 +27,6 @@ sessionS *session_init(void) {
   s->metadata.error_code = SESSION_NO_ERROR;
   s->metadata.status = SESSION_STATUS_NEW;
   s->metadata.jump_flag = 0;
-  DEBUG("Init session\n");
   return s;
 }
 
@@ -65,15 +65,15 @@ dataQueueS* read_data_from_queue(sessionS *s) {
 }
 
 void print_data_queue(sessionS *s) {
-  printf("data stack:\n");
-  for(u8 i = 0; i < s->metadata.data_queue_end; i++) {
+  printf("Data queue:\n");
+  for(u8 i = s->metadata.data_queue_start; i < s->metadata.data_queue_end; i++) {
     u8 type = s->data_queue[i].type;
     if (type == INTEGER)
-      printf("field: %u, value: %ld\n", i, s->data_queue[i].value.integer);
+      printf(" Field: %u; Value: %ld\n", i, s->data_queue[i].value.integer);
     if (type == FLOATING_POINT)
-      printf("field: %u, value: %f\n", i, s->data_queue[i].value.floating_point);
+      printf(" Field: %u; Value: %f\n", i, s->data_queue[i].value.floating_point);
     if (type == STRING)
-      printf("field: %u, value: %s\n", i, s->data_queue[i].value.string);
+      printf(" Field: %u; Value: %s\n", i, s->data_queue[i].value.string);
   }
 }
 
@@ -84,7 +84,7 @@ void push_return_address_to_stack(sessionS *s, u64 address) {
     s->metadata.return_address_stackpointer++;
     return;
   }
-  DEBUG("PUSH - return address stack is full\n");
+  ERROR("PUSH - return address stack is full\n");
 }
 
 u64 pop_return_address_from_stack(sessionS *s) {
@@ -100,9 +100,9 @@ u64 pop_return_address_from_stack(sessionS *s) {
 }
 
 void print_return_address_stack(sessionS *s) {
-  printf("return address stack:\n");
+  printf("Return address stack:\n");
   for(u8 i = 0; i < s->metadata.return_address_stackpointer; i++) {
-    printf("field: %u, value: %lu\n", i, s->return_address_stack[i]);
+    printf(" Field: %u; Value: %lu\n", i, s->return_address_stack[i]);
   }
 }
 
@@ -156,11 +156,11 @@ void copy_variable(variableS *var, variableDataU data, char *name, u8 type) {
 void check_and_add_variable(sessionS *s, variableDataU data, char *name, u8 type) {
   variableS *var = get_variable_ptr(s, name);
   if(var != NULL){
-    DEBUG("Replace variable value\n");
+    DEBUG("[DEBUG] Replace variable value: %s\n", name);
     copy_variable(var, data, name, type);
   }
   else if (s->metadata.variables_number < VARIABLES_MAX_FIELD) {
-    DEBUG("Add new variable\n");
+    DEBUG("[DEBUG] Add new variable: %s\n", name);
     copy_variable(&(s->variables[s->metadata.variables_number]), data, name, type);
     s->metadata.variables_number++;
   }
@@ -220,9 +220,15 @@ static functionS* find_function(sessionS* s, char* funname) {
 }
 
 u8 apply_function(sessionS *s, char* funname, variableDataU arg, u8 argtype, variableDataU* result) {
-  DEBUG("[DEBUG SESSION] apply_function: %s(", funname);
+  DEBUG("[DEBUG] apply_function: %s(", funname);
   if (argtype == INTEGER) {
     DEBUG("%ld) = ", arg.integer);
+  }
+  if (argtype == FLOATING_POINT) {
+    DEBUG("%ld) = ", arg.floating_point);
+  }
+  if (argtype == STRING) {
+    DEBUG("%ld) = ", arg.string);
   }
 
   functionS* fun = NULL;
@@ -247,12 +253,6 @@ u8 apply_function(sessionS *s, char* funname, variableDataU arg, u8 argtype, var
   new_body[strlen(fun->body)+3-2] = ')';
   new_body[strlen(fun->body)+3-1] = '\0';
   out_type = eval_expr(s, &new_body, result);
-
-  if (out_type == INTEGER) {
-    DEBUG("%ld\n", result->integer);
-  } else {
-    DEBUG(" WRONG OUT TYPE! %u\n", (u32)out_type);
-  }
 
   if (saved_var_type < 252) {
     add_variable(s, saved_var_value, fun->argname, saved_var_type);
@@ -303,6 +303,21 @@ void set_array_type(void *array, u8 type) {
 u8 get_array_type(void *array) {
   u8 *type_p = (u8 *)array;
   return *type_p;
+}
+
+char* type_to_string(u8 type) {
+  switch (type) {
+    case INTEGER:
+      return "INT";
+    case FLOATING_POINT:
+      return "FLOAT";
+    case STRING:
+      return "STRING";
+    case BOOLEAN:
+      return "BOOL";
+    default:
+      return "UNKNOWN";
+  }
 }
 
 void set_array_dim_nr(void *array, u8 dim_nr) {
@@ -537,29 +552,33 @@ void delete_all_variables(sessionS *s) {
 }
 
 void print_variables(sessionS *s) {
-  printf("variables:\n");
+  printf("Variables:\n");
   variableS var;
   for(u8 i = 0; i < s->metadata.variables_number; i++){
     var = s->variables[i];
     switch(var.type) {
       case INTEGER:
-        printf("int %s = %ld\n", var.name, var.data.integer);
+        printf(" INT %s = %ld\n", var.name, var.data.integer);
         break;
       case FLOATING_POINT:
-        printf("float %s = %f\n", var.name, var.data.floating_point);
+        printf(" FLOAT %s = %f\n", var.name, var.data.floating_point);
         break;
       case BOOLEAN:
         if (var.data.boolean) {
-          printf("bool %s = true\n", var.name);
+          printf(" BOOL %s = TRUE\n", var.name);
         } else {
-          printf("bool %s = false\n", var.name);
+          printf(" BOOL %s = FALSE\n", var.name);
         }
         break;
       case STRING:
-        printf("string %s = %s\n", var.name, var.data.string);
+        printf(" STRING %s = \"%s\"\n", var.name, var.data.string);
+        break;
+      case ARRAY:
+        u8 arr_type = get_array_type(var.data.array);
+        printf(" %s %s[] = ...\n", type_to_string(arr_type), var.name);
         break;
       default:
-        printf("not supporting yet\n");
+        printf(" NOT SUPPORTED!\n");
         break;
     }
   }
@@ -624,7 +643,7 @@ instructionS *find_instruction(instructionS *head, u64 line_number) {
     node = node->next;
   }
   if(node == NULL){
-    DEBUG("Instruction not found\n");
+    DEBUG("[DEBUG] Instruction not found\n");
   }
   return node;
 }
@@ -646,9 +665,10 @@ void delete_node(instructionS *node, sessionS *s) {
     node->previous->next = node->next;
     node->next->previous = node->previous;
   }
-  printf("DEBUG PRINT 2: before free(node->instruction)\n");
+  DEBUG_MEM("DEBUG PRINT 2: before free(node->instruction)\n");
+  DEBUG_MEM("instructions: %s\n", node->instruction);
   free(node->instruction);
-  printf("DEBUG PRINT 3: after free(node->instruction)\n");
+  DEBUG_MEM("DEBUG PRINT 3: after free(node->instruction)\n");
   free(node);
 }
 
@@ -665,6 +685,10 @@ void delete_all_instructions(sessionS *s){
     delete_node(node, s);
     node = node->next;
   }
+}
+
+void del_debug(sessionS *s) {
+  delete_node(s->metadata.instructions_start, s);
 }
 
 void print_instructions(sessionS *s) {
@@ -773,7 +797,7 @@ instructionS *get_next_instruction(sessionS *s, u64 line_number) {
 
 void print_functions(sessionS* s) {
   for (u64 i = 0; i < s->metadata.functions_number; ++i) {
-    printf("  funname: '%s'  argname: '%s'  body: '%s'\n",
+    printf(" %s(%s) = %s\n",
           s->functions[i].funname,
           s->functions[i].argname,
           s->functions[i].body);
@@ -795,10 +819,8 @@ void print_session_info(sessionS* s) {
 
 
 void session_end(sessionS *s) {
-  printf("DEBUG PRINT 0: before delete_all_instructions\n");
+  DEBUG("[DEBUG] session_end()\n");
   delete_all_instructions(s);
-  printf("DEBUG PRINT 1: after delete_all_instructions\n");
   delete_all_variables(s);
   free(s);
-  DEBUG("sessionS end\n");
 }

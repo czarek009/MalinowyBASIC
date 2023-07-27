@@ -6,7 +6,6 @@
 #include "debug.h"
 #include "parser.h"
 
-#define ERROR(...)  printf(__VA_ARGS__)
 
 #define MAX_DATA_NUMBER     32
 #define MAX_OPERATOR_NUMBER (MAX_DATA_NUMBER - 1) / 2
@@ -98,7 +97,7 @@ double powff(double x, double p);
 
 /* PUBLIC FUNCTIONS DEFINITIONS */
 u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
-  DEBUG(" EVAL EXPRESSION: '%s'\n", *expr);
+  DEBUG("[DEBUG] eval_expr(%s)\n", *expr);
 
   evalErrorE ret_code = EVAL_SUCCESS;
 

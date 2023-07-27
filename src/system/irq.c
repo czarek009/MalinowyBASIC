@@ -1,9 +1,10 @@
 #include "peripherials.h"
 #include "utils.h"
 #include "irq.h"
-#include "printf.h"
 #include "uart.h"
 #include "io.h"
+#include "debug.h"
+
 
 void enable_interrupt_controller(void) {
   IRQ_REGS->irq0_enable_1 = AUX_IRQ;
@@ -28,5 +29,5 @@ void handle_irq() {
 }
 
 void handle_invalid_irq(unsigned long esr_el1) {
-  printf("[ERROR] Caught invalid interrupt. Value of esr_el1 register: %X\n", esr_el1);
+  ERROR("[ERROR] Caught invalid interrupt. Value of esr_el1 register: %X\n", esr_el1);
 }

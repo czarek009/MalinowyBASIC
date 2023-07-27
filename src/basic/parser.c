@@ -3,7 +3,6 @@
 #include "interpreter.h"
 #include "session.h"
 #include "butils.h"
-#include "printf.h"
 #include "types.h"
 #include "mm.h"
 #include "debug.h"
@@ -65,6 +64,7 @@ tokenS tokens[] = {
   {.tok_name="RUN",     .tok_id=TOK_RUN},
 
   {.tok_name="SESSEND", .tok_id=TOK_SESSEND},
+  {.tok_name="DEL",     .tok_id=TOK_DEL},
 
   {.tok_name="", .tok_id=TOK_NONE}
 };
@@ -79,8 +79,7 @@ static char* get_tokname(tokenE tok);
 tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
   *cmd_p = consume_whitespaces(*cmd_p);
   char* cmd = *cmd_p;
-  DEBUG("[*] get_next_token(%s)\n", cmd);
-  // printf("get_next_token(%s)\n", cmd);
+  DEBUG("[DEBUG] get_next_token(%s)\n", cmd);
 
   /* EOL */
   if (*cmd == '\0') {
@@ -116,7 +115,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     dest[i] = '\0';
 
     if (isin(cmd[i], " +-*/=<>)]%^,;") || cmd[i] == '\0') {
-      DEBUG(" 1 token read = \"%s\"\n", dest);
+      DEBUG("[DEBUG] Token read: '%s'\n", dest);
       *cmd_p += i;
       if (expected_token != TOK_ANY && expected_token != TOK_NUMBER) {
         report_error(get_tokname(expected_token), "number", cmd);
@@ -137,7 +136,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
       strncpy(dest, cmd, tok_len);
       dest[tok_len] = '\0';
       *cmd_p += tok_len;
-      DEBUG(" 2 token read = \"%s\"\n", dest);
+      DEBUG("[DEBUG] Token read: '%s'\n", dest);
       if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != t->tok_id) {
         report_error(get_tokname(expected_token), get_tokname(t->tok_id), cmd);
         return TOK_ERROR;
@@ -152,7 +151,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     strncpy(dest, cmd, varlen);
     dest[varlen] = '\0';
     *cmd_p += varlen;
-    DEBUG(" 3 token read = \"%s\"\n", dest);
+    DEBUG("[DEBUG] Token read: '%s'\n", dest);
 
     if (varlen == 2 && dest[0] == 'F' && dest[1] == 'N') {
       /* name cannot be just 'fn' */

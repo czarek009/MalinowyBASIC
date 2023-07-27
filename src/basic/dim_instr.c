@@ -7,7 +7,6 @@
 #include "variable.h"
 #include "butils.h"
 #include "mm.h"
-#include "printf.h"
 
 
 sessionErrorCodeE dim_instr(sessionS* env, char* cmd) {

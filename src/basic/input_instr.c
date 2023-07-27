@@ -43,7 +43,7 @@ sessionErrorCodeE input_instr(sessionS* env, char* cmd) {
   char* input = malloc(256);
   char* aux = input;
   readline(input, ":");
-  DEBUG("[*] INPUT to var %s: %s\n", buf, input);
+  DEBUG("[DEBUG] INPUT to var %s: %s\n", buf, input);
   if (isStr) {
     /* string */
     u64 len = strlen(input);
@@ -71,7 +71,6 @@ sessionErrorCodeE input_instr(sessionS* env, char* cmd) {
 
 
 char* print_prompt(char* cmd) {
-  DEBUG("[*] print_prompt(%s)\n", cmd);
   int i = 0;
   for (i=0; cmd[i] != '\0'; ++i) {
     if (cmd[i] == '"') {
