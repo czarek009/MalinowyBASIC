@@ -7,6 +7,7 @@
 #include "session.h"
 #include "interpreter.h"
 #include "tests.h"
+#include "keyboard.h"
 
 
 void print_greetings(void) {
@@ -31,7 +32,10 @@ void putc(void *p, char c) {
   uart_send(c);
 }
 
+
 void main(void){
+  init_keyboard();
+
   uart_init_gpio();
   init_printf(0, putc);
 

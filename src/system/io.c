@@ -36,11 +36,15 @@ void io_read_char(char c) {
   if (c == 13) {
     // enter
     eol = true;
+  } else if (c == 96) {
+    // alternative enter `
+    // because enter doesn't always work on my keyboard :(
+    eol = true;
   } else if (c > 31 && c < 127) {
     // regular character
     line_buffer[idx] = c;
     idx++;
-  } else if (c == 127) {
+  } else if (c == 127 || c == 8) {
     // backspace
     if (idx > 0) {
       idx--;
@@ -55,7 +59,7 @@ void readline(char* restrict dest, const char* prompt) {
   uart_send('\r');
   uart_send_string(prompt);
   while (!eol) {
-    while(!refresh) {}
+    while(!refresh);
     clear_line();
     print_line(prompt);
     refresh = false;
