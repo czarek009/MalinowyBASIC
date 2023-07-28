@@ -140,6 +140,8 @@ struct IrqRegisters {
 #define IRQ_REGS ((struct IrqRegisters *)(PBASE + 0x0000B200))
 
 /* RNG */
+#if RPI_VERSION == 3
+
 struct RngRegisters{
   reg32 rng_ctrl;
   reg32 rng_status;
@@ -147,20 +149,22 @@ struct RngRegisters{
   reg32 rng_int_mask;
 };
 
-// 32  00000000000000000111111111111111 = 0x7FFF
-// 32  01001000000000000000000000000000 = 48000000
-// 32  00
+#elif RPI_VERSION == 4
 
+struct RngRegisters{
+  reg32 rng_ctrl;
+  u8 reserved0[12];
+  reg32 rng_bit_count_threshold;
+  u8 reserved1[12];
+  reg32 rng_data;
+  reg32 rng_fifo_count;
+};
 
-#define ARM_HW_RNG200_BASE	                      (PBASE + 0x104000)
-#define RNG_TOTAL_BIT_COUNT_THRESHOLD			        (ARM_HW_RNG200_BASE + 0x10)
-#define RNG_FIFO_DATA					                    (ARM_HW_RNG200_BASE + 0x20)
-#define RNG_FIFO_COUNT					                  (ARM_HW_RNG200_BASE + 0x24)
-#define RNG_FIFO_COUNT_RNG_FIFO_COUNT__MASK		    0x000000FF
-#define RNG_FIFO_COUNT_RNG_FIFO_THRESHOLD__SHIFT	8
-#define RNG_CTRL_RNG_RBGEN__MASK			            0x00001FFF
-#define RNG_CTRL_RNG_DIV_CTRL__SHIFT			        13
-
+#define RNG_FIFO_COUNT_THRESHOLD_SHIFT	8
+#define RNG_DIV_CTRL_SHIFT			        13
+#define RNG_CTRL_RBGEN_MASK			        0x00001FFF
+#define RNG_FIFO_COUNT_MASK	      	    0x000000FF
+#endif
 
 #define RNG_REGS ((struct RngRegisters *)(PBASE + 0x00104000))
 
