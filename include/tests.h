@@ -46,17 +46,17 @@ void test_malloc() {
   print_memory_map();
 }
 
-void test_data_stack(sessionS *s) {
+void test_data_queue(sessionS *s) {
   printf("\nDATA STACK TEST\n");
-  push_data_to_stack(s, (s32)666);
-  push_data_to_stack(s, (s32)69);
-  push_data_to_stack(s, (s32)-42);
-  print_data_stack(s);
-  printf("pop = %d\n", pop_data_from_stack(s));
-  printf("pop = %d\n", pop_data_from_stack(s));
-  printf("pop = %d\n", pop_data_from_stack(s));
+  // push_data_to_queue(s, (s32)666);
+  // push_data_to_queue(s, (s32)69);
+  // push_data_to_queue(s, (s32)-42);
+  print_data_queue(s);
+  printf("pop = %d\n", read_data_from_queue(s));
+  printf("pop = %d\n", read_data_from_queue(s));
+  printf("pop = %d\n", read_data_from_queue(s));
   printf("next pop is on empty stack:\n");
-  printf("pop = %d\n", pop_data_from_stack(s));
+  printf("pop = %d\n", read_data_from_queue(s));
 }
 
 void test_return_sddress_stack(sessionS *s) {
@@ -92,4 +92,20 @@ void test_instructions(sessionS *s) {
   add_instruction(s, (u64)6, "let sum = x + y");
 
   print_instructions(s);
+}
+
+void test_arrays(sessionS *s) {
+  printf("\nARRAY TEST - FIB\n");
+  printf("to see added instructions - write LIST\n");
+  printf("to run program - write RUN\n\n");
+  add_instruction(s, 10, "PRINT \"Fibonacci\",");
+  add_instruction(s, 20, "INPUT \"Which element should I calculate? \" N");
+  add_instruction(s, 30, "DIM TAB[N]");
+  add_instruction(s, 40, "LET TAB[0] = 1");
+  add_instruction(s, 50, "LET TAB[1] = 1");
+  add_instruction(s, 60, "FOR I = 2 TO N-1 STEP 1");
+  add_instruction(s, 70, "LET TAB[I] = TAB[I-1] + TAB[I-2]");
+  add_instruction(s, 80, "NEXT");
+  add_instruction(s, 90, "PRINT \"Fib(\";N;\") = \";TAB[N-1],");
+  add_instruction(s, 100, "PRINT \"Fin\",");
 }

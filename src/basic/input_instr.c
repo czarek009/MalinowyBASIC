@@ -40,7 +40,8 @@ sessionErrorCodeE input_instr(sessionS* env, char* cmd) {
     isStr = true;
   }
 
-  char input[256];
+  char* input = malloc(256);
+  char* aux = input;
   readline(input, ":");
   DEBUG("[*] INPUT to var %s: %s\n", buf, input);
   if (isStr) {
@@ -53,7 +54,7 @@ sessionErrorCodeE input_instr(sessionS* env, char* cmd) {
   } else {
     /* number */
     variableDataU value;
-    s8 value_type = eval_expr(env, &cmd, &value);
+    s8 value_type = eval_expr(env, &input, &value);
     if (value_type >= 253) {
       ERROR("[INSTRICTOION ERROR] Expression evaluation error\n", 0);
       return SESSION_EVAL_ERROR;
@@ -61,6 +62,7 @@ sessionErrorCodeE input_instr(sessionS* env, char* cmd) {
     add_variable(env, value, varname, value_type);
   }
 
+  free(aux);
   tok = get_next_token(&cmd, buf, TOK_NONE);
   if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
 

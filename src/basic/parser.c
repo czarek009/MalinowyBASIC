@@ -19,10 +19,14 @@ tokenS tokens[] = {
   {.tok_name="-",  .tok_id=TOK_SUB},
   {.tok_name="/",  .tok_id=TOK_DIV},
   {.tok_name="*",  .tok_id=TOK_MULT},
+  {.tok_name="%",  .tok_id=TOK_MOD},
+  {.tok_name="^",  .tok_id=TOK_POW},
   {.tok_name="&",  .tok_id=TOK_AND},
   {.tok_name="|",  .tok_id=TOK_OR},
+  {.tok_name="!",  .tok_id=TOK_NEG},
   {.tok_name="(",  .tok_id=TOK_LPAREN},
   {.tok_name=")",  .tok_id=TOK_RPAREN},
+  {.tok_name="]",  .tok_id=TOK_RSQUARE},
   {.tok_name="#",  .tok_id=TOK_HASH},
   {.tok_name="<",  .tok_id=TOK_LT},
   {.tok_name=">",  .tok_id=TOK_GT},
@@ -60,6 +64,8 @@ tokenS tokens[] = {
   {.tok_name="MEM",     .tok_id=TOK_MEM},
   {.tok_name="RUN",     .tok_id=TOK_RUN},
 
+  {.tok_name="SESSEND", .tok_id=TOK_SESSEND},
+
   {.tok_name="", .tok_id=TOK_NONE}
 };
 
@@ -74,19 +80,20 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
   *cmd_p = consume_whitespaces(*cmd_p);
   char* cmd = *cmd_p;
   DEBUG("[*] get_next_token(%s)\n", cmd);
+  // printf("get_next_token(%s)\n", cmd);
 
   /* EOL */
   if (*cmd == '\0') {
     dest[0] = '\0';
-    if (expected_token != TOK_ANY && expected_token != TOK_NONE) {
-      ERROR("[PARSER ERROR] Unexpected EOL\n", 0);
+    if (expected_token != TOK_NOTNUMBER && expected_token != TOK_ANY && expected_token != TOK_NONE) {
+      ERROR("[*] ERROR: unexpected eol\n", 0);
       return TOK_ERROR;
     }
     return TOK_NONE;
   }
 
   /* NUMBER */
-  if (isdigit(*cmd) || *cmd == '-' || *cmd == '+') {
+  if (expected_token != TOK_NOTNUMBER && (isdigit(*cmd) || *cmd == '-' || *cmd == '+')) {
     bool isFloat = false;
     dest[0] = cmd[0];
     int i = 1;
@@ -108,7 +115,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     }
     dest[i] = '\0';
 
-    if (isin(cmd[i], " +-*/=<>") || cmd[i] == '\0') {
+    if (isin(cmd[i], " +-*/=<>)]%^,;") || cmd[i] == '\0') {
       DEBUG(" 1 token read = \"%s\"\n", dest);
       *cmd_p += i;
       if (expected_token != TOK_ANY && expected_token != TOK_NUMBER) {
@@ -131,7 +138,7 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
       dest[tok_len] = '\0';
       *cmd_p += tok_len;
       DEBUG(" 2 token read = \"%s\"\n", dest);
-      if (expected_token != TOK_ANY && expected_token != t->tok_id) {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != t->tok_id) {
         report_error(get_tokname(expected_token), get_tokname(t->tok_id), cmd);
         return TOK_ERROR;
       }
@@ -139,14 +146,54 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
     }
   }
 
-  /* VARIABLE */
+  /* VARIABLE OR FUNCTION */
   u8 varlen = is_valid_varname(cmd);
   if (varlen) {
     strncpy(dest, cmd, varlen);
     dest[varlen] = '\0';
     *cmd_p += varlen;
     DEBUG(" 3 token read = \"%s\"\n", dest);
-    if (expected_token != TOK_ANY && expected_token != TOK_VAR) {
+
+    if (varlen == 2 && dest[0] == 'F' && dest[1] == 'N') {
+      /* name cannot be just 'fn' */
+      ERROR("[PARSER ERROR] Invalid variable name 'FN'\n", 0);
+      return TOK_ERROR;
+    }
+    /* check if this is a function name */
+    if (varlen > 2 && dest[0] == 'F' && dest[1] == 'N') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_FN) {
+        report_error(get_tokname(expected_token), "function", cmd);
+        return TOK_ERROR;
+      }
+      return TOK_FN;
+    }
+    /* check if this is an array name */
+    if ((*cmd_p)[0] == '[') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_ARRAY_INT) {
+        report_error(get_tokname(expected_token), "array int", cmd);
+        return TOK_ERROR;
+      }
+      *cmd_p += 1;
+      return TOK_ARRAY_INT;
+    }
+    if ((*cmd_p)[0] == '%' && (*cmd_p)[1]== '[') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_ARRAY_FLOAT) {
+        report_error(get_tokname(expected_token), "array float", cmd);
+        return TOK_ERROR;
+      }
+      *cmd_p += 2;
+      return TOK_ARRAY_FLOAT;
+    }
+    if ((*cmd_p)[0] == '$' && (*cmd_p)[1]== '[') {
+      if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_ARRAY_STRING) {
+        report_error(get_tokname(expected_token), "array string", cmd);
+        return TOK_ERROR;
+      }
+      *cmd_p += 2;
+      return TOK_ARRAY_STRING;
+    }
+
+    if (expected_token != TOK_ANY && expected_token != TOK_NOTNUMBER && expected_token != TOK_VAR) {
       report_error(get_tokname(expected_token), "variable", cmd);
       return TOK_ERROR;
     }
@@ -157,6 +204,47 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
   dest[0] = '\0';
   ERROR("[PARSER ERROR] Unknown token: %s\n", cmd);
   return TOK_ERROR;
+}
+
+void reverse_get_next_token(char** cmd_p, char* buf) {
+  size_t length = strlen(buf);
+  *cmd_p -= length;
+}
+
+sessionErrorCodeE parse_array_dim_nr(char *cmd, u8 *dim_nr) {
+  if(cmd[0] == ']'){
+    ERROR("[PARSER ERROR] No indexes/sizes in array brackets\n");
+    return SESSION_PARSING_ERROR;
+  }
+  u8 dim_counter = 1;
+  for(u64 i = 1; cmd[i] != ']' && cmd[i] != '\0'; i++) {
+    if(cmd[i] == ',') {
+      if(cmd[i - 1] == ',') {
+        ERROR("[PARSER ERROR] Consecutive commas in array indexes/sizes\n");
+        return SESSION_PARSING_ERROR;
+      }
+      if(dim_counter == UINT8_MAX) {
+      ERROR("[PARSER ERROR] Maximum number of array dimentions is 255\n");
+      return SESSION_PARSING_ERROR;
+      }
+      dim_counter++;
+    }
+  }
+  *dim_nr = dim_counter;
+  return SESSION_NO_ERROR;
+}
+
+u8 get_array_parsed_type(tokenE tok) {
+  switch(tok){
+    case TOK_ARRAY_INT:
+      return INTEGER;
+    case TOK_ARRAY_FLOAT:
+      return FLOATING_POINT;
+    case TOK_ARRAY_STRING:
+      return STRING;
+    default:
+      return NOT_FOUND;
+  }
 }
 
 void report_error(char* expected, char* found, char* cmd) {

@@ -8,6 +8,8 @@
 #include "interpreter.h"
 #include "tests.h"
 #include "random.h"
+#include "keyboard.h"
+
 
 
 void print_greetings(void) {
@@ -32,8 +34,11 @@ void putc(void *p, char c) {
   uart_send(c);
 }
 
+
 void main(void){
   rand_init();
+  init_keyboard();
+
   uart_init_gpio();
   init_printf(0, putc);
 
@@ -52,17 +57,26 @@ void main(void){
   }
   printf("\n");
 
-  sessionS *current_session = session_init();
-
   while (1) {
-    char buf[256] = {0};
-    sessionErrorCodeE result = SESSION_NO_ERROR;
-    readline(buf, "$> ");
-    result = interpreter_process_input(current_session, buf);
+    printf("START SESSION\n");
+    sessionS *current_session = session_init();
+    test_arrays(current_session);
 
-    if (result != SESSION_NO_ERROR) {
-      ERROR("ERROR\n");
+    while (1) {
+      char buf[256] = {0};
+      sessionErrorCodeE result = SESSION_NO_ERROR;
+      readline(buf, "$> ");
+      result = interpreter_process_input(current_session, buf);
+
+      if (result == SESSION_END) {
+        printf("SESSION END\n");
+        break;
+      }
+      if (result != SESSION_NO_ERROR) {
+        ERROR("ERROR\n");
+      }
     }
+    session_end(current_session);
+    lickitung_check();
   }
-  session_end(current_session);
 }

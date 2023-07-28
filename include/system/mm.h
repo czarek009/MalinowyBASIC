@@ -48,6 +48,8 @@ void print_memory_map(void);
 void* memcpy(void *dest, const void *src, size_t len);
 void *memset (void *dest, int val, size_t len);
 
+bool lickitung_check(void);
+
 #endif
 
 #endif  /*_MM_H */

@@ -25,6 +25,11 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
     case TOK_QUOTE:
       cmd = print_instr_string(cmd);
       break;
+    case TOK_ARRAY_FLOAT:
+    case TOK_ARRAY_STRING:
+      cmd -= 1;
+    case TOK_ARRAY_INT:
+      cmd -= 1;
     case TOK_VAR:
     case TOK_NUMBER:
     case TOK_LPAREN:
@@ -32,6 +37,10 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
       cmd -= strlen(buf);
       variableDataU eval_res;
       u8 eval_type = eval_expr(env, &cmd, &eval_res);
+      if (eval_type >= 253) {
+      ERROR("[INSTRICTOION ERROR] Expression evaluation error\n", 0);
+      return SESSION_EVAL_ERROR;
+      }
       print_instr_eval(&eval_res, eval_type);
       break;
 
@@ -52,6 +61,8 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
     printf("\n");
   } else if (tok == TOK_SEMICOLON) {
     /* nothing */
+    if (*cmd == '\0')
+    return SESSION_NO_ERROR;
   } else if (tok == TOK_NONE || tok == TOK_ERROR) {
     /* end of instruction */
     printf("\n");

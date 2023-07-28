@@ -1,6 +1,7 @@
 #include "mm.h"
 #include "printf.h"
 #include "types.h"
+#include "debug.h"
 
 /*
 
@@ -184,6 +185,30 @@ void print_memory_map(void) {
     data_counter++;
   }
   printf("----------------------------------------------------------\n");
+}
+bool lickitung_check(void) {
+  bool liks = false;
+
+  for(word_t *header = first_header; header != NULL; header = next_header(header)) {
+    if (is_alocated(header)) {
+      liks = true;
+      ERROR("[LICKITUNG] Memory leak detected! Address: %lu  Size: %lu\n",
+        (u64)get_payload(header),
+        (u64)size_of_alloc(header));
+      ERROR("            Content: ");
+      char* content = (char*)(u64)get_payload(header);
+      for (u64 i = 0; i < (u64)size_of_alloc(header); ++i) {
+        printf("%c", content[i]);
+      }
+      printf("\n");
+    }
+  }
+
+  if (!liks) {
+    ERROR("[LICKITUNG] No memory leaks detected\n");
+  }
+
+  return liks;
 }
 
 void* memcpy(void *dest, const void *src, size_t len) {
