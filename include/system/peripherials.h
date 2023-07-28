@@ -160,10 +160,10 @@ struct RngRegisters{
   reg32 rng_fifo_count;
 };
 
-#define RNG_FIFO_COUNT_THRESHOLD_SHIFT	8
-#define RNG_DIV_CTRL_SHIFT			        13
-#define RNG_CTRL_RBGEN_MASK			        0x00001FFF
-#define RNG_FIFO_COUNT_MASK	      	    0x000000FF
+#define RNG_FIFO_COUNT_THRESHOLD_SHIFT  8
+#define RNG_DIV_CTRL_SHIFT              13
+#define RNG_CTRL_RBGEN_MASK             0x00001FFF
+#define RNG_FIFO_COUNT_MASK             0x000000FF
 #endif
 
 #define RNG_REGS ((struct RngRegisters *)(PBASE + 0x00104000))
