@@ -139,18 +139,47 @@ struct IrqRegisters {
 
 #define IRQ_REGS ((struct IrqRegisters *)(PBASE + 0x0000B200))
 
+/* RNG */
+#if RPI_VERSION == 3
+
+struct RngRegisters{
+  reg32 rng_ctrl;
+  reg32 rng_status;
+  reg32 rng_data;
+  reg32 rng_int_mask;
+};
+
+#elif RPI_VERSION == 4
+
+struct RngRegisters{
+  reg32 rng_ctrl;
+  u8 reserved0[12];
+  reg32 rng_bit_count_threshold;
+  u8 reserved1[12];
+  reg32 rng_data;
+  reg32 rng_fifo_count;
+};
+
+#define RNG_FIFO_COUNT_THRESHOLD_SHIFT  8
+#define RNG_DIV_CTRL_SHIFT              13
+#define RNG_CTRL_RBGEN_MASK             0x00001FFF
+#define RNG_FIFO_COUNT_MASK             0x000000FF
+#endif
+
+#define RNG_REGS ((struct RngRegisters *)(PBASE + 0x00104000))
+
 /* IRQ */
-#define IRQ0_PENDING_0 (PBASE + 0x0000B200)
-#define IRQ0_PENDING_1 (PBASE + 0x0000B204)
-#define IRQ0_PENDING_2 (PBASE + 0x0000B208)
-#define FIQ_CONTROL    (PBASE + 0x0000B20C)
-#define IRQ0_ENABLE_1  (PBASE + 0x0000B210)
-#define IRQ0_ENABLE_2  (PBASE + 0x0000B214)
-#define IRQ0_ENABLE_0  (PBASE + 0x0000B218)
-#define RES            (PBASE + 0x0000B21C)
-#define IRQ0_DISABLE_1 (PBASE + 0x0000B220)
-#define IRQ0_DISABLE_2 (PBASE + 0x0000B224)
-#define IRQ0_DISABLE_0 (PBASE + 0x0000B228)
+// #define IRQ0_PENDING_0 (PBASE + 0x0000B200)
+// #define IRQ0_PENDING_1 (PBASE + 0x0000B204)
+// #define IRQ0_PENDING_2 (PBASE + 0x0000B208)
+// #define FIQ_CONTROL    (PBASE + 0x0000B20C)
+// #define IRQ0_ENABLE_1  (PBASE + 0x0000B210)
+// #define IRQ0_ENABLE_2  (PBASE + 0x0000B214)
+// #define IRQ0_ENABLE_0  (PBASE + 0x0000B218)
+// #define RES            (PBASE + 0x0000B21C)
+// #define IRQ0_DISABLE_1 (PBASE + 0x0000B220)
+// #define IRQ0_DISABLE_2 (PBASE + 0x0000B224)
+// #define IRQ0_DISABLE_0 (PBASE + 0x0000B228)
 
 
 #endif  /*_PERIPHERIALS_H */

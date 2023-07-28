@@ -7,7 +7,9 @@
 #include "session.h"
 #include "interpreter.h"
 #include "tests.h"
+#include "random.h"
 #include "keyboard.h"
+
 
 
 void print_greetings(void) {
@@ -34,6 +36,7 @@ void putc(void *p, char c) {
 
 
 void main(void){
+  rand_init();
   init_keyboard();
 
   uart_init_gpio();
@@ -47,6 +50,12 @@ void main(void){
 
   print_greetings();
 
+  printf("Random number generator test\n");
+  for (int i = 0; i < 100; ++i) {
+    u64 rgn = rand(0, 100);
+    printf("%lu ", rgn);
+  }
+  printf("\n");
 
   while (1) {
     printf("START SESSION\n");
