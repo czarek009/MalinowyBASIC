@@ -157,17 +157,24 @@ static word_t *coalesce(word_t *first, word_t *second) {
 
 void ffree(void *ptr) {
   word_t *header = get_header((word_t *)ptr);
+  word_t *footer = header + size_in_blocks(header) - 1;
+  (void)footer;
+  DEBUG_MEM("Inside ffree; header = %lu (%u)(%u)\n", (u64)header, *header, *footer);
   set_header(header, get_size(header), FREE);
+  DEBUG_MEM("Inside ffree; header = %lu (%u)(%u)\n", (u64)header, *header, *footer);
   set_footer(header);
+  DEBUG_MEM("Inside ffree; header = %lu (%u)(%u)\n", (u64)header, *header, *footer);
   if (first_header != header) {
     word_t *prev = prev_header(header);
     if(!is_alocated(prev)) {
+      DEBUG_MEM("Coalesce with prev\n");
       header = coalesce(prev, header);
     }
   }
   if (last_header != header) {
     word_t *next = next_header(header);
     if(!is_alocated(next)) {
+      DEBUG_MEM("Coalesce with next\n");
       header = coalesce(header, next);
     }
   }
@@ -180,12 +187,16 @@ void print_memory_map(void) {
     printf("DATA NUMBER: %d\n", data_counter);
     printf("header address: %lu\n", (u64)header);
     printf("memory address: %lu\n", (u64)get_payload(header));
+    printf("footer address: %lu\n", (u64)(header+size_in_blocks(header)-1));
+    printf("header value: %u\n", *header);
+    printf("footer value: %u\n", *(header+size_in_blocks(header)-1));
     printf("allocated: %d\n", is_alocated(header));
     printf("sizeof alloc: %lu\n\n", (u64)size_of_alloc(header));
     data_counter++;
   }
   printf("----------------------------------------------------------\n");
 }
+
 bool lickitung_check(void) {
   bool liks = false;
 

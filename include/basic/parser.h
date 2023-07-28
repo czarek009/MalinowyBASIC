@@ -3,7 +3,6 @@
 
 #include "session.h"
 #include "types.h"
-#include "printf.h"
 #include "debug.h"
 
 
@@ -32,6 +31,7 @@ enum tokenE {
   /* additional instructions */
   TOK_ENV, TOK_LIST, TOK_MEM, TOK_RUN, TOK_SINFO,
   TOK_SESSEND,
+  TOK_DEL,
 } typedef tokenE;
 
 struct tokenS {

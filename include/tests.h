@@ -98,14 +98,14 @@ void test_arrays(sessionS *s) {
   printf("\nARRAY TEST - FIB\n");
   printf("to see added instructions - write LIST\n");
   printf("to run program - write RUN\n\n");
-  add_instruction(s, 10, "PRINT \"Fibonacci\",");
-  add_instruction(s, 20, "INPUT \"Which element should I calculate? \" N");
-  add_instruction(s, 30, "DIM TAB[N]");
-  add_instruction(s, 40, "LET TAB[0] = 1");
-  add_instruction(s, 50, "LET TAB[1] = 1");
-  add_instruction(s, 60, "FOR I = 2 TO N-1 STEP 1");
-  add_instruction(s, 70, "LET TAB[I] = TAB[I-1] + TAB[I-2]");
-  add_instruction(s, 80, "NEXT");
-  add_instruction(s, 90, "PRINT \"Fib(\";N;\") = \";TAB[N-1],");
-  add_instruction(s, 100, "PRINT \"Fin\",");
+  interpreter_process_input(s, "10 PRINT \"Fibonacci\"");
+  interpreter_process_input(s, "20 INPUT \"Which element should I calculate? \" N");
+  interpreter_process_input(s, "30 DIM TAB[N]");
+  interpreter_process_input(s, "40 LET TAB[0] = 1");
+  interpreter_process_input(s, "50 LET TAB[1] = 1");
+  interpreter_process_input(s, "60 FOR I = 2 TO N-1 STEP 1");
+  interpreter_process_input(s, "70 LET TAB[I] = TAB[I-1] + TAB[I-2]");
+  interpreter_process_input(s, "80 NEXT");
+  interpreter_process_input(s, "90 PRINT \"Fib(\";N;\") = \";TAB[N-1],");
+  interpreter_process_input(s, "100 PRINT \"Fin\",");
 }

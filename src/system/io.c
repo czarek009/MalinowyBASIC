@@ -2,7 +2,6 @@
 #include "irq.h"
 #include "uart.h"
 #include "utils.h"
-#include "printf.h"
 
 volatile static char line_buffer[255];
 volatile static bool refresh;

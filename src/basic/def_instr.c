@@ -5,8 +5,6 @@
 #include "session.h"
 #include "mm.h"
 #include "butils.h"
-#include "printf.h"
-#include "io.h"
 
 
 sessionErrorCodeE  def_instr(sessionS* env, char* cmd) {

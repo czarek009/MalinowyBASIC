@@ -5,7 +5,6 @@
 #include "session.h"
 #include "butils.h"
 #include "mm.h"
-#include "printf.h"
 
 
 sessionErrorCodeE for_instr(sessionS* env, char* cmd, u64 ln) {
@@ -22,7 +21,6 @@ sessionErrorCodeE for_instr(sessionS* env, char* cmd, u64 ln) {
   }
 
   if (!first_entrence) {
-    // printf("NOT FIRST TIME IN THIS LOOP %lu\n", ln);
     if (meta == NULL) {
       return SESSION_UNKNOWN_ERROR;
     }
@@ -31,13 +29,12 @@ sessionErrorCodeE for_instr(sessionS* env, char* cmd, u64 ln) {
     u64 iterator = iter_val.integer;
     add_integer_variable(env, iterator+meta->step, meta->iterator);
     if (iterator >= meta->limit) {
-      DEBUG(" FOR INSTRUCTION END\n", 0);
+      DEBUG("[DEBUG] FOR INSTRUCTION END\n", 0);
       env->metadata.for_stackpointer -= 1;
       set_jump_flag(env, meta->next_line);
     }
     return SESSION_NO_ERROR;
   }
-  // printf("FIRST TIME IN THIS LOOP %lu\n", ln);
 
   /* first time here, need to parse */
   /* varname */
