@@ -64,7 +64,6 @@ tokenS tokens[] = {
   {.tok_name="RUN",     .tok_id=TOK_RUN},
 
   {.tok_name="SESSEND", .tok_id=TOK_SESSEND},
-  {.tok_name="DEL",     .tok_id=TOK_DEL},
 
   {.tok_name="", .tok_id=TOK_NONE}
 };

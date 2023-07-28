@@ -687,10 +687,6 @@ void delete_all_instructions(sessionS *s){
   }
 }
 
-void del_debug(sessionS *s) {
-  delete_node(s->metadata.instructions_start, s);
-}
-
 void print_instructions(sessionS *s) {
   instructionS *node = s->metadata.instructions_start;
   while(node != NULL){
