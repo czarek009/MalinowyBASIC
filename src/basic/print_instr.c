@@ -30,6 +30,7 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
       cmd -= 1;
     case TOK_ARRAY_INT:
       cmd -= 1;
+    case TOK_BUILTIN:
     case TOK_VAR:
     case TOK_NUMBER:
     case TOK_LPAREN:

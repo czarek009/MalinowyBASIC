@@ -7,7 +7,7 @@
 /* general */
 s8 sgn(double arg);
 s64 abs(s64 arg);
-s64 int(double arg);
+// s64 int(double arg);
 double exp(double arg);
 double log(double arg);
 double sqr(double arg);

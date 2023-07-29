@@ -67,6 +67,19 @@ s64 str2s64(char* str) {
   return out;
 }
 
+bool non_empty(char* str) {
+  u64 i = 0;
+  if (str[0] == '\0') {
+    return false;
+  }
+  while(str[i] != '\0') {
+    if (str[i] != ' ') {
+      return true;
+    }
+  }
+  return false;
+}
+
 u8 is_valid_varname(char* cmd) {
   /*
    * Check if a valid variable name starts at *cmd

@@ -5,10 +5,15 @@
 #include "mm.h"
 #include "debug.h"
 #include "parser.h"
+#include "random.h"
 
 
 #define MAX_DATA_NUMBER     32
 #define MAX_OPERATOR_NUMBER (MAX_DATA_NUMBER - 1) / 2
+
+typedef enum {
+  BF_RND,
+} builtinsE;
 
 typedef enum {
   OP_ADD,          /* +  */
@@ -82,6 +87,7 @@ evalErrorE get_array_data(sessionS *s, char **expr, char *varname, dataU *data, 
 evalErrorE add_operator(opStackS *op_stack, exprDataS *expr_data, opE op);
 evalErrorE move_op_to_expr(opStackS *op_stack, exprDataS *expr_data);
 evalErrorE add_remaining_op(opStackS *op_stack, exprDataS *expr_data);
+evalErrorE apply_builtin_function(sessionS* s, char* name, char* args, dataU* data, u8* type);
 u8 eval_bin(dataU first, dataU second, u8 first_type, u8 second_type, dataU *res, opE op);
 u8 eval_int(s64 first, s64 second, dataU *res, opE op);
 u8 eval_double(double first, double second, dataU *res, opE op);
@@ -93,6 +99,7 @@ double fact2(u8 n);
 double exp2(double x);
 double ln2(double x);
 double powff(double x, double p);
+bool is_valid_type(u8 type);
 
 
 /* PUBLIC FUNCTIONS DEFINITIONS */
@@ -124,6 +131,24 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
         break;
       case TOK_VAR:
         ret_code = get_var(s, &data, &type, buf);
+        if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
+        ret_code = push_exprDataS(&expr_data, data, type);
+        expected_tok = TOK_NOTNUMBER;
+        break;
+      case TOK_BUILTIN:
+        char funname[8] = {0};
+        strncpy(funname, buf, strlen(buf));
+        tok = get_next_token(expr, buf, TOK_LPAREN);
+        if (tok == TOK_ERROR) return EVAL_ERROR;
+        u64 pos = find_closing_parenthesis(*expr);
+        char* args = malloc(pos+1);
+        strncpy(args, *expr, pos);
+        args[pos] = '\0';
+        *expr += pos;
+        ret_code = apply_builtin_function(s, funname, args, &data, &type);
+        free(args);
+        tok = get_next_token(expr, buf, TOK_RPAREN);
+        if (tok == TOK_ERROR) return EVAL_ERROR;
         if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
         ret_code = push_exprDataS(&expr_data, data, type);
         expected_tok = TOK_NOTNUMBER;
@@ -292,6 +317,90 @@ u64 *eval_array_sizes(sessionS *s, char** cmd, u8 dim_nr) {
 
 
 /* PRIVATE FUNCTIONS DEFINITIONS */
+bool is_valid_type(u8 type) {
+  return type < 250;
+}
+
+evalErrorE apply_builtin_function(sessionS* s, char* name, char* args, dataU* data, u8* type) {
+  variableDataU argv[3] = {0};
+  u8 argt[3] = {0};
+  u8 argnum = 0;
+  char* argsend = args + strlen(args);
+
+  while (non_empty(args)) {
+    argnum++;
+    if (argnum > 3) {
+      ERROR("[ERROR] Too many arguments\n");
+      return EVAL_ERROR;
+    }
+    u64 pos = find_substring(",", args);
+    args[pos] = '\0';
+    
+    argt[argnum-1] = eval_expr(s, &args, &argv[argnum-1]);
+    if (!is_valid_type(argt[argnum-1])) {
+      ERROR("[ERROR] Invalid function argument\n");
+      return EVAL_ERROR;
+    }
+    if (args < argsend) {
+      args++;
+    }
+  }
+
+  if (!strncmp(name, "RND", 3)) {
+    *type = FLOATING_POINT;
+    u64 n = rand(0, 1000);
+    data->floating_point = (double)n / 1000.0;
+  }
+  if (!strncmp(name, "INT", 3)) {
+    if (argnum != 1) {
+      ERROR("[ERROR] Builtin INT functions requires exactly one argument\n");
+      return EVAL_ERROR;
+    }
+    *type = INTEGER;
+    switch (argt[0]) {
+      case INTEGER:
+        data->integer = argv[0].integer;
+        break;
+      case FLOATING_POINT:
+        data->integer = (s64)argv[0].floating_point;
+        break;
+      case BOOLEAN:
+        data->integer = (s64)argv[0].boolean;
+        break;
+      
+      default:
+        ERROR("[ERROR] Cannot cast to int\n");
+        return EVAL_ERROR;
+        break;
+    }
+  }
+  if (!strncmp(name, "FLOAT", 5)) {
+    if (argnum != 1) {
+      ERROR("[ERROR] Builtin FLOAT functions requires exactly one argument\n");
+      return EVAL_ERROR;
+    }
+    *type = FLOATING_POINT;
+    switch (argt[0]) {
+      case INTEGER:
+        data->floating_point = (double)argv[0].integer;
+        break;
+      case FLOATING_POINT:
+        data->floating_point = argv[0].floating_point;
+        break;
+      case BOOLEAN:
+        data->floating_point = (double)argv[0].boolean;
+        break;
+      
+      default:
+        ERROR("[ERROR] Cannot cast to float\n");
+        return EVAL_ERROR;
+        break;
+    }
+  }
+
+  return EVAL_SUCCESS;
+}
+
 u64 find_closing_parenthesis(char* expr) {
   u64 idx = 0;
   int pnum = 1;

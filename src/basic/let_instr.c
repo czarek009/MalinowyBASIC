@@ -38,7 +38,10 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
     } else {
       /* number */
       tok = get_next_token(&cmd, buf, TOK_ANY);
-      if (tok != TOK_NUMBER && tok != TOK_LPAREN && tok != TOK_VAR && tok != TOK_FN && tok != TOK_ARRAY_INT && tok != TOK_ARRAY_FLOAT) {
+      if (tok != TOK_NUMBER && tok != TOK_LPAREN &&
+          tok != TOK_VAR && tok != TOK_FN &&
+          tok != TOK_ARRAY_INT && tok != TOK_ARRAY_FLOAT &&
+          tok != TOK_BUILTIN) {
         return SESSION_PARSING_ERROR; // PARSING ERROR
       }
       if(tok == TOK_ARRAY_FLOAT) cmd -= 2;
