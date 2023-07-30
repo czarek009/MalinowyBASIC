@@ -9,6 +9,7 @@
 #include "tests.h"
 #include "random.h"
 #include "keyboard.h"
+#include "timer.h"
 
 
 
@@ -47,15 +48,14 @@ void main(void){
   irq_enable();
 
   mem_init();
+  timer_init();
 
   print_greetings();
 
-  printf("Random number generator test\n");
-  for (int i = 0; i < 100; ++i) {
-    u64 rgn = rand(0, 100);
-    printf("%lu ", rgn);
+  for (int i = 0; i < 60; ++i) {
+    printf("%d\n", i);
+    delay_ms(1000);
   }
-  printf("\n");
 
   while (1) {
     printf("START SESSION\n");
