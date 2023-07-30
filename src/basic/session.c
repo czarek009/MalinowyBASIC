@@ -42,7 +42,11 @@ void set_jump_flag(sessionS *s, u64 line_number) {
   s->metadata.jump_flag = line_number;
 }
 
-/* DATA STACK */
+void clear_for_stack(sessionS* s) {
+  s->metadata.for_stackpointer = 0;
+}
+
+/* DATA QUEUE */
 void push_data_to_queue(sessionS *s, dataQueueS data) {
   if(s->metadata.data_queue_end < data_queue_MAX_FIELD){
     s->data_queue[s->metadata.data_queue_end] = data;
@@ -77,6 +81,11 @@ void print_data_queue(sessionS *s) {
   }
 }
 
+void clear_data_queue(sessionS* s) {
+  s->metadata.data_queue_start = 0;
+  s->metadata.data_queue_end = 0;
+}
+
 /* RETURN ADDRESS STACK */
 void push_return_address_to_stack(sessionS *s, u64 address) {
   if(s->metadata.return_address_stackpointer < RET_ADDR_STACK_MAX_FIELD){
@@ -104,6 +113,10 @@ void print_return_address_stack(sessionS *s) {
   for(u8 i = 0; i < s->metadata.return_address_stackpointer; i++) {
     printf(" Field: %u; Value: %lu\n", i, s->return_address_stack[i]);
   }
+}
+
+void clear_address_stack(sessionS* s) {
+  s->metadata.return_address_stackpointer = 0;
 }
 
 /* VARIABLE */
@@ -586,6 +599,19 @@ void print_variables(sessionS *s) {
 
 
 /* INSTRUCTIONS */
+u64 instruction_end(char* instr) {
+  bool quote = false;
+  for (u64 i = 0; instr[i] != '\0'; ++i) {
+    if (instr[i] == '"') {
+      quote = !quote;
+    }
+    if (!quote && instr[i] == ':') {
+      return i;
+    }
+  }
+  return strlen(instr);
+}
+
 instructionS *create_node(instructionS *previous, instructionS *next, u64 line_number, char *instruction) {
   instructionS *new = malloc(sizeof(instructionS));
   new->previous = previous;
@@ -640,6 +666,17 @@ void add_instruction(sessionS *s, u64 line_number, char *instruction) {
 instructionS *find_instruction(instructionS *head, u64 line_number) {
   instructionS *node = head;
   while((node->line_number != line_number) && (node != NULL)) {
+    node = node->next;
+  }
+  if(node == NULL){
+    DEBUG("[DEBUG] Instruction not found\n");
+  }
+  return node;
+}
+
+instructionS *find_first_after(instructionS *head, u64 line_number) {
+  instructionS *node = head;
+  while((node->line_number < line_number) && (node != NULL)) {
     node = node->next;
   }
   if(node == NULL){
@@ -708,14 +745,48 @@ sessionErrorCodeE run_program(sessionS *s) {
 
   s->metadata.status = SESSION_STATUS_RUNNING;
   while(node != NULL){
-    out = interpreter_execute_command(s, node->instruction, node->line_number);
+    u64 ie = instruction_end(node->instruction);
+    if (ie != strlen(node->instruction)) {
+      char* instr = malloc(strlen(node->instruction)+1);
+      char* aux = instr;
+      strncpy(instr, node->instruction, strlen(node->instruction)+1);
+      while (ie != strlen(instr)) {
+        instr[ie] = '\0';
+        out = interpreter_execute_command(s, instr, node->line_number);
+        if (out != SESSION_NO_ERROR) {
+          break;
+        }
+        instr += ie+1;
+        ie = instruction_end(instr);
+      }
+      out = interpreter_execute_command(s, instr, node->line_number);
+      free(aux);
+    } else {
+      out = interpreter_execute_command(s, node->instruction, node->line_number);
+    }
 
     if (out != SESSION_NO_ERROR) {
       ERROR("[SESSION ERROR] Program execution failed at line %lu\n", node->line_number);
       ERROR("                %s\n", node->instruction);
+      s->metadata.resume_from = NULL;
       s->metadata.error_code = out;
       s->metadata.status = SESSION_STATUS_ERROR;
+
+      clear_address_stack(s);
+      clear_data_queue(s);
+      clear_for_stack(s);
+
       return out;
+    }
+
+    if (s->metadata.status == SESSION_STATUS_FINISHED) {
+      s->metadata.resume_from = NULL;
+
+      clear_address_stack(s);
+      clear_data_queue(s);
+      clear_for_stack(s);
+
+      return SESSION_NO_ERROR;
     }
 
     if (s->metadata.status == SESSION_STATUS_STOPPED) {
@@ -723,13 +794,8 @@ sessionErrorCodeE run_program(sessionS *s) {
       return SESSION_NO_ERROR;
     }
 
-    if (s->metadata.status == SESSION_STATUS_FINISHED) {
-      s->metadata.resume_from = NULL;
-      return SESSION_NO_ERROR;
-    }
-
     if(s->metadata.jump_flag != 0) {
-      node = find_instruction(s->metadata.instructions_start, s->metadata.jump_flag);
+      node = find_first_after(s->metadata.instructions_start, s->metadata.jump_flag);
       s->metadata.jump_flag = 0;
     }
     else{
