@@ -168,18 +168,30 @@ struct RngRegisters{
 
 #define RNG_REGS ((struct RngRegisters *)(PBASE + 0x00104000))
 
-/* IRQ */
-// #define IRQ0_PENDING_0 (PBASE + 0x0000B200)
-// #define IRQ0_PENDING_1 (PBASE + 0x0000B204)
-// #define IRQ0_PENDING_2 (PBASE + 0x0000B208)
-// #define FIQ_CONTROL    (PBASE + 0x0000B20C)
-// #define IRQ0_ENABLE_1  (PBASE + 0x0000B210)
-// #define IRQ0_ENABLE_2  (PBASE + 0x0000B214)
-// #define IRQ0_ENABLE_0  (PBASE + 0x0000B218)
-// #define RES            (PBASE + 0x0000B21C)
-// #define IRQ0_DISABLE_1 (PBASE + 0x0000B220)
-// #define IRQ0_DISABLE_2 (PBASE + 0x0000B224)
-// #define IRQ0_DISABLE_0 (PBASE + 0x0000B228)
+/* TIMER */
+struct TimerRegisters {
+  reg32 timer_cs;
+  reg32 timer_clo;
+  reg32 timer_chi;
+  reg32 timer_c0;
+  reg32 timer_c1;
+  reg32 timer_c2;
+  reg32 timer_c3;
+};
+
+#define TIMER_REGS ((struct TimerRegisters *)(PBASE + 0x00003000))
+
+/* MAILBOX */
+
+struct MailboxRegisters {
+  reg32 read;
+  reg32 reserved[5];
+  reg32 status;
+  reg32 config;
+  reg32 write;
+};
+
+#define MBX_REGS ((struct MailboxRegisters *)(PBASE + 0xB880))
 
 
 #endif  /*_PERIPHERIALS_H */
