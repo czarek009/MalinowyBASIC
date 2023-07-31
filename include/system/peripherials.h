@@ -181,4 +181,17 @@ struct TimerRegisters {
 
 #define TIMER_REGS ((struct TimerRegisters *)(PBASE + 0x00003000))
 
+/* MAILBOX */
+
+struct MailboxRegisters {
+  reg32 read;
+  reg32 reserved[5];
+  reg32 status;
+  reg32 config;
+  reg32 write;
+};
+
+#define MBX_REGS ((struct MailboxRegisters *)(PBASE + 0xB880))
+
+
 #endif  /*_PERIPHERIALS_H */
