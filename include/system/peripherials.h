@@ -168,6 +168,18 @@ struct RngRegisters{
 
 #define RNG_REGS ((struct RngRegisters *)(PBASE + 0x00104000))
 
+/* MAILBOX */
+
+struct MailboxRegisters {
+  reg32 read;
+  reg32 reserved[5];
+  reg32 status;
+  reg32 config;
+  reg32 write;
+};
+
+#define MBX_REGS ((struct MailboxRegisters *)(PBASE + 0xB880))
+
 /* IRQ */
 // #define IRQ0_PENDING_0 (PBASE + 0x0000B200)
 // #define IRQ0_PENDING_1 (PBASE + 0x0000B204)
