@@ -1,14 +1,123 @@
 #include "sd.h"
 #include "mailbox.h"
 #include "printf.h"
-#include <gpio.h>
+#include "gpio.h"
 #include "utils.h"
 #include "timer.h"
+#include "peripherials.h"
 
 
-bool wait_reg_mask(reg32 *reg, u32 mask, bool set, u32 timeout);
+/* DEFINES*/
+// SD Clock Frequencies (in Hz)
+#define SD_CLOCK_ID         400000
+#define SD_CLOCK_NORMAL     25000000
+#define SD_CLOCK_HIGH       50000000
+#define SD_CLOCK_100        100000000
+#define SD_CLOCK_208        208000000
 
-u32 get_clock_divider(u32 base_clock, u32 target_rate) {
+#define SD_COMMAND_COMPLETE     1
+#define SD_TRANSFER_COMPLETE    (1 << 1)
+#define SD_BLOCK_GAP_EVENT      (1 << 2)
+#define SD_DMA_INTERRUPT        (1 << 3)
+#define SD_BUFFER_WRITE_READY   (1 << 4)
+#define SD_BUFFER_READ_READY    (1 << 5)
+#define SD_CARD_INSERTION       (1 << 6)
+#define SD_CARD_REMOVAL         (1 << 7)
+#define SD_CARD_INTERRUPT       (1 << 8)
+
+#define EMMC_CTRL1_RESET_DATA (1 << 26)
+#define EMMC_CTRL1_RESET_CMD (1 << 25)
+#define EMMC_CTRL1_RESET_HOST (1 << 24)
+#define EMMC_CTRL1_RESET_ALL (EMMC_CTRL1_RESET_DATA | EMMC_CTRL1_RESET_CMD | EMMC_CTRL1_RESET_HOST)
+
+#define EMMC_CTRL1_CLK_GENSEL (1 << 5)
+#define EMMC_CTRL1_CLK_ENABLE (1 << 2)
+#define EMMC_CTRL1_CLK_STABLE (1 << 1)
+#define EMMC_CTRL1_CLK_INT_EN (1 << 0)
+
+#define EMMC_CTRL0_ALT_BOOT_EN (1 << 22)
+#define EMMC_CTRL0_BOOT_EN (1 << 21)
+#define EMMC_CTRL0_SPI_MODE (1 << 20)
+
+#define EMMC_STATUS_DAT_INHIBIT (1 << 1)
+#define EMMC_STATUS_CMD_INHIBIT (1 << 0)
+
+#define RES_CMD {1, 1, 3, 1, 1, 0xF, 3, 1, 1, 1, 1, 3, 0xF, 3}
+#define EMMC_DEBUG 0
+#define TO_REG(p) *((reg32 *)p)
+#define BSWAP32(x) (((x << 24) & 0xff000000 ) | \
+  ((x <<  8) & 0x00ff0000 ) | \
+  ((x >>  8) & 0x0000ff00 ) | \
+  ((x >> 24) & 0x000000ff ))
+
+
+/* GLOBAL VARIABLES */
+static emmcDeviceS device = {0};
+static const emmcCmdS INVALID_CMD = RES_CMD;
+static const emmcCmdS commands[] = {
+  {0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0},
+  RES_CMD,
+  {0, 0, 0, 0, 0, 0, RT136,    0, 1, 0, 0, 0, 2, 0},
+  {0, 0, 0, 0, 0, 0, RT48,     0, 1, 0, 0, 0, 3, 0},
+  {0, 0, 0, 0, 0, 0, 0,        0, 0, 0, 0, 0, 4, 0},
+  {0, 0, 0, 0, 0, 0, RT136,    0, 0, 0, 0, 0, 5, 0},
+  {0, 0, 0, 0, 0, 0, RT48,     0, 1, 0, 0, 0, 6, 0},
+  {0, 0, 0, 0, 0, 0, RT48Busy, 0, 1, 0, 0, 0, 7, 0},
+  {0, 0, 0, 0, 0, 0, RT48,     0, 1, 0, 0, 0, 8, 0},
+  {0, 0, 0, 0, 0, 0, RT136,    0, 1, 0, 0, 0, 9, 0},
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  {0, 0, 0, 0, 0, 0, RT48, 0, 1, 0, 0, 0, 16, 0}, // CTSetBlockLen
+  {0, 0, 0, 1, 0, 0, RT48, 0, 1, 0, 1, 0, 17, 0}, // CTReadBlock
+  {0, 1, 1, 1, 1, 0, RT48, 0, 1, 0, 1, 0, 18, 0}, // CTReadMultiple
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  {0, 0, 0, 0, 0, 0, RT48, 0, 1, 0, 1, 0, 24, 0}, // CTWriteBlock
+  {0, 1, 1, 0, 1, 0, RT48, 0, 1, 0, 1, 0, 25, 0}, // CTWriteMultiple
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  {0, 0, 0, 0, 0, 0, RT48, 0, 0, 0, 0, 0, 41, 0},
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  {0, 0, 0, 1, 0, 0, RT48, 0, 1, 0, 1, 0, 51, 0},
+  RES_CMD,
+  RES_CMD,
+  RES_CMD,
+  {0, 0, 0, 0, 0, 0, RT48, 0, 1, 0, 0, 0, 55, 0},
+};
+
+
+/* PRIVATE FUNCTIONS DEFINITIONS */
+static bool wait_reg_mask(reg32 *reg, u32 mask, bool set, u32 timeout);
+
+static u32 get_clock_divider(u32 base_clock, u32 target_rate) {
   u32 target_div = 1;
 
   if (target_rate <= base_clock) {
@@ -58,137 +167,71 @@ u32 get_clock_divider(u32 base_clock, u32 target_rate) {
   return ret;
 }
 
-bool switch_clock_rate(u32 base_clock, u32 target_rate) {
+static bool switch_clock_rate(u32 base_clock, u32 target_rate) {
   u32 divider = get_clock_divider(base_clock, target_rate);
 
-  while((EMMC->status & (EMMC_STATUS_CMD_INHIBIT | EMMC_STATUS_DAT_INHIBIT))) {
-      timer_sleep(1);
+  while((EMMC_REGS->status & (EMMC_STATUS_CMD_INHIBIT | EMMC_STATUS_DAT_INHIBIT))) {
+      delay_ms(1);
   }
 
-  u32 c1 = EMMC->control[1] & ~EMMC_CTRL1_CLK_ENABLE;
+  u32 c1 = EMMC_REGS->control[1] & ~EMMC_CTRL1_CLK_ENABLE;
 
-  EMMC->control[1] = c1;
+  EMMC_REGS->control[1] = c1;
 
-  timer_sleep(3);
+  delay_ms(3);
 
-  EMMC->control[1] = (c1 | divider) & ~0xFFE0;
+  EMMC_REGS->control[1] = (c1 | divider) & ~0xFFE0;
 
-  timer_sleep(3);
+  delay_ms(3);
 
-  EMMC->control[1] = c1 | EMMC_CTRL1_CLK_ENABLE;
+  EMMC_REGS->control[1] = c1 | EMMC_CTRL1_CLK_ENABLE;
 
-  timer_sleep(3);
+  delay_ms(3);
 
   return true;
 }
 
-bool emmc_setup_clock() {
-  EMMC->control2 = 0;
+static bool emmc_setup_clock() {
+  EMMC_REGS->control2 = 0;
 
   u32 rate = mailbox_clock_rate(CT_EMMC);
 
-  u32 n = EMMC->control[1];
+  u32 n = EMMC_REGS->control[1];
   n |= EMMC_CTRL1_CLK_INT_EN;
   n |= get_clock_divider(rate, SD_CLOCK_ID);
   n &= ~(0xf << 16);
   n |= (11 << 16);
 
-  EMMC->control[1] = n;
+  EMMC_REGS->control[1] = n;
 
-  if (!wait_reg_mask(&EMMC->control[1], EMMC_CTRL1_CLK_STABLE, true, 2000)) {
+  if (!wait_reg_mask(&EMMC_REGS->control[1], EMMC_CTRL1_CLK_STABLE, true, 2000)) {
       printf("EMMC_ERR: SD CLOCK NOT STABLE\n");
       return false;
   }
 
-  timer_sleep(30);
+  delay_ms(30);
 
   //enabling the clock
-  EMMC->control[1] |= 4;
+  EMMC_REGS->control[1] |= 4;
 
-  timer_sleep(30);
+  delay_ms(30);
 
   return true;
 }
 
-bool emmc_setup_clock();
-bool switch_clock_rate(u32 base_clock, u32 target_rate);
-
-static emmc_device device = {0};
-
-static const emmc_cmd INVALID_CMD = RES_CMD;
-
-bool wait_reg_mask(reg32 *reg, u32 mask, bool set, u32 timeout) {
+static bool wait_reg_mask(reg32 *reg, u32 mask, bool set, u32 timeout) {
   for (int cycles = 0; cycles <= timeout; cycles++) {
       if ((*reg & mask) ? set : !set) {
           return true;
       }
 
-      timer_sleep(1);
+      delay_ms(1);
   }
 
   return false;
 }
 
-static const emmc_cmd commands[] = {
-  {0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0},
-  RES_CMD,
-  {0, 0, 0, 0, 0, 0, RT136, 0, 1, 0, 0, 0, 2, 0},
-  {0, 0, 0, 0, 0, 0, RT48,  0, 1, 0, 0, 0, 3, 0},
-  {0, 0, 0, 0, 0, 0, 0,     0, 0, 0, 0, 0, 4, 0},
-  {0, 0, 0, 0, 0, 0, RT136, 0, 0, 0, 0, 0, 5, 0},
-  {0, 0, 0, 0, 0, 0, RT48,  0, 1, 0, 0, 0, 6, 0},
-  {0, 0, 0, 0, 0, 0, RT48Busy,  0, 1, 0, 0, 0, 7, 0},
-  {0, 0, 0, 0, 0, 0, RT48,  0, 1, 0, 0, 0, 8, 0},
-  {0, 0, 0, 0, 0, 0, RT136, 0, 1, 0, 0, 0, 9, 0},
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  {0, 0, 0, 0, 0, 0, RT48,  0, 1, 0, 0, 0, 16, 0},
-  {0, 0, 0, 1, 0, 0, RT48,  0, 1, 0, 1, 0, 17, 0},
-  {0, 1, 1, 1, 1, 0, RT48,  0, 1, 0, 1, 0, 18, 0},
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  {0, 0, 0, 0, 0, 0, RT48,  0, 0, 0, 0, 0, 41, 0},
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  {0, 0, 0, 1, 0, 0, RT48,  0, 1, 0, 1, 0, 51, 0},
-  RES_CMD,
-  RES_CMD,
-  RES_CMD,
-  {0, 0, 0, 0, 0, 0, RT48,  0, 1, 0, 0, 0, 55, 0},
-};
-
-static u32 sd_error_mask(sd_error err) {
+static u32 emmcErrorE_mask(emmcErrorE err) {
   return 1 << (16 + (u32)err);
 }
 
@@ -197,7 +240,7 @@ static void set_last_error(u32 intr_val) {
   device.last_interrupt = intr_val;
 }
 
-static bool do_data_transfer(emmc_cmd cmd) {
+static bool do_data_transfer(emmcCmdS cmd) {
   u32 wrIrpt = 0;
   bool write = false;
 
@@ -211,9 +254,9 @@ static bool do_data_transfer(emmc_cmd cmd) {
   u32 *data = (u32 *)device.buffer;
 
   for (int block = 0; block < device.transfer_blocks; block++) {
-      wait_reg_mask(&EMMC->int_flags, wrIrpt | 0x8000, true, 2000);
-      u32 intr_val = EMMC->int_flags;
-      EMMC->int_flags = wrIrpt | 0x8000;
+      wait_reg_mask(&EMMC_REGS->int_flags, wrIrpt | 0x8000, true, 2000);
+      u32 intr_val = EMMC_REGS->int_flags;
+      EMMC_REGS->int_flags = wrIrpt | 0x8000;
       
       if ((intr_val & (0xffff0000 | wrIrpt)) != wrIrpt) {
           set_last_error(intr_val);
@@ -225,11 +268,11 @@ static bool do_data_transfer(emmc_cmd cmd) {
 
       if (write) {
           for (; length > 0; length -= 4) {
-              EMMC->data = *data++;
+              EMMC_REGS->data = *data++;
           }
       } else {
           for (; length > 0; length -= 4) {
-              *data++ = EMMC->data;
+              *data++ = EMMC_REGS->data;
           }
       }
   }
@@ -237,7 +280,7 @@ static bool do_data_transfer(emmc_cmd cmd) {
   return true;
 }
 
-static bool emmc_issue_command(emmc_cmd cmd, u32 arg, u32 timeout) {
+static bool emmc_issue_command(emmcCmdS cmd, u32 arg, u32 timeout) {
   device.last_command_value = TO_REG(&cmd);
   reg32 command_reg = device.last_command_value;
 
@@ -246,22 +289,22 @@ static bool emmc_issue_command(emmc_cmd cmd, u32 arg, u32 timeout) {
       return false;
   }
 
-  EMMC->block_size_count = device.block_size | (device.transfer_blocks << 16);
-  EMMC->arg1 = arg;
-  EMMC->cmd_xfer_mode = command_reg;
+  EMMC_REGS->block_size_count = device.block_size | (device.transfer_blocks << 16);
+  EMMC_REGS->arg1 = arg;
+  EMMC_REGS->cmd_xfer_mode = command_reg;
 
-  timer_sleep(10);
+  delay_ms(10);
 
   int times = 0;
 
   while(times < timeout) {
-      u32 reg = EMMC->int_flags;
+      u32 reg = EMMC_REGS->int_flags;
 
       if (reg & 0x8001) {
           break;
       }
 
-      timer_sleep(1);
+      delay_ms(1);
       times++;
   }
 
@@ -272,9 +315,9 @@ static bool emmc_issue_command(emmc_cmd cmd, u32 arg, u32 timeout) {
       return false;
   }
 
-  u32 intr_val = EMMC->int_flags;
+  u32 intr_val = EMMC_REGS->int_flags;
 
-  EMMC->int_flags = 0xFFFF0001;
+  EMMC_REGS->int_flags = 0xFFFF0001;
 
   if ((intr_val & 0xFFFF0001) != 1) {
 
@@ -282,7 +325,7 @@ static bool emmc_issue_command(emmc_cmd cmd, u32 arg, u32 timeout) {
 
       set_last_error(intr_val);
 
-      if (EMMC_DEBUG) printf("EMMC_DEBUG: IRQFLAGS: %X - %X - %X\n", EMMC->int_flags, EMMC->status, intr_val);
+      if (EMMC_DEBUG) printf("EMMC_DEBUG: IRQFLAGS: %X - %X - %X\n", EMMC_REGS->int_flags, EMMC_REGS->status, intr_val);
 
       device.last_success = false;
       return false;
@@ -291,14 +334,14 @@ static bool emmc_issue_command(emmc_cmd cmd, u32 arg, u32 timeout) {
   switch(cmd.response_type) {
       case RT48:
       case RT48Busy:
-          device.last_response[0] = EMMC->response[0];
+          device.last_response[0] = EMMC_REGS->response[0];
           break;
 
       case RT136:
-          device.last_response[0] = EMMC->response[0];
-          device.last_response[1] = EMMC->response[1];
-          device.last_response[2] = EMMC->response[2];
-          device.last_response[3] = EMMC->response[3];
+          device.last_response[0] = EMMC_REGS->response[0];
+          device.last_response[1] = EMMC_REGS->response[1];
+          device.last_response[2] = EMMC_REGS->response[2];
+          device.last_response[3] = EMMC_REGS->response[3];
           break;
   }
 
@@ -307,17 +350,17 @@ static bool emmc_issue_command(emmc_cmd cmd, u32 arg, u32 timeout) {
   }
 
   if (cmd.response_type == RT48Busy || cmd.is_data) {
-      wait_reg_mask(&EMMC->int_flags, 0x8002, true, 2000);
-      intr_val = EMMC->int_flags;
+      wait_reg_mask(&EMMC_REGS->int_flags, 0x8002, true, 2000);
+      intr_val = EMMC_REGS->int_flags;
 
-      EMMC->int_flags = 0xFFFF0002;
+      EMMC_REGS->int_flags = 0xFFFF0002;
 
       if ((intr_val & 0xFFFF0002) != 2 && (intr_val & 0xFFFF0002) != 0x100002) {
           set_last_error(intr_val);
           return false;
       }
 
-      EMMC->int_flags = 0xFFFF0002;
+      EMMC_REGS->int_flags = 0xFFFF0002;
   }
 
   device.last_success = true;
@@ -343,22 +386,22 @@ static bool emmc_command(u32 command, u32 arg, u32 timeout) {
 }
 
 static bool reset_command() {
-  EMMC->control[1] |= EMMC_CTRL1_RESET_CMD;
+  EMMC_REGS->control[1] |= EMMC_CTRL1_RESET_CMD;
 
   for (int i=0; i<10000; i++) {
-      if (!( EMMC->control[1] & EMMC_CTRL1_RESET_CMD)) {
+      if (!( EMMC_REGS->control[1] & EMMC_CTRL1_RESET_CMD)) {
           return true;
       }
 
-      timer_sleep(1);
+      delay_ms(1);
   }
 
-  printf("EMMC_ERR: Command line failed to reset properly: %X\n",  EMMC->control[1]);
+  printf("EMMC_ERR: Command line failed to reset properly: %X\n",  EMMC_REGS->control[1]);
 
   return false;
 }
 
-bool emmc_app_command(u32 command, u32 arg, u32 timeout) {
+static bool emmc_app_command(u32 command, u32 arg, u32 timeout) {
 
   if (commands[command].index >= 60) {
       printf("EMMC_ERR: INVALID APP COMMAND\n");
@@ -395,7 +438,7 @@ static bool check_v2_card() {
               return false;
           }
 
-          EMMC->int_flags = sd_error_mask(SDECommandTimeout);
+          EMMC_REGS->int_flags = emmcErrorE_mask(SDECommandTimeout);
           printf("EMMC_ERR: SEND_IF_COND CMD TIMEOUT\n");
       } else {
           printf("EMMC_ERR: Failure sending SEND_IF_COND\n");
@@ -425,7 +468,7 @@ static bool check_usable_card() {
               return false;
           }
 
-          EMMC->int_flags = sd_error_mask(SDECommandTimeout);
+          EMMC_REGS->int_flags = emmcErrorE_mask(SDECommandTimeout);
       } else {
           printf("EMMC_ERR: SDIO Card not supported\n");
           return false;
@@ -456,7 +499,7 @@ static bool check_sdhc_support(bool v2_card) {
           card_busy = false;
       } else {
           if (EMMC_DEBUG) printf("EMMC_DEBUG: SLEEPING: %X\n", device.last_response[0]);
-          timer_sleep(500);
+          delay_ms(500);
       }
   }
 
@@ -556,10 +599,10 @@ static bool set_scr() {
       }
   }
 
-  u32 bsc = EMMC->block_size_count;
+  u32 bsc = EMMC_REGS->block_size_count;
   bsc &= ~0xFFF; //mask off bottom bits
   bsc |= 0x200; //set bottom bits to 512
-  EMMC->block_size_count = bsc;
+  EMMC_REGS->block_size_count = bsc;
 
   device.buffer = &device.scr.scr[0];
   device.block_size = 8;
@@ -604,21 +647,21 @@ static bool set_scr() {
 }
 
 static bool emmc_card_reset() {
-  EMMC->control[1] = EMMC_CTRL1_RESET_HOST;
+  EMMC_REGS->control[1] = EMMC_CTRL1_RESET_HOST;
 
   if (EMMC_DEBUG) printf("EMMC_DEBUG: Card resetting...\n");
 
-  if (!wait_reg_mask(&EMMC->control[1], EMMC_CTRL1_RESET_ALL, false, 2000)) {
+  if (!wait_reg_mask(&EMMC_REGS->control[1], EMMC_CTRL1_RESET_ALL, false, 2000)) {
       printf("EMMC_ERR: Card reset timeout!\n");
       return false;
   }
 
   #if (RPI_VERSION == 4)
   //This enabled VDD1 bus power for SD card, needed for RPI 4.
-  u32 c0 = EMMC->control[0];
+  u32 c0 = EMMC_REGS->control[0];
   c0 |= 0x0F << 8;
-  EMMC->control[0] = c0;
-  timer_sleep(3);
+  EMMC_REGS->control[0] = c0;
+  delay_ms(3);
   #endif
 
   if (!emmc_setup_clock()) {
@@ -626,11 +669,11 @@ static bool emmc_card_reset() {
   }
 
   //All interrupts go to interrupt register.
-  EMMC->int_enable = 0;
-  EMMC->int_flags = 0xFFFFFFFF;
-  EMMC->int_mask = 0xFFFFFFFF;
+  EMMC_REGS->int_enable = 0;
+  EMMC_REGS->int_flags = 0xFFFFFFFF;
+  EMMC_REGS->int_mask = 0xFFFFFFFF;
 
-  timer_sleep(203);
+  delay_ms(203);
 
   device.transfer_blocks = 0;
   device.last_command_value = 0;
@@ -658,7 +701,7 @@ static bool emmc_card_reset() {
 
   switch_clock_rate(device.base_clock, SD_CLOCK_NORMAL);
 
-  timer_sleep(10);
+  delay_ms(10);
 
   if (!check_rca()) {
       return false;
@@ -673,48 +716,40 @@ static bool emmc_card_reset() {
   }
 
   //enable all interrupts
-  EMMC->int_flags = 0xFFFFFFFF;
+  EMMC_REGS->int_flags = 0xFFFFFFFF;
 
   if (EMMC_DEBUG) printf("EMMC_DEBUG: Card reset!\n");
 
   return true;
 }
 
-int emmc_io_read(io_device *dev, void *b, u32 size) {
-  return emmc_read((u8 *)b, size);
-}
-
-void emmc_io_seek(io_device *dev, u64 offset) {
-  return emmc_seek(offset);
-}
-
-bool do_data_command(bool write, u8 *b, u32 bsize, u32 block_no) {
+static bool do_data_command(bool write, u8 *b, u32 bsize, u32 block_no) {
   if (!device.sdhc) {
-      block_no *= 512;
+    block_no *= 512;
   }
 
   if (bsize < device.block_size) {
-      printf("EMMC_ERR: INVALID BLOCK SIZE: \n", bsize, device.block_size);
-      return false;
+    printf("EMMC_ERR: INVALID BLOCK SIZE: \n", bsize, device.block_size);
+    return false;
   }
 
   device.transfer_blocks = bsize / device.block_size;
 
   if (bsize % device.block_size) {
-      printf("EMMC_ERR: BAD BLOCK SIZE\n");
-      return false;
+    printf("EMMC_ERR: BAD BLOCK SIZE\n");
+    return false;
   }
 
   device.buffer = b;
 
-  cmd_type command = CTReadBlock;
+  emmcCmdTypeE command = CTReadBlock;
 
   if (write && device.transfer_blocks > 1) {
-      command = CTWriteMultiple;
+    command = CTWriteMultiple;
   } else if (write) {
-      command = CTWriteBlock;
+    command = CTWriteBlock;
   } else if (!write && device.transfer_blocks > 1) {
-      command = CTReadMultiple;
+    command = CTReadMultiple;
   } 
 
   int retry_count = 0;
@@ -723,25 +758,25 @@ bool do_data_command(bool write, u8 *b, u32 bsize, u32 block_no) {
   if (EMMC_DEBUG) printf("EMMC_DEBUG: Sending command: %d\n", command);
 
   while(retry_count < max_retries) {
-      if (emmc_command( command, block_no, 5000)) {
-          break;
-      }
+    if (emmc_command( command, block_no, 5000)) {
+      break;
+    }
 
-      if (++retry_count < max_retries) {
-          printf("EMMC_WARN: Retrying data command\n");
-      } else {
-          printf("EMMC_ERR: Giving up data command\n");
-          return false;
-      }
+    if (++retry_count < max_retries) {
+      printf("EMMC_WARN: Retrying data command\n");
+    } else {
+      printf("EMMC_ERR: Giving up data command\n");
+      return false;
+    }
   }
 
   return true;
 }
 
-int do_read(u8 *b, u32 bsize, u32 block_no) {
+static int do_read(u8 *b, u32 bsize, u32 block_no) {
   //TODO ENSURE DATA MODE...
 
-  if (!do_data_command( false, b, bsize, block_no)) {
+  if (!do_data_command(false, b, bsize, block_no)) {
       printf("EMMC_ERR: do_data_command failed\n");
       return -1;
   }
@@ -749,11 +784,23 @@ int do_read(u8 *b, u32 bsize, u32 block_no) {
   return bsize;
 }
 
+static int do_write(u8 *b, u32 bsize, u32 block_no) {
+  //TODO ENSURE DATA MODE...
 
-int emmc_read(u8 *buffer, u32 size) {
+  if (!do_data_command(true, b, bsize, block_no)) {
+    printf("EMMC_ERR: do_data_command failed\n");
+    return -1;
+  }
+
+  return bsize;
+}
+
+
+/* PUBLIC FUNCTIONS DEFINITIONS */
+int emmc_read(void *buffer, u32 size) {
   if (device.offset % 512 != 0) {
-      printf("EMMC_ERR: INVALID OFFSET: %d\n", device.offset);
-      return -1;
+    printf("EMMC_ERR: INVALID OFFSET: %d\n", device.offset);
+    return -1;
   }
 
   u32 block = device.offset / 512;
@@ -761,8 +808,26 @@ int emmc_read(u8 *buffer, u32 size) {
   int r = do_read( buffer, size, block);
 
   if (r != size) {
-      printf("EMMC_ERR: READ FAILED: %d\n", r);
-      return -1;
+    printf("EMMC_ERR: READ FAILED: %d\n", r);
+    return -1;
+  }
+
+  return size;
+}
+
+int emmc_write(void* buffer, u32 size) {
+  if (device.offset % 512 != 0) {
+    printf("EMMC_ERR: INVALID OFFSET: %d\n", device.offset);
+    return -1;
+  }
+
+  u32 block = device.offset / 512;
+
+  int r = do_write(buffer, size, block);
+
+  if (r != size) {
+    printf("EMMC_ERR: READ FAILED: %d\n", r);
+    return -1;
   }
 
   return size;
@@ -772,28 +837,19 @@ void emmc_seek(u64 _offset) {
   device.offset = _offset;
 }
 
-static io_device emmc_io_device = {
-  .name = "disk",
-  .data = &device,
-  .read = emmc_io_read,
-  .seek = emmc_io_seek
-};
-
 bool emmc_init() {
-  io_device_register(&emmc_io_device);
+  gpio_func_selection(34, INPUT);
+  gpio_func_selection(35, INPUT);
+  gpio_func_selection(36, INPUT);
+  gpio_func_selection(37, INPUT);
+  gpio_func_selection(38, INPUT);
+  gpio_func_selection(39, INPUT);
 
-  gpio_pin_set_func(34, GFInput);
-  gpio_pin_set_func(35, GFInput);
-  gpio_pin_set_func(36, GFInput);
-  gpio_pin_set_func(37, GFInput);
-  gpio_pin_set_func(38, GFInput);
-  gpio_pin_set_func(39, GFInput);
-
-  gpio_pin_set_func(48, GFAlt3);
-  gpio_pin_set_func(49, GFAlt3);
-  gpio_pin_set_func(50, GFAlt3);
-  gpio_pin_set_func(51, GFAlt3);
-  gpio_pin_set_func(52, GFAlt3);
+  gpio_func_selection(48, ALT3);
+  gpio_func_selection(49, ALT3);
+  gpio_func_selection(50, ALT3);
+  gpio_func_selection(51, ALT3);
+  gpio_func_selection(52, ALT3);
   
   device.transfer_blocks = 0;
   device.last_command_value = 0;
@@ -813,7 +869,7 @@ bool emmc_init() {
           break;
       }
 
-      timer_sleep(100);
+      delay_ms(100);
       printf("EMMC_WARN: Failed to reset card, trying again...\n");
   }
 
