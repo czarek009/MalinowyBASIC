@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define NULL ((void *)0)
-
 typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
