@@ -136,7 +136,7 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
         expected_tok = TOK_NOTNUMBER;
         break;
       case TOK_BUILTIN:
-        char funname[8] = {0};
+        {char funname[8] = {0};
         strncpy(funname, buf, strlen(buf));
         tok = get_next_token(expr, buf, TOK_LPAREN);
         if (tok == TOK_ERROR) return EVAL_ERROR;
@@ -151,7 +151,7 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
         if (tok == TOK_ERROR) return EVAL_ERROR;
         if(ret_code == EVAL_INTERNAL_ERROR) return EVAL_ERROR;
         ret_code = push_exprDataS(&expr_data, data, type);
-        expected_tok = TOK_NOTNUMBER;
+        expected_tok = TOK_NOTNUMBER;}
         break;
       case TOK_FN:
         {

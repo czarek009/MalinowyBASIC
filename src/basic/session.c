@@ -574,8 +574,8 @@ void print_variables(sessionS *s) {
         printf(" STRING %s = \"%s\"\n", var.name, var.data.string);
         break;
       case ARRAY:
-        u8 arr_type = get_array_type(var.data.array);
-        printf(" %s %s[] = ...\n", type_to_string(arr_type), var.name);
+        {u8 arr_type = get_array_type(var.data.array);
+        printf(" %s %s[] = ...\n", type_to_string(arr_type), var.name);}
         break;
       default:
         printf(" NOT SUPPORTED!\n");
