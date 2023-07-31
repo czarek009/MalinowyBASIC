@@ -9,6 +9,7 @@
 #include "tests.h"
 #include "random.h"
 #include "keyboard.h"
+#include "timer.h"
 #include "hdmi.h"
 #include "images.h"
 
@@ -53,9 +54,15 @@ void main(void){
 
   print_greetings();
 
+//   for (int i = 0; i < 60; ++i) {
+//     printf("%d\n", i);
+//     delay_ms(1000);
+//   }
+
   printf("HDMI test\n");
   hdmi_draw_image(cat_320x200, 320, 200, 0, 0);
-  delay(1000);
+  delay_ms(1000);
+
 
   while (1) {
     printf("START SESSION\n");
