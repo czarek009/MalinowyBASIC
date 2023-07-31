@@ -48,7 +48,6 @@ void main(void){
   irq_enable();
 
   mem_init();
-  timer_init();
 
   print_greetings();
 
