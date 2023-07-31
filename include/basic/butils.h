@@ -16,5 +16,6 @@ u64 find_last_substring(char* str1, char* str2);
 s64 str2s64(char* str);
 u8 is_valid_varname(char* cmd);
 u8 strcmp(char *str1, char *str2);
+bool non_empty(char* str);
 
 #endif /* _BUTILS_H */

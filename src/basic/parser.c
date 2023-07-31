@@ -63,6 +63,10 @@ tokenS tokens[] = {
   {.tok_name="MEM",     .tok_id=TOK_MEM},
   {.tok_name="RUN",     .tok_id=TOK_RUN},
 
+  {.tok_name="RND",     .tok_id=TOK_BUILTIN},
+  {.tok_name="INT",     .tok_id=TOK_BUILTIN},
+  {.tok_name="FLOAT",   .tok_id=TOK_BUILTIN},
+
   {.tok_name="SESSEND", .tok_id=TOK_SESSEND},
 
   {.tok_name="", .tok_id=TOK_NONE}

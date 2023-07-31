@@ -4,6 +4,7 @@
 #include "mm.h"
 #include "gpio.h"
 #include "utils.h"
+#include "random.h"
 
 
 void test_fpu() {
@@ -20,6 +21,15 @@ void test_gpio() {
     gpio_clear(16);
     delay(1000);
   }
+}
+
+void rng() {
+  printf("Random number generator test\n");
+  for (int i = 0; i < 100; ++i) {
+    u64 rgn = rand(0, 100);
+    printf("%lu ", rgn);
+  }
+  printf("\n");
 }
 
 void test_malloc() {

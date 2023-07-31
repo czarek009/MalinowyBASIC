@@ -711,7 +711,8 @@ sessionErrorCodeE run_program(sessionS *s) {
     out = interpreter_execute_command(s, node->instruction, node->line_number);
 
     if (out != SESSION_NO_ERROR) {
-      ERROR("[SESSION ERROR] Program execution failed\n");
+      ERROR("[SESSION ERROR] Program execution failed at line %lu\n", node->line_number);
+      ERROR("                %s\n", node->instruction);
       s->metadata.error_code = out;
       s->metadata.status = SESSION_STATUS_ERROR;
       return out;
