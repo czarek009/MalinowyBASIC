@@ -182,7 +182,6 @@ struct TimerRegisters {
 #define TIMER_REGS ((struct TimerRegisters *)(PBASE + 0x00003000))
 
 /* MAILBOX */
-
 struct MailboxRegisters {
   reg32 read;
   reg32 reserved[5];
@@ -193,5 +192,34 @@ struct MailboxRegisters {
 
 #define MBX_REGS ((struct MailboxRegisters *)(PBASE + 0xB880))
 
+
+/* DMA */
+
+struct dmaControlBlock {
+  reg32 transfer_information;
+  reg32 source_address;
+  reg32 destination_address;
+  reg32 transfer_length;
+  reg32 mode_stride;
+  reg32 next_control_block_address;
+  reg32 reserved[2];
+} typedef dmaControlBlock;
+
+struct DmaChannelRegister {
+  reg32 control;
+  reg32 control_block_address;
+  dmaControlBlock block;
+  reg32 reserved[54];
+};
+
+struct DmaRegisters {
+  struct DmaChannelRegister channels[15];
+  reg32 reserved0[56];
+  reg32 int_status;
+  reg32 reserved1[3];
+  reg32 enable;
+};
+
+#define DMA_REGS ((struct DmaRegisters *)(PBASE + 0x00007000))
 
 #endif  /*_PERIPHERIALS_H */

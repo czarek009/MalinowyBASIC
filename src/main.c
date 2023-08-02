@@ -34,7 +34,7 @@ void putc(void *p, char c) {
   if (c == '\n')
     uart_send('\r');
   uart_send(c);
-  hdmi_printf_char(c);
+  // hdmi_printf_char(c);
 }
 
 char game[145][128] = {
@@ -196,7 +196,8 @@ void main(void){
 
   mem_init();
 
-  hdmi_init(640, 400, 32);
+  hdmi_init();
+  hdmi_set_resolution();
 
   print_greetings();
 
