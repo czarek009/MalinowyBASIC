@@ -599,19 +599,6 @@ void print_variables(sessionS *s) {
 
 
 /* INSTRUCTIONS */
-u64 instruction_end(char* instr) {
-  bool quote = false;
-  for (u64 i = 0; instr[i] != '\0'; ++i) {
-    if (instr[i] == '"') {
-      quote = !quote;
-    }
-    if (!quote && instr[i] == ':') {
-      return i;
-    }
-  }
-  return strlen(instr);
-}
-
 instructionS *create_node(instructionS *previous, instructionS *next, u64 line_number, char *instruction) {
   instructionS *new = malloc(sizeof(instructionS));
   new->previous = previous;
@@ -745,25 +732,7 @@ sessionErrorCodeE run_program(sessionS *s) {
 
   s->metadata.status = SESSION_STATUS_RUNNING;
   while(node != NULL){
-    u64 ie = instruction_end(node->instruction);
-    if (ie != strlen(node->instruction)) {
-      char* instr = malloc(strlen(node->instruction)+1);
-      char* aux = instr;
-      strncpy(instr, node->instruction, strlen(node->instruction)+1);
-      while (ie != strlen(instr)) {
-        instr[ie] = '\0';
-        out = interpreter_execute_command(s, instr, node->line_number);
-        if (out != SESSION_NO_ERROR) {
-          break;
-        }
-        instr += ie+1;
-        ie = instruction_end(instr);
-      }
-      out = interpreter_execute_command(s, instr, node->line_number);
-      free(aux);
-    } else {
-      out = interpreter_execute_command(s, node->instruction, node->line_number);
-    }
+    out = interpreter_execute_command(s, node->instruction, node->line_number);
 
     if (out != SESSION_NO_ERROR) {
       ERROR("[SESSION ERROR] Program execution failed at line %lu\n", node->line_number);
