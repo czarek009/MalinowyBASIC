@@ -5,7 +5,70 @@
 #include "gpio.h"
 #include "utils.h"
 #include "random.h"
+#include "sd.h"
+#include "hdmi.h"
+#include "timer.h"
+#include "images.h"
 
+
+void test_hdmi() {
+  printf("HDMI test\n");
+  hdmi_draw_image(cat_320x200, 320, 200, 0, 0);
+  delay_ms(1000);
+}
+
+void test_sd() {
+  mbrS mbr;
+
+  int r = sd_read(&mbr, sizeof(mbr));
+
+  printf("Read disk returned: %d\n", r);
+
+  if (mbr.bootSignature != BOOT_SIGNATURE) {
+    printf("BAD BOOT SIGNATURE: %X\n", mbr.bootSignature);
+  }
+
+  u64 start = 0;
+
+  for (int i=0; i<4; i++) {
+    if (mbr.partitions[i].type == 0) {
+      break;
+    }
+
+    printf("Partition %d:\n", i);
+    printf("\t Type: %d\n", mbr.partitions[i].type);
+    printf("\t NumSecs: %d\n", mbr.partitions[i].num_sectors);
+    printf("\t Status: %d\n", mbr.partitions[i].status);
+    printf("\t Start: 0x%X\n", mbr.partitions[i].first_lba_sector);
+    start = mbr.partitions[i].first_lba_sector;
+  }
+
+  printf("[SD] Set position to %lu*512...\n", start);
+  sd_seek(start*512);
+  printf("Done.\n");
+
+  char* rbuf1 = malloc(512);
+
+  printf("[SD] Read data...\n");
+  sd_read(rbuf1, 512);
+  rbuf1[8] = '\0';
+  printf("Data: %s\n", rbuf1);
+
+  char* wbuf = malloc(512);
+  wbuf = "qpad00pa";
+  
+  printf("[SD] Write data...\n");
+  sd_write(wbuf, 512);
+  printf("[SD] Done.\n");
+
+  delay_ms(1000);
+  char* rbuf2 = malloc(512);
+
+  printf("[SD] Read data...\n");
+  sd_read(rbuf2, 512);
+  rbuf2[8] = '\0';
+  printf("Data: %s\n", rbuf2);
+}
 
 void test_fpu() {
   float x = 17.24;
@@ -23,7 +86,7 @@ void test_gpio() {
   }
 }
 
-void rng() {
+void test_rng() {
   printf("Random number generator test\n");
   for (int i = 0; i < 100; ++i) {
     u64 rgn = rand(0, 100);
