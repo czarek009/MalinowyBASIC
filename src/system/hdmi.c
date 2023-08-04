@@ -5,9 +5,7 @@
 #include "mm.h"
 #include "dma.h"
 
-#define SCROLL_LINES    0
-#define BUFF_CHAR_XSIZE (XRESOLUTION / FONT_WIDTH)
-#define BUFF_CHAR_YSIZE (YRESOLUTION / FONT_HEIGHT) + SCROLL_LINES
+#define BUFF_ELEM_SIZE (sizeof(u32))
 
 struct mailboxFbSizeS {
   mailboxTagS tag;
@@ -43,6 +41,7 @@ struct hdmiInfoS {
   u32 pitch;
   u32 xcoursor;
   u32 ycoursor;
+  s32 last_prompt_ypos;
   u32 font_color;
   u32 bg_color;
   u32 screen_size;
@@ -51,50 +50,98 @@ struct hdmiInfoS {
 
 static hdmiInfoS fb;
 static dmaChannelS *dma;
+/* pointer to hdmi buffer */
 static u32 *hdmi_buffer;
-
-
-#define MB (1024 * 1024)
+/* index of (0, 0) pixel in hdmi buffer */
+static u32 hdmi_buffer_start;
 
 /* PRIVATE FUNCTIONS DECLARATIONS */
 void hdmi_set_resolution();
-void video_dma();
+void hdmi_set_buffer();
+void do_dma(void *dest, void *src, u32 total);
+void hdmi_draw_pixel(u32 x, u32 y, u32 color);
+void hdmi_draw_char(char c, u32 xpos, u32 ypos);
+
+void new_line();
+void character(char c);
+void increment_ycoursor(u32 size);
+void increment_xcoursor(u32 size);
+bool check_fit_yres(u32 size);
+bool check_fit_xres(u32 size);
+void scroll_down(u32 size);
+void erease_char_line(u32 start);
+void backspace();
 
 /* GLOBAL FUNCTIONS DEFINITIONS*/
 void hdmi_init() {
   dma = dma_open_channel(CT_NORMAL);
   hdmi_set_resolution();
-  printf("screen size = %d\n", fb.screen_size);
-  hdmi_buffer = (u32 *)malloc(fb.screen_size);
-  for (int i=0; i < fb.screen_size / 4; i++) {
-    hdmi_buffer[i] = WHITE;
+  hdmi_set_buffer();
+  hdmi_refresh();
+}
+
+void hdmi_end() {
+  free(hdmi_buffer);
+  dma_close_channel(dma);
+}
+
+void hdmi_refresh() {
+  u32 second_part = (hdmi_buffer_start * BUFF_ELEM_SIZE);
+  u32 first_part = fb.screen_size - second_part;
+  do_dma(fb.frame_buffer, (hdmi_buffer + hdmi_buffer_start), first_part);
+  do_dma(fb.frame_buffer + first_part, hdmi_buffer, second_part);
+}
+
+void hdmi_draw_image(const u32 *img, u32 xres, u32 yres, u32 xpos, u32 ypos) {
+  for (u32 i = 0; i < xres; ++i) {
+    for (u32 j = 0; j < yres; ++j) {
+      hdmi_draw_pixel(xpos+i, ypos+j, img[j*xres + i]);
+    }
   }
-  video_dma();
-  printf("DONE HDMI\n");
+  hdmi_refresh();
+}
+
+void hdmi_printf_char(char c) {
+  if(c == '\n') new_line();
+  else if (c == 127 || c == 8) backspace();
+  else character(c);
+}
+
+
+void hdmi_printf_string(const char *str) {
+  for (u32 i = 0; str[i] != '\0'; i++) {
+    hdmi_printf_char(str[i]);
+  }
+}
+
+void hdmi_printf_prompt(const char *str) {
+  hdmi_printf_string(str);
+  fb.last_prompt_ypos = fb.ycoursor;
+}
+
+/* PRIVATE FUNCTIONS DEFINITIONS*/
+void hdmi_set_buffer() {
+  hdmi_buffer = (u32 *)malloc(fb.screen_size);
+  u32 i = 0;
+  for (; i < (fb.screen_size / BUFF_ELEM_SIZE); i++) {
+    hdmi_buffer[i] = fb.bg_color;
+  }
+  hdmi_buffer_start = 0;
 }
 
 void do_dma(void *dest, void *src, u32 total) {
-
   u32 start = 0;
-
   while(total > 0) {
     int num_bytes = total;
-
     if (num_bytes > 0xFFFFFF) {
       num_bytes = 0xFFFFFF;
     }
     dma_setup_mem_copy(dma, dest + start, src + start, num_bytes, 2);
     dma_start(dma);
-
     dma_wait(dma);
-
     start += num_bytes;
     total -= num_bytes;
   }
-}
-
-void video_dma() {
-  do_dma(fb.frame_buffer, hdmi_buffer, fb.screen_size);
 }
 
 void hdmi_set_resolution() {
@@ -135,142 +182,90 @@ void hdmi_set_resolution() {
   fb.ycoursor = 0;
   fb.font_color = WHITE;
   fb.bg_color = BLACK;
+  fb.last_prompt_ypos = -1;
   fb.screen_size = fb_req.buff.screen_size;
   fb.frame_buffer = (u8 *)(((u64)fb_req.buff.ptr | 0x40000000) & ~0xC0000000);
 }
 
+void hdmi_draw_pixel(u32 x, u32 y, u32 color) {
+  u32 pixel_offset = ((x * 4) + ((y * fb.pitch))) / BUFF_ELEM_SIZE;
+  hdmi_buffer[(pixel_offset + hdmi_buffer_start) % (fb.screen_size / BUFF_ELEM_SIZE)] = color;
+}
 
-// void hdmi_printf_char(char c) {
-//   if(c == '\n') {
-//     new_line();
-//     return;
-//   }
-//   if (c == 127 || c == 8) {
-//     backspace();
-//     return;
-//   }
-//   if (!check_font_fit_width()){
-//     new_line();
-//   }
-//   hdmi_draw_char(c, fb.xcoursor, fb.ycoursor);
-//   increment_xcoursor();
-// }
+void hdmi_draw_char(char c, u32 xpos, u32 ypos) {
+  u32 color;
+  for (u32 y = 0; y < FONT_HEIGHT; y++) {
+    for (u32 x = 0; x < FONT_WIDTH; x++) {
+      color = ((font8x8_basic[(u8)c][y] >> x) & 1) ? fb.font_color : fb.bg_color;
+      hdmi_draw_pixel(xpos + x, ypos + y, color);
+    }
+  }
+}
 
-// void hdmi_printf_string(const char *str) {
-//   for (u32 i = 0; str[i] != '\0'; i++) {
-//     hdmi_printf_char(str[i]);
-//   }
-// }
+void new_line() {
+  fb.xcoursor = 0;
+  increment_ycoursor(FONT_HEIGHT);
+}
 
-// void hdmi_draw_image(const u32 *img, u32 xres, u32 yres, u32 xpos, u32 ypos) {
-//   for (u32 i = 0; i < xres; ++i) {
-//     for (u32 j = 0; j < yres; ++j) {
-//       hdmi_draw_pixel(xpos+i, ypos+j, img[j*xres + i]);
-//     }
-//   }
-// }
+bool check_fit_yres(u32 size) {
+  return ((size + fb.ycoursor) < YRESOLUTION);
+}
 
-// /* PRIVATE FUNCTIONS DEFINITIONS*/
-// void hdmi_draw_pixel(u32 x, u32 y, u32 color) {
-//   volatile u8 *frame_buffer = fb.frame_buffer;
-//   u32 pixel_offset = (x * 4) + (y * fb.pitch);
+bool check_fit_xres(u32 size) {
+  return ((size + fb.xcoursor) < XRESOLUTION);
+}
 
-//   if (BITS_PER_PIXEL == 32) {
-//     u8 r = (color & 0xFF000000) >> 24;
-//     u8 g = (color & 0xFF0000) >> 16;
-//     u8 b = (color & 0xFF00) >> 8;
-//     u8 a = color & 0xFF;
+void increment_ycoursor(u32 size) {
+  if(check_fit_yres(size)) fb.ycoursor += size;
+  else scroll_down(size);
+}
 
-//     frame_buffer[pixel_offset++] = b;
-//     frame_buffer[pixel_offset++] = g;
-//     frame_buffer[pixel_offset++] = r;
-//     frame_buffer[pixel_offset++] = a;
-//   } else {
-//     frame_buffer[pixel_offset++] = (color >> 8) & 0xFF;
-//     frame_buffer[pixel_offset++] = (color & 0xFF);
-//   }
-// }
+void increment_xcoursor(u32 size) {
+  if (check_fit_xres(size)) fb.xcoursor += size;
+  else new_line();
+}
 
-// void hdmi_draw_char(char c, u32 xpos, u32 ypos) {
-//   u32 color;
-//   for (u32 i = 0; i < FONT_HEIGHT; i++) {
-//     for (u32 j = 0; j < FONT_WIDTH; j++) {
-//       color = ((font8x8_basic[(u8)c][i] >> j) & 1) ? fb.font_color : fb.bg_color;
-//       hdmi_draw_pixel(xpos + j, ypos + i, color);
-//     }
-//   }
-// }
+void scroll_down(u32 ypixels) {
+  hdmi_buffer_start = (hdmi_buffer_start + (XRESOLUTION * ypixels)) % (fb.screen_size / BUFF_ELEM_SIZE);
+  fb.last_prompt_ypos -= FONT_HEIGHT;
+  erease_char_line(fb.ycoursor);
+}
 
-// void hdmi_refresh() {
-//   for (u32 i = 0; i < BUFF_CHAR_YSIZE; i++) {
-//     for (u32 j = 0; j < BUFF_CHAR_YSIZE; j++) {
-//       hdmi_draw_char((frame_buffer_char[i][j]), j * FONT_WIDTH, i * FONT_HEIGHT);
-//     }
-//   }
-// }
+void character(char c) {
+  hdmi_draw_char(c, fb.xcoursor, fb.ycoursor);
+  increment_xcoursor(FONT_WIDTH);
+}
 
+void erease_char_line(u32 y) {
+  for(u32 x = 0; x < XRESOLUTION; x += FONT_WIDTH) {
+    hdmi_draw_char(' ', x, y);
+  }
+}
 
+bool prompt_line() {
+  return fb.last_prompt_ypos == fb.ycoursor;
+}
 
+bool can_backspace(u32 cond) {
+  return fb.xcoursor >= cond;
+}
 
-
-
-
-// void increment_ycoursor() {
-//   if(check_font_fit_height()) {
-//     fb.ycoursor += FONT_HEIGHT;
-//     return;
-//   }
-//   scroll_down();
-// }
-
-// void increment_xcoursor() {
-//   if (check_font_fit_width()) {
-//     fb.xcoursor += FONT_WIDTH;
-//     return;
-//   }
-//   new_line();
-// }
-
-// void reset_xcoursor() {
-//   fb.xcoursor = 0;
-// }
-
-// bool check_font_fit_width() {
-//   return ((FONT_WIDTH + fb.xcoursor) < XRESOLUTION);
-// }
-
-// bool check_font_fit_height() {
-//   return ((FONT_HEIGHT + fb.ycoursor) < YRESOLUTION);
-// }
-
-// void new_line() {
-//   reset_xcoursor();
-//   increment_ycoursor();
-// }
-
-// void backspace() {
-//   if(fb.xcoursor >= PROMPT_WIDTH + FONT_WIDTH) {
-//     fb.xcoursor -= FONT_WIDTH;
-//     hdmi_erase_char(fb.xcoursor, fb.ycoursor);
-//   }
-// }
-
-// void hdmi_erase_char(u32 xpos, u32 ypos) {
-//   for (u32 i = 0; i < FONT_HEIGHT; i++) {
-//     for (u32 j = 0; j < FONT_WIDTH; j++) {
-//       hdmi_draw_pixel(xpos + j, ypos + i, 0x00000000);
-//     }
-//   }
-// }
-
-// void erease_last_line() {
-//   for(u32 i = 0; i < XRESOLUTION; i += FONT_WIDTH) {
-//     hdmi_erase_char(i, fb.ycoursor);
-//   }
-// }
-
-// void scroll_down() {
-//   u32 line_font_bytes = (FONT_HEIGHT * fb.pitch);
-//   memcpy(fb.frame_buffer, (fb.frame_buffer + line_font_bytes), (YRESOLUTION * fb.pitch) - line_font_bytes);
-//   erease_last_line();
-// }
+void backspace() {
+  if(prompt_line()){
+    if(can_backspace(PROMPT_WIDTH + FONT_WIDTH)){
+      fb.xcoursor -= FONT_WIDTH;
+      hdmi_draw_char(' ', fb.xcoursor, fb.ycoursor);
+    }
+  }
+  else {
+    if(can_backspace(FONT_HEIGHT)) {
+      fb.xcoursor -= FONT_WIDTH;
+      hdmi_draw_char(' ', fb.xcoursor, fb.ycoursor);
+    }
+    else if (fb.xcoursor == 0){
+      fb.ycoursor -= FONT_HEIGHT;
+      fb.xcoursor = (XRESOLUTION - FONT_WIDTH);
+      hdmi_draw_char(' ', fb.xcoursor, fb.ycoursor);
+    }
+  }
+}

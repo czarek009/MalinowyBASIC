@@ -3,10 +3,23 @@
 #include "mm.h"
 #include "timer.h"
 
+#define CS_RESET                        (1 << 31)
+#define CS_WAIT_FOR_OUTSTANDING_WRITES  (1 << 28)
+#define CS_PANIC_PRIORITY_SHIFT         20
+#define DEFAULT_PANIC_PRIORITY          15
+#define CS_PRIORITY_SHIFT               16
+#define DEFAULT_PRIORITY                1
+#define CS_ERROR                        (1 << 8)
+#define CS_ACTIVE                       (1 << 0)
+
+#define TI_BURST_LENGTH_SHIFT  12
+#define TI_SRC_WIDTH           (1 << 9)
+#define TI_SRC_INC             (1 << 8)
+#define TI_DEST_WIDTH          (1 << 5)
+#define TI_DEST_INC            (1 << 4)
 
 #define GPU_UNCACHED_BASE	0xC0000000
 #define GPU_MEM_BASE	GPU_UNCACHED_BASE
-
 #define BUS_ADDRESS(addr)	(((addr) & ~0xC0000000) | GPU_MEM_BASE)
 
 #define DMA_BLOCK_ADDRESS 0x400000
@@ -35,15 +48,15 @@ static u16 allocate_channel(u32 channel) {
 }
 
 dmaChannelS *dma_open_channel(u32 channel) {
-  u32 _channel = allocate_channel(channel);
+  u32 ch = allocate_channel(channel);
 
-  if (_channel == CT_NONE) {
+  if (ch == CT_NONE) {
       printf("INVALID CHANNEL! %d\n", channel);
       return NULL;
   }
 
-  dmaChannelS *dma = (dmaChannelS *)&channels[_channel];
-  dma->channel = _channel;
+  dmaChannelS *dma = (dmaChannelS *)&channels[ch];
+  dma->channel = ch;
 
   dma->block = (dmaControlBlock *)DMA_BLOCK_ADDRESS;
   dma->block->reserved[0] = 0;
