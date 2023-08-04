@@ -9,7 +9,20 @@
 #include "hdmi.h"
 #include "timer.h"
 #include "images.h"
+#include "fs.h"
 
+
+void test_fs() {
+  fileS* file = create_file("file1");
+  u64 w = write_to_file(file, "ala ma kota", 12);
+  printf("Wrote %lu bytes\n", w);
+
+  file = open_file("file1");
+  char* buf[13] = {0};
+  u64 r = read_from_file(file, buf, 12);
+  printf("Read %lu bytes\n", r);
+  printf("data: %s\n", buf);
+}
 
 void test_hdmi() {
   printf("HDMI test\n");
@@ -20,7 +33,7 @@ void test_hdmi() {
 void test_sd() {
   mbrS mbr;
 
-  int r = sd_read(&mbr, sizeof(mbr));
+  int r = sd_read_block(&mbr, sizeof(mbr));
 
   printf("Read disk returned: %d\n", r);
 
@@ -50,7 +63,7 @@ void test_sd() {
   char* rbuf1 = malloc(512);
 
   printf("[SD] Read data...\n");
-  sd_read(rbuf1, 512);
+  sd_read_block(rbuf1, 512);
   rbuf1[8] = '\0';
   printf("Data: %s\n", rbuf1);
 
@@ -58,14 +71,14 @@ void test_sd() {
   wbuf = "qpad00pa";
   
   printf("[SD] Write data...\n");
-  sd_write(wbuf, 512);
+  sd_write_block(wbuf, 512);
   printf("[SD] Done.\n");
 
   delay_ms(1000);
   char* rbuf2 = malloc(512);
 
   printf("[SD] Read data...\n");
-  sd_read(rbuf2, 512);
+  sd_read_block(rbuf2, 512);
   rbuf2[8] = '\0';
   printf("Data: %s\n", rbuf2);
 }

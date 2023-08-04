@@ -5,31 +5,6 @@
 #include "types.h"
 
 
-#define BOOT_SIGNATURE 0xAA55
-
-typedef struct __attribute__((__packed__)) {
-  u8 head;
-  u8 sector : 6;
-  u8 cylinder_hi : 2;
-  u8 cylinder_lo;
-} chsAddrS;
-
-typedef struct __attribute__((__packed__)) {
-  u8 status;
-  chsAddrS first_sector;
-  u8 type;
-  chsAddrS last_sector;
-  u32 first_lba_sector;
-  u32 num_sectors;
-} partitionEntryS;
-
-typedef struct __attribute__((__packed__)) {
-  u8 bootCode[0x1BE];
-  partitionEntryS partitions[4];
-  u16 bootSignature;
-} mbrS;
-
-
 typedef enum {
   SDECommandTimeout,
   SDECommandCrc,
@@ -113,7 +88,7 @@ typedef struct {
 
 bool sd_init(void);
 void sd_seek(u64 offset);
-int sd_read(void* buffer, u32 size);
-int sd_write(void* buffer, u32 size);
+int sd_read_block(void* buffer, u32 size);
+int sd_write_block(void* buffer, u32 size);
 
 #endif /* _SD_H */

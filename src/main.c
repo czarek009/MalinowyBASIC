@@ -12,11 +12,11 @@
 #include "timer.h"
 #include "hdmi.h"
 #include "sd.h"
+#include "fs.h"
 
 
 void print_greetings(void) {
   printf("\n\n\nMalinowyBASIC\n");
-  printf("MalinowyBASIC\n");
 
   int rpiv = -1;
 
@@ -37,7 +37,7 @@ void putc(void *p, char c) {
 }
 
 
-void main(void){
+void main(void) {
   rand_init();
   init_keyboard();
 
@@ -52,8 +52,10 @@ void main(void){
 
   hdmi_init(320, 200, 32);
   sd_init();
+  fs_init();
 
-  test_sd();
+  // test_sd();
+  test_fs();
 
   print_greetings();
 

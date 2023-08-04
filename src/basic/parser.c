@@ -68,6 +68,9 @@ tokenS tokens[] = {
   {.tok_name="FLOAT",   .tok_id=TOK_BUILTIN},
 
   {.tok_name="SESSEND", .tok_id=TOK_SESSEND},
+  {.tok_name="SAVE",    .tok_id=TOK_SAVE},
+  {.tok_name="LS",      .tok_id=TOK_LS},
+
 
   {.tok_name="", .tok_id=TOK_NONE}
 };

@@ -7,6 +7,7 @@
 #include "types.h"
 #include "mm.h"
 #include "debug.h"
+#include "fs.h"
 
 
 /* PRIVATE FUNCTIONS DECLARATION */
@@ -119,6 +120,22 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       break;
 
     /* ONLY DIRECT MODE */
+    case TOK_LS:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      list_files();
+      break;
+    case TOK_SAVE:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      create_file(cmd);
+      break;
     case TOK_RUN:
     case TOK_CONT:
       if (line_number != NO_LINE_NUMBER) {
