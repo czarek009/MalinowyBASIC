@@ -3,6 +3,9 @@
 
 #include "types.h"
 
+
+#define RPI_FIRMWARE_GET_CLOCK_RATE 0x00030002
+
 enum mailboxTagE {
   MBOX_TAG_END = 0,
   MBOX_TAG_GET_MAX_TEMPERATURE = 0x0003000a,
@@ -46,11 +49,25 @@ enum mailboxTagE {
 } typedef mailboxTagE;
 
 struct mailboxTagS {
-  mailboxTagE id;
+  u32 id;
   u32 buffer_size;
   u32 value_length;
 } typedef mailboxTagS;
 
+struct mailboxClockS {
+  mailboxTagS tag;
+  u32 id;
+  u32 rate;
+} typedef mailboxClockS;
+
+typedef enum {
+  CT_EMMC = 1,
+  CT_UART = 2,
+  CT_ARM = 3,
+  CT_CORE = 4
+} clockTypeE;
+
 void mailbox_process(mailboxTagS *tag, u32 tag_data_size);
+u32 mailbox_clock_rate(clockTypeE ct);
 
 #endif /* _MAILBOX_H */

@@ -30,6 +30,18 @@ enum channelE {
 
 static u32 mailbox_data[8192] __attribute__((aligned(16)));
 
+u32 mailbox_clock_rate(clockTypeE ct) {
+  mailboxClockS c;
+  c.tag.id = RPI_FIRMWARE_GET_CLOCK_RATE;
+  c.tag.value_length = 0;
+  c.tag.buffer_size = sizeof(c) - sizeof(c.tag);
+  c.id = ct;
+
+  mailbox_process((mailboxTagS *)&c, sizeof(c));
+
+  return c.rate;
+}
+
 static void mailbox_write(channelE ch, u32 data) {
   while(MBX_REGS->status & MBOX_FULL);
   MBX_REGS->write = ((data & 0xFFFFFFF0) | (ch & 0xF));
