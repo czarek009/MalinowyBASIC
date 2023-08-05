@@ -24,13 +24,10 @@
 #endif
 
 /* GPIO */
-
 #if RPI_VERSION == 3
 #define NUM_OF_GPIO 53
-
 #elif RPI_VERSION == 4
 #define NUM_OF_GPIO 58
-
 #endif
 
 struct GpioPair {
@@ -61,7 +58,6 @@ struct GpioRegisters {
 };
 
 #define GPIO_REGS ((struct GpioRegisters *)(PBASE + 0x00200000))
-
 
 /* AUX */
 struct AuxRegisters {
@@ -119,7 +115,6 @@ struct AuxRegisters {
 #endif
 };
 
-// #define AUX_OFFSET 0x00215000
 #define AUX_REGS ((struct AuxRegisters *)(PBASE + 0x00215000))
 
 /* IRQ */
@@ -182,7 +177,6 @@ struct TimerRegisters {
 #define TIMER_REGS ((struct TimerRegisters *)(PBASE + 0x00003000))
 
 /* MAILBOX */
-
 struct MailboxRegisters {
   reg32 read;
   reg32 reserved[5];
@@ -193,5 +187,74 @@ struct MailboxRegisters {
 
 #define MBX_REGS ((struct MailboxRegisters *)(PBASE + 0xB880))
 
+/* EMMC */
+struct EmmcRegisters {
+  reg32 arg2;
+  reg32 block_size_count;
+  reg32 arg1;
+  reg32 cmd_xfer_mode;
+  reg32 response[4];
+  reg32 data;
+  reg32 status;
+  reg32 control[2];
+  reg32 int_flags;
+  reg32 int_mask;
+  reg32 int_enable;
+  reg32 control2;
+  reg32 cap1;
+  reg32 cap2;
+  reg32 res0[2];
+  reg32 force_int;
+  reg32 res1[7];
+  reg32 boot_timeout;
+  reg32 debug_config;
+  reg32 res2[2];
+  reg32 ext_fifo_config;
+  reg32 ext_fifo_enable;
+  reg32 tune_step;
+  reg32 tune_SDR;
+  reg32 tune_DDR;
+  reg32 res3[23];
+  reg32 spi_int_support;
+  reg32 res4[2];
+  reg32 slot_int_status;
+};
+
+#if RPI_VERSION == 3
+#define EMMC_OFFSET 0x00300000
+#else
+#define EMMC_OFFSET 0x00340000
+#endif
+
+#define EMMC_REGS ((struct EmmcRegisters *)(PBASE + EMMC_OFFSET))
+
+/* DMA */
+
+struct dmaControlBlock {
+  reg32 transfer_information;
+  reg32 source_address;
+  reg32 destination_address;
+  reg32 transfer_length;
+  reg32 mode_stride;
+  reg32 next_control_block_address;
+  reg32 reserved[2];
+} typedef dmaControlBlock;
+
+struct DmaChannelRegister {
+  reg32 control;
+  reg32 control_block_address;
+  dmaControlBlock block;
+  reg32 reserved[54];
+};
+
+struct DmaRegisters {
+  struct DmaChannelRegister channels[15];
+  reg32 reserved0[56];
+  reg32 int_status;
+  reg32 reserved1[3];
+  reg32 enable;
+};
+
+#define DMA_REGS ((struct DmaRegisters *)(PBASE + 0x00007000))
 
 #endif  /*_PERIPHERIALS_H */

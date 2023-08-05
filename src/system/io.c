@@ -2,6 +2,7 @@
 #include "irq.h"
 #include "uart.h"
 #include "utils.h"
+#include "hdmi.h"
 
 volatile static char line_buffer[255];
 volatile static bool refresh;
@@ -56,16 +57,20 @@ void io_read_char(char c) {
     }
   }
   refresh = true;
+  hdmi_printf_char(c);
 }
 
 void readline(char* restrict dest, const char* prompt) {
   io_reset();
   uart_send('\r');
   uart_send_string(prompt);
+  hdmi_printf_prompt(prompt);
+  hdmi_refresh();
   while (!eol) {
     while(!refresh);
     clear_line();
     print_line(prompt);
+    hdmi_refresh();
     refresh = false;
   }
 
@@ -78,4 +83,6 @@ void readline(char* restrict dest, const char* prompt) {
 
   uart_send('\r');
   uart_send('\n');
+  hdmi_printf_char('\n');
+  hdmi_refresh();
 }

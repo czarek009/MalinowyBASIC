@@ -11,7 +11,7 @@
 #include "keyboard.h"
 #include "timer.h"
 #include "hdmi.h"
-#include "images.h"
+#include "sd.h"
 
 
 void print_greetings(void) {
@@ -34,7 +34,9 @@ void putc(void *p, char c) {
   if (c == '\n')
     uart_send('\r');
   uart_send(c);
+  hdmi_printf_char(c);
 }
+
 
 void main(void){
   rand_init();
@@ -48,14 +50,12 @@ void main(void){
   irq_enable();
 
   mem_init();
+  hdmi_init();
+  sd_init();
 
-  hdmi_init(320, 200, 32);
+  test_sd();
 
   print_greetings();
-
-  printf("HDMI test\n");
-  hdmi_draw_image(cat_320x200, 320, 200, 0, 0);
-  delay_ms(1000);
 
   while (1) {
     printf("START SESSION\n");
@@ -76,6 +76,8 @@ void main(void){
       }
     }
     session_end(current_session);
-    lickitung_check();
   }
+  /* hdmi allocates buffer - lickitung will show memory leak untill we call hdmi_end() */
+  hdmi_end();
+  lickitung_check();
 }
