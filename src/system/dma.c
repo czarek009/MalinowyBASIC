@@ -22,7 +22,7 @@
 #define GPU_MEM_BASE	GPU_UNCACHED_BASE
 #define BUS_ADDRESS(addr)	(((addr) & ~0xC0000000) | GPU_MEM_BASE)
 
-#define DMA_BLOCK_ADDRESS 0x400000
+#define DMA_BLOCK_ADDRESS 0x0
 
 dmaChannelS channels[15];
 static u16 channel_map = 0x1F35;
