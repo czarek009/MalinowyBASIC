@@ -41,6 +41,10 @@ void io_read_char(char c) {
     // alternative enter `
     // because enter doesn't always work on my keyboard :(
     eol = true;
+  } else if (c >= 'a' && c <= 'z') {
+    // change lower case letters to upper case
+    line_buffer[idx] = c-32;
+    idx++;
   } else if (c > 31 && c < 127) {
     // regular character
     line_buffer[idx] = c;

@@ -7,15 +7,27 @@
 #include "mm.h"
 
 
+u64 assign_end(char* instr);
+
 sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
   char varname[8] = {0};
   char buf[32] = {0};
   bool isStr = false;
+  bool more_vars = false;
   tokenE tok = TOK_NONE;
+
+  u64 next_assign = assign_end(cmd);
+  if (next_assign != strlen(cmd)) {
+    more_vars = true;
+    cmd[next_assign] = '\0';
+  }
 
   /* varname */
   tok = get_next_token(&cmd, buf, TOK_ANY); // copy straight to varname instead buf?
-  if (tok != TOK_VAR && tok != TOK_ARRAY_FLOAT && tok != TOK_ARRAY_INT && tok != TOK_ARRAY_STRING) return SESSION_PARSING_ERROR; // PARSING ERROR
+  if (tok != TOK_VAR && tok != TOK_ARRAY_FLOAT && tok != TOK_ARRAY_INT && tok != TOK_ARRAY_STRING) {
+    ERROR("[INSTRUCTION ERROR] Expected variable or array element, got '%s'\n", buf);
+    return SESSION_PARSING_ERROR; // PARSING ERROR
+  }
   strncpy(varname, buf, 8);
   if (tok == TOK_VAR) {
     /* $ = */
@@ -91,8 +103,26 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
     free(idxs);
     if(array_err != SESSION_NO_ERROR) return array_err;
   }
-  tok = get_next_token(&cmd, buf, TOK_NONE);
-  if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
+  // tok = get_next_token(&cmd, buf, TOK_NONE);
+  // if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
+
+  if (more_vars) {
+    return let_instr(env, cmd+1);
+  }
 
   return SESSION_NO_ERROR; // SUCCESS
+}
+
+
+u64 assign_end(char* instr) {
+  bool quote = false;
+  for (u64 i = 0; instr[i] != '\0'; ++i) {
+    if (instr[i] == '"') {
+      quote = !quote;
+    }
+    if (!quote && instr[i] == ':') {
+      return i;
+    }
+  }
+  return strlen(instr);
 }
