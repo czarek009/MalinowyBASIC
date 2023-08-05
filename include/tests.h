@@ -14,7 +14,7 @@
 
 void test_fs() {
   fileS* file = create_file("file1");
-  u64 w = write_to_file(file, "ala ma kota", 12);
+  u64 w = write_to_file(file, "ala ma kota", 12, true);
   printf("Wrote %lu bytes\n", w);
 
   file = open_file("file1");
@@ -81,6 +81,10 @@ void test_sd() {
   sd_read_block(rbuf2, 512);
   rbuf2[8] = '\0';
   printf("Data: %s\n", rbuf2);
+
+  free(rbuf1);
+  free(rbuf2);
+  free(wbuf);
 }
 
 void test_fpu() {

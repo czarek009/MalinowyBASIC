@@ -32,7 +32,7 @@ enum tokenE {
   /* additional instructions */
   TOK_ENV, TOK_LIST, TOK_MEM, TOK_RUN, TOK_SINFO,
   TOK_SESSEND,
-  TOK_SAVE, TOK_LS,
+  TOK_SAVE, TOK_LOAD, TOK_DELETE, TOK_LS,
 } typedef tokenE;
 
 struct tokenS {

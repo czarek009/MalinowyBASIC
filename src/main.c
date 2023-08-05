@@ -16,7 +16,7 @@
 
 
 void print_greetings(void) {
-  printf("\n\n\nMalinowyBASIC\n");
+  printf("\n\nMalinowyBASIC\n");
 
   int rpiv = -1;
 
@@ -38,11 +38,12 @@ void putc(void *p, char c) {
 
 
 void main(void) {
-  rand_init();
-  init_keyboard();
-
   uart_init_gpio();
   init_printf(0, putc);
+  printf("\n\n");
+
+  rand_init();
+  init_keyboard();
 
   irq_init_vectors();
   enable_interrupt_controller();
@@ -55,7 +56,7 @@ void main(void) {
   fs_init();
 
   // test_sd();
-  test_fs();
+  // test_fs();
 
   print_greetings();
 

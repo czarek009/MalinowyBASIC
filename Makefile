@@ -22,9 +22,9 @@ screen :
 	sudo screen /dev/ttyUSB0 115200
 
 sd :
-	cp ./kernel8.img /media/$(USER)/BOOTFS
+	cp ./kernel8.img /media/$(USER)/bootfs
 	sync
-	umount -q /media/$(USER)/BOOTFS
+	umount -q /media/$(USER)/bootfs
 	umount -q /media/$(USER)/rootfs
 
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c

@@ -13,6 +13,8 @@
 /* PRIVATE FUNCTIONS DECLARATION */
 static u64 get_line_number(char** cmd_p);
 
+static char* consume_whitespaces(char* cmd);
+
 
 /* PUBLIC FUNCTIONS DEFINITIONS */
 sessionErrorCodeE interpreter_process_input(sessionS* env, char* cmd) {
@@ -134,7 +136,24 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
         out = SESSION_INVALID_INSTRUCTION;
         break;
       }
-      create_file(cmd);
+      save_instr(env, cmd);
+      break;
+    case TOK_DELETE:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      cmd = consume_whitespaces(cmd);
+      delete_file(cmd);
+      break;
+    case TOK_LOAD:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      load_instr(env, cmd);
       break;
     case TOK_RUN:
     case TOK_CONT:
@@ -223,4 +242,11 @@ static u64 get_line_number(char** cmd_p) {
   }
 
   return out;
+}
+
+static char* consume_whitespaces(char* cmd) {
+  while (*cmd == ' ') {
+    ++cmd;
+  }
+  return cmd;
 }

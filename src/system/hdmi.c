@@ -80,8 +80,6 @@ void hdmi_init(u32 xres, u32 yres, u32 bits_per_pixel) {
   fb.pitch = fb_req.pitch.pitch;
   fb.bpp = fb_req.depth.bits_per_pixel;
   fb.frame_buffer = (u8 *)(((u64)fb_req.buff.ptr | 0x40000000) & ~0xC0000000);
-
-  printf("HDMI init, ptr = %ld, xres = %d, yres = %d\n", (u64)fb.frame_buffer, fb.xres, fb.yres);
 }
 
 void hdmi_draw_pixel(u32 x, u32 y, u32 color) {

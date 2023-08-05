@@ -13,18 +13,33 @@
     _a < _b ? _a : _b; })
 
 static fileS file_table[NUM_OF_FILES] = {0};
+static mbrS mbr = {0};
+static partitionEntryS data_partition = {0};
 
 /* PRIVATE FUNCTIONS DECLARATIONS */
-bool get_partition_entry(partitionEntryS* part);
 u64 write_data(u64 offset, void* buf, u64 len);
 u64 read_data(u64 offset, void* buf, u64 len);
+bool load_mbr(mbrS* dest);
+bool save_file_table(void);
 
 /* PUBLIC FUNCTIONS DEFINITIONS */
 bool fs_init() {
-  partitionEntryS data_partition;
+  if (!load_mbr(&mbr)) {
+    ERROR("[ERROR] Cannot get partition info\n");
+    return false;
+  }
 
-  if (!get_partition_entry(&data_partition)) {
-    ERROR("[ERROR] Cannot initialize file system\n");
+  bool data_partition_found = false;
+  for (int i = 1; i < 4; ++i) {
+    if (mbr.partitions[i].type != 0 &&
+        (u64)mbr.partitions[i].num_sectors >= (u64)((2UL<<30UL) / 512UL)) {
+      data_partition = mbr.partitions[i];
+      data_partition_found = true;
+      break;
+    }
+  }
+  if (!data_partition_found) {
+    ERROR("[ERROR] Cannot find data partition\n");
     return false;
   }
 
@@ -108,7 +123,10 @@ fileS* create_file(char* name) {
       file->size_in_bytes = 0;
       file->id = i;
       file->type = 1;
-      strncpy(file->name, name, strlen(name));
+      strncpy(file->name, name, strlen(name)+1);
+      file->name[strlen(name)] = '\0';
+
+      save_file_table();
 
       return file;
     }
@@ -118,16 +136,54 @@ fileS* create_file(char* name) {
   return NULL;
 }
 
-u64 write_to_file(fileS* file, void* buf, u64 len) {
-  u64 pos = file->id * (PARTITION_SIZE/NUM_OF_FILES) + file->size_in_bytes;
-  u64 wrote = write_data(pos, buf, len);
-  file->size_in_bytes += wrote;
-  return wrote;
+void delete_file(char* name) {
+  if (!strncmp(name, "SPECIAL", strlen(name))) {
+    ERROR("[ERROR] Cannot delete SPECIAL file\n");
+    return;
+  }
+  for (int i = 0; i < NUM_OF_FILES; ++i) {
+    fileS file = file_table[i];
+    if (file.type == 0) {
+      continue;
+    }
+    if (!strncmp(name, file.name, strlen(name))) {
+      file_table[i].type = 0;
+      save_file_table();
+      return;
+    }
+  }
+
+  ERROR("[ERROR] Cannot find file '%s'\n", name);
+}
+
+u64 write_to_file(fileS* file, void* buf, u64 len, bool append) {
+  u64 bytes = 0;
+  if (append) {
+    u64 pos = file->id * (PARTITION_SIZE/NUM_OF_FILES) + file->size_in_bytes;
+    bytes = write_data(pos, buf, len);
+    file->size_in_bytes += bytes;
+  } else {
+    u64 pos = file->id * (PARTITION_SIZE/NUM_OF_FILES);
+    bytes = write_data(pos, buf, len);
+    file->size_in_bytes = bytes;
+  }
+  save_file_table();
+  return bytes;
 }
 
 u64 read_from_file(fileS* file, void* buf, u64 len) {
   u64 pos = file->id * (PARTITION_SIZE/NUM_OF_FILES);
   return read_data(pos, buf, min(file->size_in_bytes, len));
+}
+
+void list_partitions(void) {
+  for (int i = 0; i < 4; ++i) {
+    printf("Partition %d:\n", i);
+    printf("\t Type: %d\n", mbr.partitions[i].type);
+    printf("\t NumSecs: %d\n", mbr.partitions[i].num_sectors);
+    printf("\t Status: %d\n", mbr.partitions[i].status);
+    printf("\t Start: 0x%X\n", mbr.partitions[i].first_lba_sector);
+  }
 }
 
 /* PRIVATE FUNCTIONS DEFINITIONS */
@@ -213,22 +269,30 @@ u64 read_data(u64 offset, void* buf, u64 len) {
   return read;
 }
 
-bool get_partition_entry(partitionEntryS* part) {
-  mbrS mbr;
-
+bool load_mbr(mbrS* dest) {
   sd_seek(0);
-  int r = sd_read_block(&mbr, sizeof(mbr));
+  int r = sd_read_block(dest, sizeof(mbrS));
 
   if (r != 512) {
     ERROR("[ERROR] Cannot read master boot record from sd card\n");
     return false;
   }
 
-  if (mbr.bootSignature != BOOT_SIGNATURE) {
-    ERROR("[ERROR] BAD BOOT SIGNATURE: %X\n", mbr.bootSignature);
+  if (dest->bootSignature != BOOT_SIGNATURE) {
+    ERROR("[ERROR] BAD BOOT SIGNATURE: %X\n", dest->bootSignature);
+  }
+
+  return true;
+}
+
+bool save_file_table(void) {
+  sd_seek(data_partition.first_lba_sector);
+  u64 r = sd_write_block(file_table, sizeof(file_table));
+
+  if (r != 512) {
+    ERROR("[ERROR] Cannot write file table\n");
     return false;
   }
 
-  memcpy(part, &(mbr.partitions[1]), sizeof(partitionEntryS));
   return true;
 }
