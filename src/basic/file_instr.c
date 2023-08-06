@@ -19,6 +19,9 @@ sessionErrorCodeE save_instr(sessionS* env, char* cmd) {
   strncpy(progname, cmd, FILENAME_LEN);
 
   fileS* file = create_file(progname);
+  if (file == NULL) {
+    return SESSION_FS_ERROR;
+  }
 
   instructionS *node = env->metadata.instructions_start;
   while(node != NULL) {
@@ -41,6 +44,10 @@ sessionErrorCodeE load_instr(sessionS* env, char* cmd) {
   strncpy(progname, cmd, FILENAME_LEN);
 
   fileS* file = open_file(progname);
+  if (file == NULL) {
+    return SESSION_FS_ERROR;
+  }
+
   char* file_buf = malloc(file->size_in_bytes);
   char* aux = file_buf;
   read_from_file(file, file_buf, file->size_in_bytes);

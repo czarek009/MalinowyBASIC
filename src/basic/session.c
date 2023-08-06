@@ -623,6 +623,7 @@ void add_instruction(sessionS *s, u64 line_number, char *instruction) {
   else {
     instructionS *place = find_place(s->metadata.instructions_start, line_number);
     if(place->line_number == line_number){
+      free(place->instruction);
       place->instruction = instruction;
     }
     else if(place->next->line_number == line_number){

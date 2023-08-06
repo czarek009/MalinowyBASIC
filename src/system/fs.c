@@ -91,6 +91,10 @@ void list_files() {
 }
 
 fileS* open_file(char* name) {
+  if (!strncmp(name, "SPECIAL", strlen(name))) {
+    ERROR("[ERROR] Cannot open SPECIAL file\n");
+    return NULL;
+  }
   for (int i = 0; i < NUM_OF_FILES; ++i) {
     fileS file = file_table[i];
     if (file.type == 0) {
@@ -106,6 +110,10 @@ fileS* open_file(char* name) {
 }
 
 fileS* create_file(char* name) {
+  if (!strncmp(name, "SPECIAL", strlen(name))) {
+    ERROR("[ERROR] Cannot create SPECIAL file\n");
+    return NULL;
+  }
   for (int i = 0; i < NUM_OF_FILES; ++i) {
     fileS file = file_table[i];
     if (file.type == 0) {
