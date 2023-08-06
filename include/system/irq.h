@@ -3,8 +3,8 @@
 
 #define S_FRAME_SIZE 256
 
-#define AUX_IRQ   (1 << 29)
-#define GPIO0_IRQ (1 << 17)
+#define AUX_IRQ          (1 << 29)
+#define GPIO0_IRQ        (1 << 17)
 
 void enable_interrupt_controller(void);
 void irq_init_vectors(void);

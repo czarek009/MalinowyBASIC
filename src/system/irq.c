@@ -6,10 +6,12 @@
 #include "debug.h"
 #include "gpio.h"
 #include "keyboard.h"
+#include "timer.h"
+#include "hdmi.h"
 
 
 void enable_interrupt_controller(void) {
-  IRQ_REGS->irq0_enable_1 = AUX_IRQ;
+  IRQ_REGS->irq0_enable_1 = AUX_IRQ | TIMER_CS_M1;
   IRQ_REGS->irq0_enable_2 = GPIO0_IRQ;
 }
 
@@ -31,6 +33,12 @@ void handle_irq() {
         unsigned char c = uart_recv();
         io_read_char(c);
       }
+    }
+
+    if (irq1 & TIMER_CS_M1) {
+      irq1 &= ~TIMER_CS_M1;
+      handle_timer_1();
+      hdmi_blink_coursor();
     }
 
     if (irq2 & GPIO0_IRQ) {

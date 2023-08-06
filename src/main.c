@@ -48,6 +48,7 @@ void main(void){
   irq_init_vectors();
   enable_interrupt_controller();
   irq_enable();
+  timer_init();
 
   mem_init();
   hdmi_init();

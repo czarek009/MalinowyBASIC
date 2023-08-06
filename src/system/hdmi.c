@@ -46,8 +46,13 @@ struct hdmiInfoS {
   u32 font_color;
   u32 bg_color;
   u32 screen_size;
+  bool coursor;
   u8 *frame_buffer;
 } typedef hdmiInfoS;
+
+// struct hdmiCharBufferS {
+//   char buffer[(YRESOLUTION/FONT_HEIGHT)][(XRESOLUTION/FONT_WIDTH)] = {0};
+// } typedef hdmiCharBufferS;
 
 static hdmiInfoS fb;
 static dmaChannelS *dma;
@@ -88,6 +93,13 @@ void hdmi_end() {
 }
 
 void hdmi_refresh() {
+  u32 color = fb.bg_color;
+  if(fb.coursor) color = fb.font_color;
+  for (u32 y = 0; y < FONT_HEIGHT; y++) {
+    for (u32 x = 0; x < (FONT_WIDTH / 2); x++) {
+      hdmi_draw_pixel(fb.xcoursor + x, fb.ycoursor + y, color);
+    }
+  }
   u32 second_part = (hdmi_buffer_start * BUFF_ELEM_SIZE);
   u32 first_part = fb.screen_size - second_part;
   do_dma(fb.frame_buffer, (hdmi_buffer + hdmi_buffer_start), first_part);
@@ -144,6 +156,11 @@ void hdmi_clear() {
   hdmi_buffer_start = 0;
   fb.xcoursor = 0;
   fb.ycoursor = 0;
+  hdmi_refresh();
+}
+
+void hdmi_blink_coursor() {
+  fb.coursor = !(fb.coursor);
   hdmi_refresh();
 }
 
@@ -211,6 +228,7 @@ void hdmi_set_resolution() {
   fb.bg_color = BLACK;
   fb.last_prompt_ypos = -1;
   fb.screen_size = fb_req.buff.screen_size;
+  fb.coursor = 0;
   fb.frame_buffer = (u8 *)(((u64)fb_req.buff.ptr | 0x40000000) & ~0xC0000000);
 }
 
@@ -280,16 +298,19 @@ bool can_backspace(u32 cond) {
 void backspace() {
   if(prompt_line()){
     if(can_backspace(PROMPT_WIDTH + FONT_WIDTH)){
+      hdmi_draw_char(' ', fb.xcoursor, fb.ycoursor);
       fb.xcoursor -= FONT_WIDTH;
       hdmi_draw_char(' ', fb.xcoursor, fb.ycoursor);
     }
   }
   else {
     if(can_backspace(FONT_HEIGHT)) {
+      hdmi_draw_char(' ', fb.xcoursor, fb.ycoursor);
       fb.xcoursor -= FONT_WIDTH;
       hdmi_draw_char(' ', fb.xcoursor, fb.ycoursor);
     }
     else if (fb.xcoursor == 0){
+      hdmi_draw_char(' ', fb.xcoursor, fb.ycoursor);
       fb.ycoursor -= FONT_HEIGHT;
       fb.xcoursor = (XRESOLUTION - FONT_WIDTH);
       hdmi_draw_char(' ', fb.xcoursor, fb.ycoursor);
