@@ -12,11 +12,11 @@
 #include "timer.h"
 #include "hdmi.h"
 #include "sd.h"
+#include "fs.h"
 
 
 void print_greetings(void) {
-  printf("\n\n\nMalinowyBASIC\n");
-  printf("MalinowyBASIC\n");
+  printf("\n\nMalinowyBASIC\n");
 
   int rpiv = -1;
 
@@ -38,12 +38,13 @@ void putc(void *p, char c) {
 }
 
 
-void main(void){
-  rand_init();
-  init_keyboard();
-
+void main(void) {
   uart_init_gpio();
   init_printf(0, putc);
+  printf("\n\n");
+
+  rand_init();
+  init_keyboard();
 
   irq_init_vectors();
   enable_interrupt_controller();
@@ -52,8 +53,10 @@ void main(void){
   mem_init();
   hdmi_init();
   sd_init();
+  fs_init();
 
-  test_sd();
+  // test_sd();
+  // test_fs();
 
   print_greetings();
 

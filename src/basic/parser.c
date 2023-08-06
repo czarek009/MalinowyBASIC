@@ -69,6 +69,13 @@ tokenS tokens[] = {
 
   {.tok_name="SESSEND", .tok_id=TOK_SESSEND},
 
+  /* FILE SYSTEM COMMANDS */
+  {.tok_name="SAVE",    .tok_id=TOK_SAVE},
+  {.tok_name="LOAD",    .tok_id=TOK_LOAD},
+  {.tok_name="DELETE",  .tok_id=TOK_DELETE},
+  {.tok_name="LS",      .tok_id=TOK_LS},
+
+
   {.tok_name="", .tok_id=TOK_NONE}
 };
 

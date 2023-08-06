@@ -763,7 +763,7 @@ static int do_write(u8 *b, u32 bsize, u32 block_no) {
 
 
 /* PUBLIC FUNCTIONS DEFINITIONS */
-int sd_read(void *buffer, u32 size) {
+int sd_read_block(void *buffer, u32 size) {
   if (device.offset % 512 != 0) {
     printf("EMMC_ERR: INVALID OFFSET: %d\n", device.offset);
     return -1;
@@ -781,7 +781,7 @@ int sd_read(void *buffer, u32 size) {
   return size;
 }
 
-int sd_write(void* buffer, u32 size) {
+int sd_write_block(void* buffer, u32 size) {
   if (device.offset % 512 != 0) {
     printf("EMMC_ERR: INVALID OFFSET: %d\n", device.offset);
     return -1;

@@ -30,7 +30,7 @@ size_t strlen(char* s) {
 
 void strncpy(char *dest, const char *src, size_t n) {
   for(int i=0; i<n; ++i) {
-    // if (src[i] == 0) return;
+    // if (src[i] == '\0') return;
     dest[i] = src[i];
   }
 }
