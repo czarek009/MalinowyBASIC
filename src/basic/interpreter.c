@@ -202,6 +202,9 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       out = SESSION_END;
       break;
 
+    case TOK_NONE:
+      break;
+
     default:
       ERROR("[INTERPRETER ERROR] Unknown token: '%s'\n", buf);
       out = SESSION_UNKNOWN_TOKEN;

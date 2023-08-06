@@ -15,11 +15,11 @@ sessionErrorCodeE font_instr(sessionS* env, char* cmd) {
     ERROR("[INSTRUCTION ERROR] Color must be of type INTEGER\n", 0);
     return SESSION_PARSING_ERROR;
   }
-  hdmi_change_font_color(value.integer);
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
   tok = get_next_token(&cmd, buf, TOK_NONE);
   if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
+  hdmi_change_font_color(value.integer);
   return SESSION_NO_ERROR;
 }
 
@@ -30,9 +30,10 @@ sessionErrorCodeE background_instr(sessionS* env, char* cmd) {
     ERROR("[INSTRUCTION ERROR] Color must be of type INTEGER\n", 0);
     return SESSION_PARSING_ERROR;
   }
+  hdmi_change_bg_color(value.integer);
   char buf[32] = {0};
   tokenE tok = TOK_NONE;
-  tok = get_next_token(&cmd, buf, TOK_NONE);
   if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
+  tok = get_next_token(&cmd, buf, TOK_NONE);
   return SESSION_NO_ERROR;
 }
