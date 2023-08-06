@@ -53,8 +53,6 @@ void main(void){
   hdmi_init();
   sd_init();
 
-  test_sd();
-
   print_greetings();
 
   while (1) {

@@ -43,7 +43,8 @@ void io_read_char(char c) {
     eol = true;
   } else if (c >= 'a' && c <= 'z') {
     // change lower case letters to upper case
-    line_buffer[idx] = c-32;
+    c -= 32;
+    line_buffer[idx] = c;
     idx++;
   } else if (c > 31 && c < 127) {
     // regular character

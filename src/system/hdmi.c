@@ -4,6 +4,7 @@
 #include "fonts.h"
 #include "mm.h"
 #include "dma.h"
+#include "debug.h"
 
 #define BUFF_ELEM_SIZE (sizeof(u32))
 
@@ -71,6 +72,7 @@ bool check_fit_xres(u32 size);
 void scroll_down(u32 size);
 void erease_char_line(u32 start);
 void backspace();
+void hdmi_change_color(u32 color, u32 new_color);
 
 /* GLOBAL FUNCTIONS DEFINITIONS*/
 void hdmi_init() {
@@ -119,11 +121,36 @@ void hdmi_printf_prompt(const char *str) {
   fb.last_prompt_ypos = fb.ycoursor;
 }
 
+void hdmi_change_font_color(u32 color) {
+  if(color == fb.bg_color) {
+    ERROR("[HDMI ERROR] Cannot set font color to background color");
+  }
+  hdmi_change_color(fb.font_color, color);
+  fb.font_color = color;
+}
+
+void hdmi_change_bg_color(u32 color) {
+  if(color == fb.font_color) {
+    ERROR("[HDMI ERROR] Cannot set background color to font color");
+  }
+  hdmi_change_color(fb.bg_color, color);
+  fb.bg_color = color;
+}
+
+void hdmi_clear() {
+  for (u32 i = 0; i < (fb.screen_size / BUFF_ELEM_SIZE); i++) {
+    hdmi_buffer[i] = fb.bg_color;
+  }
+  hdmi_buffer_start = 0;
+  fb.xcoursor = 0;
+  fb.ycoursor = 0;
+  hdmi_refresh();
+}
+
 /* PRIVATE FUNCTIONS DEFINITIONS*/
 void hdmi_set_buffer() {
   hdmi_buffer = (u32 *)malloc(fb.screen_size);
-  u32 i = 0;
-  for (; i < (fb.screen_size / BUFF_ELEM_SIZE); i++) {
+  for (u32 i = 0; i < (fb.screen_size / BUFF_ELEM_SIZE); i++) {
     hdmi_buffer[i] = fb.bg_color;
   }
   hdmi_buffer_start = 0;
@@ -268,4 +295,13 @@ void backspace() {
       hdmi_draw_char(' ', fb.xcoursor, fb.ycoursor);
     }
   }
+}
+
+void hdmi_change_color(u32 color, u32 new_color) {
+  for(u32 i = 0; i < (fb.screen_size / BUFF_ELEM_SIZE); i++){
+    if(hdmi_buffer[i] == color){
+      hdmi_buffer[i] = new_color;
+    }
+  }
+  hdmi_refresh();
 }

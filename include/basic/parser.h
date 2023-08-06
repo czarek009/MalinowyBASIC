@@ -11,6 +11,7 @@ enum tokenE {
 
   TOK_NUMBER, TOK_VAR, TOK_FN, TOK_BUILTIN,
   TOK_ARRAY_INT, TOK_ARRAY_FLOAT, TOK_ARRAY_STRING,
+  TOK_HEX_NUMBER,
 
   /* single char */
   TOK_COMMA, TOK_QUOTE, TOK_SEMICOLON,
@@ -31,7 +32,7 @@ enum tokenE {
 
   /* additional instructions */
   TOK_ENV, TOK_LIST, TOK_MEM, TOK_RUN, TOK_SINFO,
-  TOK_SESSEND,
+  TOK_SESSEND, TOK_FONT, TOK_BACKGROUND, TOK_CLEAR
 } typedef tokenE;
 
 struct tokenS {

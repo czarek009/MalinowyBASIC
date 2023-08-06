@@ -7,6 +7,7 @@
 #include "types.h"
 #include "mm.h"
 #include "debug.h"
+#include "hdmi.h"
 
 
 /* PRIVATE FUNCTIONS DECLARATION */
@@ -165,6 +166,33 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       print_memory_map();
       break;
 
+    case TOK_FONT:
+      if (line_number != NO_LINE_NUMBER) {
+          ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+          out = SESSION_INVALID_INSTRUCTION;
+          break;
+        }
+        out = font_instr(env, cmd);
+        break;
+
+    case TOK_BACKGROUND:
+      if (line_number != NO_LINE_NUMBER) {
+          ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+          out = SESSION_INVALID_INSTRUCTION;
+          break;
+        }
+        out = background_instr(env, cmd);
+        break;
+
+    case TOK_CLEAR:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      hdmi_clear();
+      break;
+
     case TOK_SESSEND:
       if (line_number != NO_LINE_NUMBER) {
         ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
@@ -172,9 +200,6 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
         break;
       }
       out = SESSION_END;
-      break;
-
-    case TOK_NONE:
       break;
 
     default:

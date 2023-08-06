@@ -11,6 +11,10 @@ bool isalphanum(char c) {
   return isalpha(c) || isdigit(c);
 }
 
+bool ishealphaxnum(char c) {
+  return isdigit(c) || ((c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
+}
+
 bool isin(char c, char* p) {
   for (int i = 0; p[i] != '\0'; ++i) {
     if (c == p[i])
