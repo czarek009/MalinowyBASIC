@@ -6,6 +6,12 @@
 #include "interpreter.h"
 
 
+#define min(a,b) \
+  ({ __typeof__ (a) _a = (a); \
+      __typeof__ (b) _b = (b); \
+    _a < _b ? _a : _b; })
+
+
 /* PRIVATE FUNCTIONS DECLARATIONS */
 static char* consume_whitespaces(char* cmd);
 
@@ -16,7 +22,7 @@ sessionErrorCodeE save_instr(sessionS* env, char* cmd) {
 
   cmd = consume_whitespaces(cmd);
 
-  strncpy(progname, cmd, FILENAME_LEN);
+  strncpy(progname, cmd, min(FILENAME_LEN, strlen(cmd)));
 
   fileS* file = create_file(progname);
   if (file == NULL) {
@@ -41,7 +47,7 @@ sessionErrorCodeE load_instr(sessionS* env, char* cmd) {
 
   cmd = consume_whitespaces(cmd);
 
-  strncpy(progname, cmd, FILENAME_LEN);
+  strncpy(progname, cmd, min(FILENAME_LEN, strlen(cmd)));
 
   fileS* file = open_file(progname);
   if (file == NULL) {
