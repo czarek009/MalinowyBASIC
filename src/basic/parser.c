@@ -68,6 +68,9 @@ tokenS tokens[] = {
   {.tok_name="FLOAT",   .tok_id=TOK_BUILTIN},
 
   {.tok_name="SESSEND", .tok_id=TOK_SESSEND},
+  {.tok_name="FONT", .tok_id=TOK_FONT},
+  {.tok_name="BACKGROUND", .tok_id=TOK_BACKGROUND},
+  {.tok_name="CLEAR", .tok_id=TOK_CLEAR},
 
   /* FILE SYSTEM COMMANDS */
   {.tok_name="SAVE",    .tok_id=TOK_SAVE},
@@ -99,6 +102,31 @@ tokenE get_next_token(char** cmd_p, char* dest, tokenE expected_token) {
       return TOK_ERROR;
     }
     return TOK_NONE;
+  }
+
+  /* HEX NUMBER */
+  if (expected_token != TOK_NOTNUMBER && (cmd[0] == '0' && (cmd[1] == 'X' || cmd[1] == 'x'))) {
+    dest[0] = cmd[0];
+    dest[1] = cmd[1];
+    u32 i = 2;
+    for(; ishealphaxnum(cmd[i]); i++) {
+      dest[i] = cmd[i];
+    }
+    dest[i] = '\0';
+
+    if (isin(cmd[i], " +-*/=<>)]%^,;") || cmd[i] == '\0') {
+      DEBUG("[DEBUG] Token read: '%s'\n", dest);
+      *cmd_p += i;
+      if (expected_token != TOK_ANY && expected_token != TOK_NUMBER && expected_token != TOK_HEX_NUMBER) {
+        report_error(get_tokname(expected_token), "hexnumber", cmd);
+        return TOK_ERROR;
+      }
+      return TOK_HEX_NUMBER;
+    }
+
+    ERROR(" [PARSER ERROR] Unexpected char while parsing hexnumber '%c'\n", cmd[i]);
+    dest[0] = '\0';
+    return TOK_ERROR;
   }
 
   /* NUMBER */

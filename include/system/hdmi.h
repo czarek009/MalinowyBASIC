@@ -14,5 +14,9 @@ void hdmi_draw_image(const u32 *img, u32 xres, u32 yres, u32 xpos, u32 ypos);
 void hdmi_printf_char(char c);
 void hdmi_printf_string(const char *str);
 void hdmi_printf_prompt(const char *str);
+void hdmi_change_font_color(u32 color);
+void hdmi_change_bg_color(u32 color);
+void hdmi_clear();
+void hdmi_blink_coursor();
 
 #endif /* _HDMI_H */
