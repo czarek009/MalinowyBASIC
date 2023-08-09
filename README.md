@@ -62,3 +62,13 @@ W zasadzie pewnym urządzeniem wejścia/wyjścia są też same piny GPIO, mamy f
 
 ## Podsumowanie
 No nie wiem jak wy, ale ja się bawiłem zajebiście.
+
+## Bibliografia
+ - [Raspberry Pi documentation](https://www.raspberrypi.com/documentation/)
+ - [BCM 2837 datasheet (RPi3)](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj0kum6iKD2AhVIx4sKHRyCDZcQFnoECCIQAQ&url=https%3A%2F%2Fcs140e.sergio.bz%2Fdocs%2FBCM2837-ARM-Peripherals.pdf&usg=AOvVaw0ujRgTqIAwAxaY9a03v-on)
+ - [BCM 2711 datasheet (RPi4)](https://datasheets.raspberrypi.com/bcm2711/bcm2711-peripherals.pdf)
+ - [101 BASIC computer games](https://annarchive.com/files/Basic_Computer_Games_Microcomputer_Edition.pdf)
+ - [Low Level Devel](https://github.com/rockytriton/LLD/tree/main)
+ - [uBASIC: a really simple BASIC interpreter](https://github.com/adamdunkels/ubasic)
+ - [SD and SDIO](http://yannik520.github.io/sdio.html)
+ - Mikrokomputery: Commodore 64 ~ Bohdan Frelek
