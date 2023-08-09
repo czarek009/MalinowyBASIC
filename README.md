@@ -10,7 +10,7 @@ W prezentowanym projekcie na architekturze Raspberry Pi został oparty dedykowan
 ### 1.
 Raspberry Pi to nazwa serii komputerów jednopłytkowych stworzonych przez brytyjską organizację charytatywną, której celem jest edukowanie ludzi w zakresie informatyki i ułatwianie dostępu do edukacji informatycznej.Oryginalnie Raspberry Pi zostało wyprodukowane z myślą o języku Python, jednak w prezentowanej pracy obraliśmy zupełnie inne podejście do użytkowania tego urządzenia. Skupiliśmy się na programowaniu niskopoziomowym - tworząc kod w języku C i Asembler który działa na sprzęcie bezpośrednio, bez żadnej podstawowej abstrakcji, takiej jak system operacyjny.
  
-### 2. Pierwsze kroki z Raspberry Pi
+### 2.
 Mogłoby się wydawać, że obsługa Raspberry Pi jest bardzo prosta – jednak pomimo domysłów – przy charakterze opisanego projektu wcale tak nie jest. Przed pierwszym uruchomieniem Raspberry Pi należy utworzyć odpowiednie pliki oraz zainstalować potrzebne narzędzia, dzięki którym Raspberry Pi poprawie się zbootuje.
 Z powodu różnic w architekturze procesorów pomiędzy Raspberry Pi a komputerach, na których tworzony był kod, pracę należy rozpocząć od znalezienia odpowiedniego kompilatora skrośnego (cross-compiler). Ma on za zadanie wygenerowanie kodu na naszych maszynach, który będzie wykonywalny na platformie Raspberry Pi. W prezentowanej pracy wykorzystany został cross-kompilator aarch64-linux-gnu.
 Po zainstalowaniu wybranego kompilatora można następnie przystąpić do tworzenia pierwszych niezbędnych plików:
