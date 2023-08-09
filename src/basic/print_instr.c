@@ -33,6 +33,7 @@ sessionErrorCodeE print_instr(sessionS* env, char* cmd) {
     case TOK_BUILTIN:
     case TOK_VAR:
     case TOK_NUMBER:
+    case TOK_HEX_NUMBER:
     case TOK_LPAREN:
     case TOK_FN:
       cmd -= strlen(buf);

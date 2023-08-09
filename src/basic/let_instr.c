@@ -53,7 +53,7 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
       if (tok != TOK_NUMBER && tok != TOK_LPAREN &&
           tok != TOK_VAR && tok != TOK_FN &&
           tok != TOK_ARRAY_INT && tok != TOK_ARRAY_FLOAT &&
-          tok != TOK_BUILTIN) {
+          tok != TOK_BUILTIN && tok != TOK_HEX_NUMBER) {
         return SESSION_PARSING_ERROR; // PARSING ERROR
       }
       if(tok == TOK_ARRAY_FLOAT) cmd -= 2;

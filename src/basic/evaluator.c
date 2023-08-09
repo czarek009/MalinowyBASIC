@@ -81,6 +81,7 @@ u8 pop_result(exprDataS *expr_data, variableDataU *data);
 void free_exprDataS(exprDataS *expr_data);
 void print_exprDataS(exprDataS *expr_data);
 evalErrorE get_number(dataU *data, u8 *type, char *str);
+evalErrorE get_hex_number(dataU *data, char *str);
 evalErrorE get_var(sessionS *s, dataU *data, u8 *type, char *str);
 evalErrorE get_str(char **expr, dataU *data);
 evalErrorE get_array_data(sessionS *s, char **expr, char *varname, dataU *data, u8 arr_parsed_type);
@@ -127,6 +128,15 @@ u8 eval_expr(sessionS *s, char **expr, variableDataU *result) {
           break;
         }
         ret_code = push_exprDataS(&expr_data, data, type);
+        expected_tok = TOK_NOTNUMBER;
+        break;
+      case TOK_HEX_NUMBER:
+        if(get_hex_number(&data, buf) == EVAL_INTERNAL_ERROR) {
+          reverse_get_next_token(expr, buf);
+          expected_tok = TOK_NOTNUMBER;
+          break;
+        }
+        ret_code = push_exprDataS(&expr_data, data, INTEGER);
         expected_tok = TOK_NOTNUMBER;
         break;
       case TOK_VAR:
@@ -656,6 +666,29 @@ evalErrorE get_number(dataU *data, u8 *type, char *str) {
     data->integer = res_integer * neg_integer;
     *type = INTEGER;
   }
+  return EVAL_SUCCESS;
+}
+
+evalErrorE get_hex_number(dataU *data, char *str) {
+  s64 res = 0;
+  u64 p = strlen(str) - 3;
+  u8 i = 2;
+  for(; str[i] != '\0'; i++, p--){
+    if(isdigit(str[i])) {
+      res += powfu(16, p) * (s64)(str[i] - '0');
+    }
+    else if(str[i] >= 'A' && str[i] <= 'F') {
+      res += powfu(16, p) * (s64)(str[i] - 55);
+    }
+    else if(str[i] >= 'a' && str[i] <= 'f') {
+      res += powfu(16, p) * (s64)(str[i] - 87);
+    }
+    else {
+      ERROR("[EVAL ERROR] Error while evaluating hex number: %s", str);
+      return EVAL_INTERNAL_ERROR;
+    }
+  }
+  data->integer = res;
   return EVAL_SUCCESS;
 }
 
