@@ -37,6 +37,7 @@ void io_read_char(char c) {
   if (c == 13) {
     // enter
     eol = true;
+    hdmi_printf_char(c);
   } else if (c == 96) {
     // alternative enter `
     // because enter doesn't always work on my keyboard :(
@@ -46,19 +47,21 @@ void io_read_char(char c) {
     c -= 32;
     line_buffer[idx] = c;
     idx++;
+    hdmi_printf_char(c);
   } else if (c > 31 && c < 127) {
     // regular character
     line_buffer[idx] = c;
     idx++;
+    hdmi_printf_char(c);
   } else if (c == 127 || c == 8) {
     // backspace
     if (idx > 0) {
       idx--;
       line_buffer[idx] = ' ';
+      hdmi_printf_char(c);
     }
   }
   refresh = true;
-  hdmi_printf_char(c);
 }
 
 void readline(char* restrict dest, const char* prompt) {

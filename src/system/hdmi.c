@@ -76,6 +76,7 @@ void erease_char_line(u32 start);
 void backspace();
 void hdmi_change_color(u32 color, u32 new_color);
 void hdmi_draw_coursor();
+void erase_next_char();
 
 /* GLOBAL FUNCTIONS DEFINITIONS*/
 void hdmi_init() {
@@ -237,8 +238,12 @@ void hdmi_draw_char(char c, u32 xpos, u32 ypos) {
   }
 }
 
-void new_line() {
+void erase_next_char() {
   hdmi_draw_char(' ', pixel_buff.xcoursor, pixel_buff.ycoursor);
+}
+
+void new_line() {
+  erase_next_char();
   pixel_buff.xcoursor = 0;
   increment_ycoursor(FONT_HEIGHT);
 }
@@ -289,22 +294,22 @@ bool can_backspace(u32 cond) {
 void backspace() {
   if(prompt_line()){
     if(can_backspace(PROMPT_WIDTH + FONT_WIDTH)){
-      hdmi_draw_char(' ', pixel_buff.xcoursor, pixel_buff.ycoursor);
+      erase_next_char();
       pixel_buff.xcoursor -= FONT_WIDTH;
-      hdmi_draw_char(' ', pixel_buff.xcoursor, pixel_buff.ycoursor);
+      erase_next_char();
     }
   }
   else {
     if(can_backspace(FONT_HEIGHT)) {
-      hdmi_draw_char(' ', pixel_buff.xcoursor, pixel_buff.ycoursor);
+      erase_next_char();
       pixel_buff.xcoursor -= FONT_WIDTH;
-      hdmi_draw_char(' ', pixel_buff.xcoursor, pixel_buff.ycoursor);
+      erase_next_char();
     }
     else if (pixel_buff.xcoursor == 0){
-      hdmi_draw_char(' ', pixel_buff.xcoursor, pixel_buff.ycoursor);
+      erase_next_char();
       pixel_buff.ycoursor -= FONT_HEIGHT;
       pixel_buff.xcoursor = (XRESOLUTION - FONT_WIDTH);
-      hdmi_draw_char(' ', pixel_buff.xcoursor, pixel_buff.ycoursor);
+      erase_next_char();
     }
   }
 }
