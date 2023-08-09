@@ -53,6 +53,9 @@ void handle_irq() {
 
       if (counter == 11) {
         char c = code_to_ascii(code);
+        // code = (code>>1) & 255;
+        // printf("code: %u\n", code);
+        // printf("ascii: %u (%c)\n", (u16)c, c);
         counter = 0;
         code = 0;
         io_read_char(c);
