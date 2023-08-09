@@ -144,10 +144,10 @@ fileS* create_file(char* name) {
   return NULL;
 }
 
-void delete_file(char* name) {
+bool delete_file(char* name) {
   if (!strncmp(name, "SPECIAL", strlen(name))) {
     ERROR("[ERROR] Cannot delete SPECIAL file\n");
-    return;
+    return false;
   }
   for (int i = 0; i < NUM_OF_FILES; ++i) {
     fileS file = file_table[i];
@@ -157,11 +157,12 @@ void delete_file(char* name) {
     if (!strncmp(name, file.name, strlen(name))) {
       file_table[i].type = 0;
       save_file_table();
-      return;
+      return true;
     }
   }
 
   ERROR("[ERROR] Cannot find file '%s'\n", name);
+  return false;
 }
 
 u64 write_to_file(fileS* file, void* buf, u64 len, bool append) {

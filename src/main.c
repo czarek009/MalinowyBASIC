@@ -16,7 +16,8 @@
 
 
 void print_greetings(void) {
-  printf("\n\nMalinowyBASIC\n");
+  printf("\n\n");
+  printf("MalinowyBASIC\n");
 
   int rpiv = -1;
 
@@ -43,21 +44,17 @@ void main(void) {
   init_printf(0, putc);
   printf("\n\n");
 
-  rand_init();
-  init_keyboard();
-
   irq_init_vectors();
   enable_interrupt_controller();
   irq_enable();
-  timer_init();
 
   mem_init();
+  timer_init();
+  rand_init();
+  keyboard_init();
   hdmi_init();
   sd_init();
   fs_init();
-
-  // test_sd();
-  // test_fs();
 
   print_greetings();
 
