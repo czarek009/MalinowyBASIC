@@ -42,24 +42,25 @@ void handle_irq() {
     }
 
     if (irq2 & GPIO0_IRQ) {
+      uart_send('C');
+
+      // static u8 counter = 0;
+      // static u16 code = 0;
+
+      // code |= gpio_level(DATA_PIN) << counter;
+      // ++counter;
+
+      // if (counter == 11) {
+      //   // char c = code_to_ascii(code);
+      //   // code = (code>>1) & 255;
+      //   printf("%u\n", code);
+      //   // printf("ascii: %u (%c)\n", (u16)c, c);
+      //   counter = 0;
+      //   code = 0;
+      //   // io_read_char(c);
+      // }
       irq2 &= ~GPIO0_IRQ;
       GPIO_REGS->event_detect_status.registers[0] = ~0;
-
-      static u8 counter = 0;
-      static u16 code = 0;
-
-      code |= gpio_level(DATA_PIN) << counter;
-      ++counter;
-
-      if (counter == 11) {
-        char c = code_to_ascii(code);
-        // code = (code>>1) & 255;
-        // printf("code: %u\n", code);
-        // printf("ascii: %u (%c)\n", (u16)c, c);
-        counter = 0;
-        code = 0;
-        io_read_char(c);
-      }
     }
   }
 }
