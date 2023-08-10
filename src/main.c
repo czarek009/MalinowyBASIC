@@ -6,7 +6,6 @@
 #include "mm.h"
 #include "session.h"
 #include "interpreter.h"
-#include "tests.h"
 #include "random.h"
 #include "keyboard.h"
 #include "timer.h"

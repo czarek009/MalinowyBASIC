@@ -42,7 +42,7 @@ void handle_irq() {
     }
 
     if (irq2 & GPIO0_IRQ) {
-      uart_send('C');
+      // uart_send('C');
 
       // static u8 counter = 0;
       // static u16 code = 0;
@@ -59,6 +59,16 @@ void handle_irq() {
       //   code = 0;
       //   // io_read_char(c);
       // }
+
+      u16 code = 0;
+      for(int i=0; i<11; i++) {
+        while(gpio_level(CLOCK_PIN) == 1);
+        code |= gpio_level(DATA_PIN)<<i;
+        while(gpio_level(CLOCK_PIN) == 0);
+      }
+
+      io_read_char(code_to_ascii(code));
+
       irq2 &= ~GPIO0_IRQ;
       GPIO_REGS->event_detect_status.registers[0] = ~0;
     }

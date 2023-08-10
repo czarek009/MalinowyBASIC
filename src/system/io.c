@@ -34,7 +34,7 @@ void clear_line(void) {
 }
 
 void io_read_char(char c) {
-  if (c == 13) {
+  if (c == 13 || c == 10) {
     // enter
     eol = true;
     hdmi_printf_char(c);
