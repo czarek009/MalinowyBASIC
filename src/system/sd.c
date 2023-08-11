@@ -792,7 +792,7 @@ int sd_write_block(void* buffer, u32 size) {
   int r = do_write(buffer, size, block);
 
   if (r != size) {
-    printf("EMMC_ERR: READ FAILED: %d\n", r);
+    printf("EMMC_ERR: WRITE FAILED: %d\n", r);
     return -1;
   }
 

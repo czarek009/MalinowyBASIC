@@ -122,6 +122,10 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       set_session_status(env, SESSION_STATUS_FINISHED);
       break;
 
+    case TOK_DELAY:
+      out = delay_instr(env, cmd);
+      break;
+
     /* ONLY DIRECT MODE */
     case TOK_LS:
       if (line_number != NO_LINE_NUMBER) {
