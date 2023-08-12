@@ -8,6 +8,7 @@
 #include "keyboard.h"
 #include "timer.h"
 #include "hdmi.h"
+#include "mm.h"
 
 
 void enable_interrupt_controller(void) {
@@ -16,6 +17,7 @@ void enable_interrupt_controller(void) {
 }
 
 void handle_irq() {
+  irq_disable();
   #if RPI_VERSION == 3
   unsigned int irq1 = IRQ_REGS->irq0_pending_1;
   unsigned int irq2 = IRQ_REGS->irq0_pending_2;
@@ -62,8 +64,11 @@ void handle_irq() {
       }
     }
   }
+  irq_enable();
 }
-
+__attribute__ ((__noinline__))
+void * get_pc () { return __builtin_return_address(0); }
 void handle_invalid_irq(unsigned long esr_el1) {
-  ERROR("[ERROR] Caught invalid interrupt. Value of esr_el1 register: %X\n", esr_el1);
+  printf("%lu\n", (u64)get_pc());
+  ERROR("[ERROR] Caught invalid interrupt. Value of esr_el1 register: 0x%X\n", esr_el1);
 }

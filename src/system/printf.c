@@ -232,7 +232,7 @@ void tfp_format(void* putp,putcf putf,char *fmt, va_list va) {
       }
     }
   }
-  hdmi_refresh();
+  // hdmi_refresh();
   abort:;
 }
 
