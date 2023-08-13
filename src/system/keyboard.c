@@ -16,7 +16,7 @@ static char scancode_to_ascii[2][128] = {
     0,62,0,0,0,0,0,0,        0,0,0,0,0,0,0,0,          0,0,0,0,0,0,0,0,          0,0,0,0,0,0,0,0  } };
 
 
-void init_keyboard(void) {
+void keyboard_init(void) {
   GPIO_REGS->asynchronous_falling_edge_detect_enable.registers[0] = 1 << CLOCK_PIN;
   gpio_func_selection(CLOCK_PIN, INPUT);
   gpio_func_selection(DATA_PIN, INPUT);

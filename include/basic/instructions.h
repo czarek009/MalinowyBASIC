@@ -23,5 +23,7 @@ sessionErrorCodeE save_instr(sessionS* env, char* cmd);
 sessionErrorCodeE load_instr(sessionS* env, char* cmd);
 sessionErrorCodeE font_instr(sessionS* env, char* cmd);
 sessionErrorCodeE background_instr(sessionS* env, char* cmd);
+sessionErrorCodeE delete_instr(sessionS* env, char* cmd);
+sessionErrorCodeE help_instr(sessionS* env, char* cmd);
 
 #endif /* _INSTRUCTIONS_H */

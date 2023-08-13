@@ -67,10 +67,12 @@ tokenS tokens[] = {
   {.tok_name="INT",     .tok_id=TOK_BUILTIN},
   {.tok_name="FLOAT",   .tok_id=TOK_BUILTIN},
 
-  {.tok_name="SESSEND", .tok_id=TOK_SESSEND},
-  {.tok_name="FONT", .tok_id=TOK_FONT},
+  {.tok_name="SESSEND",    .tok_id=TOK_SESSEND},
+  {.tok_name="FONT",       .tok_id=TOK_FONT},
   {.tok_name="BACKGROUND", .tok_id=TOK_BACKGROUND},
-  {.tok_name="CLEAR", .tok_id=TOK_CLEAR},
+  {.tok_name="CLEAR",      .tok_id=TOK_CLEAR},
+  {.tok_name="HELP",       .tok_id=TOK_HELP},
+  {.tok_name="BASIC",      .tok_id=TOK_BASIC},
 
   /* FILE SYSTEM COMMANDS */
   {.tok_name="SAVE",    .tok_id=TOK_SAVE},

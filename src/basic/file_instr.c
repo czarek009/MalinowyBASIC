@@ -21,6 +21,10 @@ sessionErrorCodeE save_instr(sessionS* env, char* cmd) {
   char progname[FILENAME_LEN] = {0};
 
   cmd = consume_whitespaces(cmd);
+  if (*cmd == '\0') {
+    ERROR("[INSTRUCTION ERROR] Expected file name\n");
+    return SESSION_FS_ERROR;
+  }
 
   strncpy(progname, cmd, min(FILENAME_LEN, strlen(cmd)));
 
@@ -46,6 +50,10 @@ sessionErrorCodeE load_instr(sessionS* env, char* cmd) {
   char progname[FILENAME_LEN] = {0};
 
   cmd = consume_whitespaces(cmd);
+  if (*cmd == '\0') {
+    ERROR("[INSTRUCTION ERROR] Expected file name\n");
+    return SESSION_FS_ERROR;
+  }
 
   strncpy(progname, cmd, min(FILENAME_LEN, strlen(cmd)));
 
@@ -72,6 +80,20 @@ sessionErrorCodeE load_instr(sessionS* env, char* cmd) {
 
   free(line_buf);
   free(aux);
+
+  return SESSION_NO_ERROR;
+}
+
+sessionErrorCodeE delete_instr(sessionS* env, char* cmd) {
+  cmd = consume_whitespaces(cmd);
+  if (*cmd == '\0') {
+    ERROR("[INSTRUCTION ERROR] Expected file name\n");
+    return SESSION_FS_ERROR;
+  }
+  bool out = delete_file(cmd);
+  if (!out) {
+    return SESSION_FS_ERROR;
+  }
 
   return SESSION_NO_ERROR;
 }
