@@ -50,7 +50,7 @@ void main(void) {
 
   hdmi_init();
   rand_init();
-  timer_init();
+  // timer_init();
   init_keyboard();
   sd_init();
   fs_init();
@@ -89,11 +89,17 @@ void main(void) {
 }
 
 void hdmi_cpu(void) {
+  u64 counter = 0;
   while(!ready) {
     delay_ms(10);
   }
   while(1) {
+    if(counter % 12 == 0){
+      hdmi_blink_coursor();
+      counter = 0;
+    }
     hdmi_refresh();
-    delay_ms(100);  // 10 FPS
+    delay_ms(40);  // 25 FPS
+    counter++;
   }
 }
