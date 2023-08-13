@@ -19,7 +19,8 @@ static bool ready = false;
 
 
 void print_greetings(void) {
-  printf("\n\nMalinowyBASIC\n");
+  printf("\n\n");
+  printf("MalinowyBASIC\n");
 
   int rpiv = -1;
 
@@ -50,7 +51,6 @@ void main(void) {
 
   hdmi_init();
   rand_init();
-  // timer_init();
   init_keyboard();
   sd_init();
   fs_init();

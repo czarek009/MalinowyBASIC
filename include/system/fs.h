@@ -42,7 +42,7 @@ typedef struct {
 bool fs_init(void);
 fileS* open_file(char* name);
 fileS* create_file(char* name);
-void delete_file(char* name);
+bool delete_file(char* name);
 u64 write_to_file(fileS* file, void* buf, u64 len, bool append);
 u64 read_from_file(fileS* file, void* buf, u64 len);
 void list_files(void);
