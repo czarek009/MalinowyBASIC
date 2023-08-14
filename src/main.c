@@ -51,7 +51,7 @@ void main(void) {
 
   hdmi_init();
   rand_init();
-  init_keyboard();
+  keyboard_init();
   sd_init();
   fs_init();
 

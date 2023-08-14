@@ -11,6 +11,7 @@ sessionErrorCodeE help_instr(sessionS* env, char* cmd) {
     printf("BASIC instructions:\n");
     printf(" DATA ...\n");
     printf(" DEF FNA(X) = ...\n");
+    printf(" DELAY ...\n");
     printf(" DIM TAB[SIZE]\n");
     printf(" END\n");
     printf(" FOR ... TO ... (STEP ...)\n");
@@ -28,6 +29,10 @@ sessionErrorCodeE help_instr(sessionS* env, char* cmd) {
     printf(" RESTORE\n");
     printf(" RETURN\n");
     printf(" STOP\n");
+    printf("BASIC functions:\n");
+    printf(" FLOAT(...)\n");
+    printf(" INT(...)\n");
+    printf(" RND(1)\n");
 
     return SESSION_NO_ERROR;
   }
