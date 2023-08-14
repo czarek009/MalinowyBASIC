@@ -246,7 +246,8 @@ void hdmi_set_resolution() {
 
 void hdmi_draw_pixel(u32 x, u32 y, u32 color) {
   u32 pixel_offset = ((x * 4) + ((y * pixel_buff.pitch))) / BUFF_ELEM_SIZE;
-  pixel_buff.buffer[(pixel_offset + pixel_buff.start) % pixel_buff.screen_size_bytes] = color;
+  u32 actual_offset = (pixel_offset + pixel_buff.start) % pixel_buff.screen_size_bytes;
+  pixel_buff.buffer[actual_offset] = color;
 }
 
 void hdmi_draw_char(char c, u32 xpos, u32 ypos) {

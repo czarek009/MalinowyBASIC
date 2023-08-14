@@ -42,12 +42,15 @@ void initialize_all_modules(void) {
 }
 
 void print_startup_info(void) {
+  hdmi_clear();
   print_greetings();
   print_modules_info();
-  delay_ms(2000);
+  delay_ms(5000);
   hdmi_clear();
-  hdmi_draw_image(startup_screen, STARTUP_SCREEN_WIDTH, STARTUP_SCREEN_HEIGHT, 0, 0);
-  delay_ms(2000);
+  hdmi_draw_image(malinka, MALINKA_WIDTH, MALINKA_HEIGHT, 60, 50);
+  hdmi_draw_image(napis, NAPIS_WIDTH, NAPIS_HEIGHT, 230, 90);
+  hdmi_draw_image(autorzy, AUTORZY_WIDTH, AUTORZY_HEIGHT, 215, 315);
+  delay_ms(5000);
   hdmi_clear();
 }
 
