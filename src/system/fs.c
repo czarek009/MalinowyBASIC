@@ -5,6 +5,7 @@
 #include "mm.h"
 #include "butils.h"
 #include "printf.h"
+#include "startup.h"
 
 
 #define min(a,b) \
@@ -198,6 +199,12 @@ void list_partitions(void) {
     printf("\t Status: %d\n", mbr.partitions[i].status);
     printf("\t Start: 0x%X\n", mbr.partitions[i].first_lba_sector);
   }
+}
+
+void fs_startup_info(void) {
+  STARTUP("Filesystem initialized\n");
+  STARTUP("Partition Size: %d\n", PARTITION_SIZE);
+  list_partitions();
 }
 
 /* PRIVATE FUNCTIONS DEFINITIONS */

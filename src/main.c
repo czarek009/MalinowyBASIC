@@ -1,66 +1,14 @@
-#include "uart.h"
 #include "printf.h"
-#include "irq.h"
 #include "utils.h"
 #include "io.h"
-#include "mm.h"
 #include "session.h"
 #include "interpreter.h"
-#include "random.h"
-#include "keyboard.h"
-#include "timer.h"
 #include "hdmi.h"
-#include "sd.h"
-#include "fs.h"
+#include "startup.h"
 
-
-void print_greetings(void) {
-  printf("\n\n");
-  printf("MalinowyBASIC\n");
-
-  int rpiv = -1;
-
-  #if RPI_VERSION == 3
-  rpiv = 3;
-  #elif RPI_VERSION == 4
-  rpiv = 4;
-  #endif
-
-  printf("RPi version: %d\n\n", rpiv);
-
-}
-
-void putc(void *p, char c) {
-  if (c == '\n')
-    uart_send('\r');
-  uart_send(c);
-  hdmi_printf_char(c);
-}
-
-
-void main(void) {
-  uart_init_gpio();
-  init_printf(0, putc);
-  printf("\n\n");
-
-  irq_init_vectors();
-  enable_interrupt_controller();
-  irq_enable();
-
-  mem_init();
-  delay_ms(10);
-  hdmi_init();
-  delay_ms(10);
-  timer_init();
-  delay_ms(10);
-  rand_init();
-  sd_init();
-  delay_ms(10);
-  fs_init();
-  delay_ms(10);
-  keyboard_init();
-
-  print_greetings();
+void main(void){
+  initialize_all_modules();
+  print_startup_info();
 
   while (1) {
     printf("START SESSION\n");

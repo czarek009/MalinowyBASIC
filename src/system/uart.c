@@ -1,6 +1,7 @@
 #include "peripherials.h"
 #include "utils.h"
 #include "uart.h"
+#include "startup.h"
 
 
 u32 uart_send_ready(void){
@@ -91,4 +92,9 @@ void uart_init_gpio(void){
   gpio_pull(RX, NO_RESISTOR);
   uart_aux();
   delay(150);
+}
+
+void uart_startup_info(void) {
+  STARTUP("Uart initialized\n");
+  STARTUP("TX pin: %d, RX pin: %d\n", TX, RX);
 }

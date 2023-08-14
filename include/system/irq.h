@@ -10,5 +10,6 @@ void enable_interrupt_controller(void);
 void irq_init_vectors(void);
 void irq_enable(void);
 void irq_disable(void);
+void irq_startup_info(void);
 
 #endif /* _IRQ_H */

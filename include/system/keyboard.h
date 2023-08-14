@@ -10,5 +10,6 @@
 
 void keyboard_init(void);
 char code_to_ascii(u16 code);
+void keyboard_startup_info(void);
 
 #endif /* _KEYBOARD_H */

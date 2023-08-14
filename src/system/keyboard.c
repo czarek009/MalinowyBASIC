@@ -3,6 +3,7 @@
 #include "gpio.h"
 #include "peripherials.h"
 #include "printf.h"
+#include "startup.h"
 
 
 static char scancode_to_ascii[2][128] = {
@@ -20,6 +21,11 @@ void keyboard_init(void) {
   GPIO_REGS->asynchronous_falling_edge_detect_enable.registers[0] = 1 << CLOCK_PIN;
   gpio_func_selection(CLOCK_PIN, INPUT);
   gpio_func_selection(DATA_PIN, INPUT);
+}
+
+void keyboard_startup_info(void) {
+  STARTUP("Keyboard initialized\n");
+  STARTUP("CLOCK pin: %d, DATA pin: %d\n", CLOCK_PIN, DATA_PIN);
 }
 
 char code_to_ascii(u16 code) {

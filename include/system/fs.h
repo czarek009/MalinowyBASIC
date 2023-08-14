@@ -48,5 +48,6 @@ u64 write_to_file(fileS* file, void* buf, u64 len, bool append);
 u64 read_from_file(fileS* file, void* buf, u64 len);
 void list_files(void);
 void list_partitions(void);
+void fs_startup_info(void);
 
 #endif /* _FS_H */

@@ -6,6 +6,7 @@
 #include "timer.h"
 #include "peripherials.h"
 #include "debug.h"
+#include "startup.h"
 
 
 /* DEFINES*/
@@ -845,4 +846,8 @@ bool sd_init(void) {
   }
 
   return true;
+}
+
+void sd_startup_info(void) {
+  STARTUP("Sd initialized\n");
 }

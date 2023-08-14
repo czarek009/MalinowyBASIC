@@ -90,5 +90,6 @@ bool sd_init(void);
 void sd_seek(u64 offset);
 int sd_read_block(void* buffer, u32 size);
 int sd_write_block(void* buffer, u32 size);
+void sd_startup_info(void);
 
 #endif /* _SD_H */

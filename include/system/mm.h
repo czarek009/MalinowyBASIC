@@ -47,6 +47,7 @@ void ffree(void *ptr);
 void print_memory_map(void);
 void* memcpy(void *dest, const void *src, size_t len);
 void *memset (void *dest, int val, size_t len);
+void mem_startup_info(void);
 
 bool lickitung_check(void);
 

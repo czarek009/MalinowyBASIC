@@ -2,6 +2,7 @@
 #include "types.h"
 #include "peripherials.h"
 #include "utils.h"
+#include "startup.h"
 
 
 void rand_init() {
@@ -14,6 +15,10 @@ void rand_init() {
   RNG_REGS->rng_fifo_count = (2 << RNG_FIFO_COUNT_THRESHOLD_SHIFT);
   RNG_REGS->rng_ctrl = (3 << RNG_DIV_CTRL_SHIFT) | RNG_CTRL_RBGEN_MASK;
   #endif
+}
+
+void rand_startup_info() {
+  STARTUP("Rand initialized\n");
 }
 
 u32 rand(u32 min, u32 max) {

@@ -10,8 +10,9 @@
 #define TIMER_CS_M2      (1 << 2)
 #define TIMER_CS_M3      (1 << 3)
 
-void timer_init();
-void handle_timer_1();
+void timer_init(void);
+void handle_timer_1(void);
+void timer_startup_info(void);
 void delay_ms(u64 ms);
 void delay_us(u64 us);
 

@@ -2,6 +2,7 @@
 #include "printf.h"
 #include "types.h"
 #include "debug.h"
+#include "startup.h"
 
 /*
 
@@ -109,6 +110,12 @@ void mem_init(void) {
   set_header(first_header, MAX_ALLOC, FREE);
   set_footer(first_header);
   heap_end = (word_t *)HEAP_END_ADDRESS;
+}
+
+void mem_startup_info(void) {
+  STARTUP("Memory initialized\n");
+  STARTUP("Free memory: %ld\n", MAX_ALLOC);
+  STARTUP("Start of heap: 0x%x, End of heap:0x%x\n", (HEAP_ADDRESS + OFFSET), HEAP_END_ADDRESS);
 }
 
 static word_t *find_free_block(size_t size) {

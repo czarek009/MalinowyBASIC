@@ -17,5 +17,6 @@ void uart_send(char c);
 void uart_send_string(const char* str);
 void uart_init_gpio(void);
 void uart_aux(void);
+void uart_startup_info(void);
 
 #endif  /*_UART_H */

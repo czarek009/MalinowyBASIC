@@ -8,11 +8,17 @@
 #include "keyboard.h"
 #include "timer.h"
 #include "hdmi.h"
+#include "startup.h"
 
 
 void enable_interrupt_controller(void) {
   IRQ_REGS->irq0_enable_1 = AUX_IRQ | TIMER_CS_M1;
   IRQ_REGS->irq0_enable_2 = GPIO0_IRQ;
+}
+
+void irq_startup_info(void) {
+  STARTUP("Interrupts initialized\n");
+  STARTUP("Enabled interrupts: AUX_IRQ, GPIO0_IRQ\n");
 }
 
 void handle_irq() {

@@ -1,21 +1,26 @@
 #include "peripherials.h"
 #include "timer.h"
 #include "types.h"
+#include "startup.h"
 
 u64 cur_val_1 = 0;
 
-void timer_init() {
+void timer_init(void) {
   cur_val_1 = TIMER_REGS->timer_clo;
   cur_val_1 += (SYS_TIMER_FREQUENCY / 2);
   TIMER_REGS->timer_c1 = cur_val_1;
 }
 
-void handle_timer_1() {
+void handle_timer_1(void) {
   cur_val_1 += (SYS_TIMER_FREQUENCY / 2);
   TIMER_REGS->timer_c1 = cur_val_1;
   TIMER_REGS->timer_cs |= TIMER_CS_M1;
 }
 
+void timer_startup_info(void) {
+  STARTUP("Timer initialized\n");
+  STARTUP("System timer frequency: %ld\n", SYS_TIMER_FREQUENCY);
+}
 void delay_ms(u64 ms) {
   u64 currTicks = TIMER_REGS->timer_clo;
   u64 ms2ticks = ms * (SYS_TIMER_FREQUENCY/1000);

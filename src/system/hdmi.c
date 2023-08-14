@@ -5,6 +5,7 @@
 #include "mm.h"
 #include "dma.h"
 #include "debug.h"
+#include "startup.h"
 
 #define BUFF_ELEM_SIZE (sizeof(u32))
 
@@ -57,6 +58,7 @@ static hdmiPixelBufferS pixel_buff;
 /* pointer to frame buffer address */
 static u8 *frame_buff;
 static dmaChannelS *dma;
+static bool hdmi_initiated = false;
 
 
 /* PRIVATE FUNCTIONS DECLARATIONS */
@@ -79,18 +81,29 @@ void hdmi_draw_coursor();
 void erase_next_char();
 
 /* GLOBAL FUNCTIONS DEFINITIONS*/
-void hdmi_init() {
+void hdmi_init(void) {
   dma = dma_open_channel(CT_NORMAL);
+  if(dma == NULL) return;
   hdmi_set_resolution();
   hdmi_clear();
+  hdmi_initiated = true;
 }
 
-void hdmi_end() {
+void hdmi_startup_info(void) {
+  if(!hdmi_initiated) return;
+  STARTUP("Hdmi initialized\n");
+  STARTUP("Resolution: %dX%d\n", XRESOLUTION, YRESOLUTION);
+  STARTUP("Bits per pixel: %d\n", BITS_PER_PIXEL);
+}
+
+void hdmi_end(void) {
+  if(!hdmi_initiated) return;
   free(pixel_buff.buffer);
   dma_close_channel(dma);
 }
 
-void hdmi_refresh() {
+void hdmi_refresh(void) {
+  if(!hdmi_initiated) return;
   hdmi_draw_coursor();
   u32 second_part = (pixel_buff.start * BUFF_ELEM_SIZE);
   u32 first_part = pixel_buff.screen_size - second_part;
@@ -99,6 +112,7 @@ void hdmi_refresh() {
 }
 
 void hdmi_draw_image(const u32 *img, u32 xres, u32 yres, u32 xpos, u32 ypos) {
+  if(!hdmi_initiated) return;
   for (u32 i = 0; i < xres; ++i) {
     for (u32 j = 0; j < yres; ++j) {
       hdmi_draw_pixel(xpos+i, ypos+j, img[j*xres + i]);
@@ -108,23 +122,27 @@ void hdmi_draw_image(const u32 *img, u32 xres, u32 yres, u32 xpos, u32 ypos) {
 }
 
 void hdmi_printf_char(char c) {
+  if(!hdmi_initiated) return;
   if(c == '\n') new_line();
   else if (c == 127 || c == 8) backspace();
   else character(c);
 }
 
 void hdmi_printf_string(const char *str) {
+  if(!hdmi_initiated) return;
   for (u32 i = 0; str[i] != '\0'; i++) {
     hdmi_printf_char(str[i]);
   }
 }
 
 void hdmi_printf_prompt(const char *str) {
+  if(!hdmi_initiated) return;
   hdmi_printf_string(str);
   pixel_buff.last_prompt_ypos = pixel_buff.ycoursor;
 }
 
 void hdmi_change_font_color(u32 color) {
+  if(!hdmi_initiated) return;
   if(color == pixel_buff.bg_color) {
     ERROR("[HDMI ERROR] Cannot set font color to background color\n");
     return;
@@ -134,6 +152,7 @@ void hdmi_change_font_color(u32 color) {
 }
 
 void hdmi_change_bg_color(u32 color) {
+  if(!hdmi_initiated) return;
   if(color == pixel_buff.font_color) {
     ERROR("[HDMI ERROR] Cannot set background color to font color\ns");
     return;
@@ -142,7 +161,8 @@ void hdmi_change_bg_color(u32 color) {
   pixel_buff.bg_color = color;
 }
 
-void hdmi_clear() {
+void hdmi_clear(void) {
+  if(!hdmi_initiated) return;
   for (u32 i = 0; i < pixel_buff.screen_size_bytes; i++) {
     pixel_buff.buffer[i] = pixel_buff.bg_color;
   }
@@ -152,7 +172,8 @@ void hdmi_clear() {
   hdmi_refresh();
 }
 
-void hdmi_blink_coursor() {
+void hdmi_blink_coursor(void) {
+  if(!hdmi_initiated) return;
   pixel_buff.coursor = !(pixel_buff.coursor);
   hdmi_refresh();
 }
