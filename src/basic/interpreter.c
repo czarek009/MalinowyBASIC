@@ -14,9 +14,6 @@
 /* PRIVATE FUNCTIONS DECLARATION */
 static u64 get_line_number(char** cmd_p);
 
-static char* consume_whitespaces(char* cmd);
-
-
 /* PUBLIC FUNCTIONS DEFINITIONS */
 sessionErrorCodeE interpreter_process_input(sessionS* env, char* cmd) {
   DEBUG("[*] interpreter_process_input(%s)\n", cmd);
@@ -112,6 +109,9 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       out = return_instr(env, cmd);
       break;
 
+    case TOK_REM:
+      break;
+
     case TOK_STOP:
       printf("Program execution stopped\n");
       set_session_status(env, SESSION_STATUS_STOPPED);
@@ -127,47 +127,23 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       break;
 
     /* ONLY DIRECT MODE */
-    case TOK_LS:
+    /* GENERAL */
+    case TOK_HELP:
       if (line_number != NO_LINE_NUMBER) {
         ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
         out = SESSION_INVALID_INSTRUCTION;
         break;
       }
-      list_files();
+      help_instr(env, cmd);
       break;
-    case TOK_SAVE:
+    
+    case TOK_MEM:
       if (line_number != NO_LINE_NUMBER) {
         ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
         out = SESSION_INVALID_INSTRUCTION;
         break;
       }
-      save_instr(env, cmd);
-      break;
-    case TOK_DELETE:
-      if (line_number != NO_LINE_NUMBER) {
-        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
-        out = SESSION_INVALID_INSTRUCTION;
-        break;
-      }
-      cmd = consume_whitespaces(cmd);
-      delete_file(cmd);
-      break;
-    case TOK_LOAD:
-      if (line_number != NO_LINE_NUMBER) {
-        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
-        out = SESSION_INVALID_INSTRUCTION;
-        break;
-      }
-      load_instr(env, cmd);
-      break;
-    case TOK_RUN:
-    case TOK_CONT:
-      if (line_number != NO_LINE_NUMBER) {
-        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
-        out = SESSION_INVALID_INSTRUCTION;
-        break;
-      }
-      out = run_program(env);
+      print_memory_map();
       break;
 
     case TOK_SINFO:
@@ -179,15 +155,6 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       print_session_info(env);
       break;
 
-    case TOK_LIST:
-      if (line_number != NO_LINE_NUMBER) {
-        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
-        out = SESSION_INVALID_INSTRUCTION;
-        break;
-      }
-      print_instructions(env);
-      break;
-
     case TOK_ENV:
       if (line_number != NO_LINE_NUMBER) {
         ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
@@ -195,15 +162,6 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
         break;
       }
       print_variables(env);
-      break;
-
-    case TOK_MEM:
-      if (line_number != NO_LINE_NUMBER) {
-        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
-        out = SESSION_INVALID_INSTRUCTION;
-        break;
-      }
-      print_memory_map();
       break;
 
     case TOK_FONT:
@@ -242,6 +200,64 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
       out = SESSION_END;
       break;
 
+    /* BASIC */
+    case TOK_RUN:
+    case TOK_CONT:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      out = run_program(env);
+      break;
+
+    case TOK_LIST:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      print_instructions(env);
+      break;
+    
+    /* FILE SYSTEM */
+    case TOK_LS:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      list_files();
+      break;
+
+    case TOK_SAVE:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      save_instr(env, cmd);
+      break;
+
+    case TOK_DELETE:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      delete_instr(env, cmd);
+      break;
+
+    case TOK_LOAD:
+      if (line_number != NO_LINE_NUMBER) {
+        ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
+        out = SESSION_INVALID_INSTRUCTION;
+        break;
+      }
+      load_instr(env, cmd);
+      break;
+
+
     case TOK_NONE:
       break;
 
@@ -274,11 +290,4 @@ static u64 get_line_number(char** cmd_p) {
   }
 
   return out;
-}
-
-static char* consume_whitespaces(char* cmd) {
-  while (*cmd == ' ') {
-    ++cmd;
-  }
-  return cmd;
 }

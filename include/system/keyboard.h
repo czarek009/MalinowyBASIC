@@ -8,7 +8,7 @@
 #define DATA_PIN 5
 
 
-void init_keyboard(void);
+void keyboard_init(void);
 char code_to_ascii(u16 code);
 
 #endif /* _KEYBOARD_H */
