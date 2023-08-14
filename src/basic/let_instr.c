@@ -14,12 +14,14 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
   char buf[32] = {0};
   bool isStr = false;
   bool more_vars = false;
+  char* aux = NULL;
   tokenE tok = TOK_NONE;
 
   u64 next_assign = assign_end(cmd);
   if (next_assign != strlen(cmd)) {
     more_vars = true;
     cmd[next_assign] = '\0';
+    aux = &(cmd[next_assign]);
   }
 
   /* varname */
@@ -107,6 +109,7 @@ sessionErrorCodeE let_instr(sessionS* env, char* cmd) {
   // if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
 
   if (more_vars) {
+    *aux = ':';
     return let_instr(env, cmd+1);
   }
 

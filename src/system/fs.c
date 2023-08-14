@@ -43,7 +43,7 @@ bool fs_init() {
     return false;
   }
 
-  sd_seek(data_partition.first_lba_sector);
+  sd_seek(data_partition.first_lba_sector*512);
   int r = sd_read_block(file_table, sizeof(file_table));
 
   if (r != 512) {
@@ -63,7 +63,7 @@ bool fs_init() {
   file_table[0].size_in_bytes = data_partition.first_lba_sector;
   strncpy(file_table[0].name, "SPECIAL", 8);
 
-  sd_seek(data_partition.first_lba_sector);
+  sd_seek(data_partition.first_lba_sector*512);
   r = sd_write_block(file_table, sizeof(file_table));
 
   if (r != 512) {
@@ -81,11 +81,16 @@ void list_files() {
     if (file.type != 0) {
       printf("File '");
       for (int j = 0; j < FILENAME_LEN; ++j) {
-        if (file.name[j] == '\0')
+        if (file.name[j] == '\0') {
+          for (int k = j; k < FILENAME_LEN; ++k) {
+            printf(" ");
+          }
+          printf("'");
           break;
+        }
         printf("%c", file.name[j]);
       }
-      printf("' size: %u type: %u\n", file.size_in_bytes, (u32)file.type);
+      printf(" ID: %u  Size: %u  Type: %u\n", (u32)file.id, file.size_in_bytes, (u32)file.type);
     }
   }
 }
@@ -168,11 +173,11 @@ bool delete_file(char* name) {
 u64 write_to_file(fileS* file, void* buf, u64 len, bool append) {
   u64 bytes = 0;
   if (append) {
-    u64 pos = file->id * (PARTITION_SIZE/NUM_OF_FILES) + file->size_in_bytes;
+    u64 pos = data_partition.first_lba_sector*512 + file->id * (PARTITION_SIZE/NUM_OF_FILES) + file->size_in_bytes;
     bytes = write_data(pos, buf, len);
     file->size_in_bytes += bytes;
   } else {
-    u64 pos = file->id * (PARTITION_SIZE/NUM_OF_FILES);
+    u64 pos = data_partition.first_lba_sector*512 + file->id * (PARTITION_SIZE/NUM_OF_FILES);
     bytes = write_data(pos, buf, len);
     file->size_in_bytes = bytes;
   }
@@ -181,7 +186,7 @@ u64 write_to_file(fileS* file, void* buf, u64 len, bool append) {
 }
 
 u64 read_from_file(fileS* file, void* buf, u64 len) {
-  u64 pos = file->id * (PARTITION_SIZE/NUM_OF_FILES);
+  u64 pos = data_partition.first_lba_sector*512 + file->id * (PARTITION_SIZE/NUM_OF_FILES);
   return read_data(pos, buf, min(file->size_in_bytes, len));
 }
 
@@ -295,7 +300,7 @@ bool load_mbr(mbrS* dest) {
 }
 
 bool save_file_table(void) {
-  sd_seek(data_partition.first_lba_sector);
+  sd_seek(data_partition.first_lba_sector*512);
   u64 r = sd_write_block(file_table, sizeof(file_table));
 
   if (r != 512) {

@@ -67,6 +67,7 @@ tokenS tokens[] = {
   {.tok_name="INT",     .tok_id=TOK_BUILTIN},
   {.tok_name="FLOAT",   .tok_id=TOK_BUILTIN},
 
+  {.tok_name="DELAY",      .tok_id=TOK_DELAY},
   {.tok_name="SESSEND",    .tok_id=TOK_SESSEND},
   {.tok_name="FONT",       .tok_id=TOK_FONT},
   {.tok_name="BACKGROUND", .tok_id=TOK_BACKGROUND},

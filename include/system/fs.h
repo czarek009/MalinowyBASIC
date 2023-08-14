@@ -5,7 +5,8 @@
 
 #define NUM_OF_FILES 32
 #define FILENAME_LEN 10
-#define PARTITION_SIZE 2<<30   // 1GB
+#define PARTITION_SIZE (2lu<<30lu)  // 1GB
+#define MAX_FILE_SIZE  (PARTITION_SIZE/NUM_OF_FILES)
 
 #define BOOT_SIGNATURE 0xAA55
 
