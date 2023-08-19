@@ -24,10 +24,12 @@
 
 #define DMA_BLOCK_ADDRESS 0x0
 
-dmaChannelS channels[15];
+// dmaChannelS channels[15];
+dmaChannelS* channels = NULL;
 static u16 channel_map = 0x1F35;
 
 static u16 allocate_channel(u32 channel) {
+  channels = malloc(sizeof(dmaChannelS)*15);
   if (!(channel & ~0x0F)) {
     if (channel_map & (1 << channel)) {
       channel_map &= ~(1 << channel);

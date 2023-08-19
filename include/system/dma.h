@@ -8,6 +8,7 @@ struct dmaChannelS {
   u32 channel;
   dmaControlBlock *block;
   bool status;
+  u8 fam[];
 } typedef dmaChannelS;
 
 enum dmaChannelE {

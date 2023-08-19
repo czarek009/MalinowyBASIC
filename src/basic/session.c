@@ -847,6 +847,7 @@ void print_session_info(sessionS* s) {
   printf("Jump flag: %lu\n", s->metadata.jump_flag);
   printf("Resume from: %lu\n", s->metadata.resume_from->line_number);
   printf("Functions number: %lu\n", s->metadata.functions_number);
+  printf("For stack size: %lu\n", s->metadata.for_stackpointer);
   print_functions(s);
 }
 
