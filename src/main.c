@@ -15,9 +15,6 @@
 #include "fs.h"
 
 
-static bool ready = false;
-
-
 void print_greetings(void) {
   printf("\n\n");
   printf("MalinowyBASIC\n");
@@ -47,19 +44,17 @@ void main(void) {
   init_printf(0, putc);
   printf("\n\n");
 
-  mem_init();
-
-  hdmi_init();
-  rand_init();
-  keyboard_init();
-  sd_init();
-  fs_init();
-
   irq_init_vectors();
   enable_interrupt_controller();
   irq_enable();
 
-  ready = true;
+  mem_init();
+  timer_init();
+  rand_init();
+  keyboard_init();
+  hdmi_init();
+  sd_init();
+  fs_init();
 
   print_greetings();
 
@@ -86,20 +81,4 @@ void main(void) {
   /* hdmi allocates buffer - lickitung will show memory leak untill we call hdmi_end() */
   hdmi_end();
   lickitung_check();
-}
-
-void hdmi_cpu(void) {
-  u64 counter = 0;
-  while(!ready) {
-    delay_ms(10);
-  }
-  while(1) {
-    if(counter % 12 == 0){
-      hdmi_blink_coursor();
-      counter = 0;
-    }
-    hdmi_refresh();
-    delay_ms(40);  // 25 FPS
-    counter++;
-  }
 }
