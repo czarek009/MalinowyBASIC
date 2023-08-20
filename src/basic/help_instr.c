@@ -56,7 +56,7 @@ sessionErrorCodeE help_instr(sessionS* env, char* cmd) {
   printf("HDMI commands:\n");
   printf("  CLEAR - clear screen\n");
   printf("  FONT - change font color\n");
-  printf("  BACKGROUND - change background color\n");
+  printf("  BG - change background color\n");
 
   return SESSION_NO_ERROR;
 }

@@ -126,7 +126,7 @@ void hdmi_printf_prompt(const char *str) {
 
 void hdmi_change_font_color(u32 color) {
   if(color == pixel_buff.bg_color) {
-    ERROR("[HDMI ERROR] Cannot set font color to background color");
+    ERROR("[HDMI ERROR] Cannot set font color to background color\n");
     return;
   }
   hdmi_change_color(pixel_buff.font_color, color);
@@ -135,7 +135,7 @@ void hdmi_change_font_color(u32 color) {
 
 void hdmi_change_bg_color(u32 color) {
   if(color == pixel_buff.font_color) {
-    ERROR("[HDMI ERROR] Cannot set background color to font color");
+    ERROR("[HDMI ERROR] Cannot set background color to font color\ns");
     return;
   }
   hdmi_change_color(pixel_buff.bg_color, color);
