@@ -64,7 +64,8 @@ err_hang:
 .endm
 
 .macro handle_invalid_interrupt
-  mrs  x0, esr_el1
+  mrs  x2, esr_el1
+  mrs  x0, elr_el1
   bl   handle_invalid_irq
   b    err_hang
 .endm
@@ -97,18 +98,23 @@ vectors:
 
 
 invalid_sync_el1t:
+  mov  x1, #0x0
   handle_invalid_interrupt
 
 invalid_irq_el1t:
+  mov  x1, #0x1
   handle_invalid_interrupt
 
 invalid_fiq_el1t:
+  mov  x1, #0x2
   handle_invalid_interrupt
 
 invalid_error_el1t:
+  mov  x1, #0x3
   handle_invalid_interrupt
 
 invalid_sync_el1h:
+  mov  x1, #0x4
   handle_invalid_interrupt
 
 handle_el1_irq:
@@ -117,31 +123,41 @@ handle_el1_irq:
   kernel_exit
 
 invalid_fiq_el1h:
+  mov  x1, #0x6
   handle_invalid_interrupt
 
 invalid_error_el1h:
+  mov  x1, #0x7
   handle_invalid_interrupt
 
 invalid_sync_el0_64:
+  mov  x1, #0x8
   handle_invalid_interrupt
 
 invalid_irq_el0_64:
+  mov  x1, #0x9
   handle_invalid_interrupt
 
 invalid_fiq_el0_64:
+  mov  x1, #0xA
   handle_invalid_interrupt
 
 invalid_error_el0_64:
+  mov  x1, #0xB
   handle_invalid_interrupt
 
 invalid_sync_el0_32:
+  mov  x1, #0xC
   handle_invalid_interrupt
 
 invalid_irq_el0_32:
+  mov  x1, #0xD
   handle_invalid_interrupt
 
 invalid_fiq_el0_32:
+  mov  x1, #0xE
   handle_invalid_interrupt
 
 invalid_error_el0_32:
+  mov  x1, #0xF
   handle_invalid_interrupt

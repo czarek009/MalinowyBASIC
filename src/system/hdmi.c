@@ -104,7 +104,7 @@ void hdmi_draw_image(const u32 *img, u32 xres, u32 yres, u32 xpos, u32 ypos) {
       hdmi_draw_pixel(xpos+i, ypos+j, img[j*xres + i]);
     }
   }
-  // hdmi_refresh();
+  hdmi_refresh();
 }
 
 void hdmi_printf_char(char c) {
@@ -126,7 +126,7 @@ void hdmi_printf_prompt(const char *str) {
 
 void hdmi_change_font_color(u32 color) {
   if(color == pixel_buff.bg_color) {
-    ERROR("[HDMI ERROR] Cannot set font color to background color");
+    ERROR("[HDMI ERROR] Cannot set font color to background color\n");
     return;
   }
   hdmi_change_color(pixel_buff.font_color, color);
@@ -135,7 +135,7 @@ void hdmi_change_font_color(u32 color) {
 
 void hdmi_change_bg_color(u32 color) {
   if(color == pixel_buff.font_color) {
-    ERROR("[HDMI ERROR] Cannot set background color to font color");
+    ERROR("[HDMI ERROR] Cannot set background color to font color\ns");
     return;
   }
   hdmi_change_color(pixel_buff.bg_color, color);
@@ -149,12 +149,12 @@ void hdmi_clear() {
   pixel_buff.start = 0;
   pixel_buff.xcoursor = 0;
   pixel_buff.ycoursor = 0;
-  // hdmi_refresh();
+  hdmi_refresh();
 }
 
 void hdmi_blink_coursor() {
   pixel_buff.coursor = !(pixel_buff.coursor);
-  // hdmi_refresh();
+  hdmi_refresh();
 }
 
 /* PRIVATE FUNCTIONS DEFINITIONS*/
@@ -320,7 +320,7 @@ void hdmi_change_color(u32 color, u32 new_color) {
       pixel_buff.buffer[i] = new_color;
     }
   }
-  // hdmi_refresh();
+  hdmi_refresh();
 }
 
 void hdmi_draw_coursor() {

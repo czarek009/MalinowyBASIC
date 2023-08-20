@@ -7,14 +7,11 @@
 _start:
   mrs  x0, mpidr_el1
   and  x0, x0, #0xFF
-  cbz  x0, main_cpu  // mpidr_el1 == 0  <=>  main cpu
-  cmp  x0, #0x1      // mpidr_el1 == 1  <=>  hdmi cpu
-  bne  proc_hang
-
-  mov sp, #MINI_STACK_ADDRESS
-
-  bl   hdmi_cpu
+  cbz  x0, main_cpu
   b    proc_hang
+
+proc_hang:
+  b   proc_hang
 
 main_cpu:
 enable_fpu:
@@ -74,9 +71,6 @@ master:
 
   bl   main
   b    proc_hang
-
-proc_hang:
-  b   proc_hang
 
 .globl id_pgd_addr
 id_pgd_addr:

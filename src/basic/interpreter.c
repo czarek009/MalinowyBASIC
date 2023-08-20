@@ -173,7 +173,7 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
         out = font_instr(env, cmd);
         break;
 
-    case TOK_BACKGROUND:
+    case TOK_BG:
       if (line_number != NO_LINE_NUMBER) {
           ERROR("[INTERPRETER ERROR] Instruction allowed only in direct mode\n", 0);
           out = SESSION_INVALID_INSTRUCTION;

@@ -21,6 +21,9 @@ clean :
 screen :
 	sudo screen /dev/ttyUSB0 115200
 
+disass :
+	aarch64-linux-gnu-objdump -D ./build/kernel8.elf > aux.txt
+
 sd :
 	cp ./kernel8.img /media/$(USER)/bootfs
 	sync

@@ -8,17 +8,14 @@
 #include "keyboard.h"
 #include "timer.h"
 #include "hdmi.h"
-#include "mm.h"
 
 
 void enable_interrupt_controller(void) {
-  // IRQ_REGS->irq0_enable_1 = AUX_IRQ | TIMER_CS_M1;
-  IRQ_REGS->irq0_enable_1 = AUX_IRQ;// | TIMER_CS_M1;
+  IRQ_REGS->irq0_enable_1 = AUX_IRQ | TIMER_CS_M1;
   IRQ_REGS->irq0_enable_2 = GPIO0_IRQ;
 }
 
 void handle_irq() {
-  irq_disable();
   #if RPI_VERSION == 3
   unsigned int irq1 = IRQ_REGS->irq0_pending_1;
   unsigned int irq2 = IRQ_REGS->irq0_pending_2;
@@ -38,11 +35,11 @@ void handle_irq() {
       }
     }
 
-    // if (irq1 & TIMER_CS_M1) {
-    //   irq1 &= ~TIMER_CS_M1;
-    //   handle_timer_1();
-    //   hdmi_blink_coursor();
-    // }
+    if (irq1 & TIMER_CS_M1) {
+      irq1 &= ~TIMER_CS_M1;
+      handle_timer_1();
+      hdmi_blink_coursor();
+    }
 
     if (irq2 & GPIO0_IRQ) {
       uart_send('C');
@@ -66,11 +63,8 @@ void handle_irq() {
       GPIO_REGS->event_detect_status.registers[0] = ~0;
     }
   }
-  irq_enable();
 }
-__attribute__ ((__noinline__))
-void * get_pc () { return __builtin_return_address(0); }
-void handle_invalid_irq(unsigned long esr_el1) {
-  printf("%lu\n", (u64)get_pc());
-  ERROR("[ERROR] Caught invalid interrupt. Value of esr_el1 register: 0x%X\n", esr_el1);
+
+void handle_invalid_irq(u64 elr_el1, u64 id, u64 esr_el1) {
+  ERROR("\n\n[ERROR] Caught invalid interrupt. ID: %lu  elr_el1: %lu  esr_el1: %lu\n", id, elr_el1, esr_el1);
 }
