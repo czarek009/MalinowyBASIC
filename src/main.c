@@ -48,12 +48,17 @@ void main(void) {
   irq_enable();
 
   mem_init();
-  timer_init();
-  rand_init();
-  keyboard_init();
+  delay_ms(10);
   hdmi_init();
+  delay_ms(10);
+  timer_init();
+  delay_ms(10);
+  rand_init();
   sd_init();
+  delay_ms(10);
   fs_init();
+  delay_ms(10);
+  keyboard_init();
 
   print_greetings();
 

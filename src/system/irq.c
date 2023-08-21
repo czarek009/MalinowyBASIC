@@ -42,24 +42,6 @@ void handle_irq() {
     }
 
     if (irq2 & GPIO0_IRQ) {
-      // uart_send('C');
-
-      // static u8 counter = 0;
-      // static u16 code = 0;
-
-      // code |= gpio_level(DATA_PIN) << counter;
-      // ++counter;
-
-      // if (counter == 11) {
-      //   // char c = code_to_ascii(code);
-      //   // code = (code>>1) & 255;
-      //   printf("%u\n", code);
-      //   // printf("ascii: %u (%c)\n", (u16)c, c);
-      //   counter = 0;
-      //   code = 0;
-      //   // io_read_char(c);
-      // }
-
       u16 code = 0;
       for(int i=0; i<11; i++) {
         while(gpio_level(CLOCK_PIN) == 1);
