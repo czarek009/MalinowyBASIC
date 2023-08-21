@@ -79,6 +79,7 @@ void backspace();
 void hdmi_change_color(u32 color, u32 new_color);
 void hdmi_draw_coursor();
 void erase_next_char();
+u32 rbga_to_argb(u32 color);
 
 /* GLOBAL FUNCTIONS DEFINITIONS*/
 void hdmi_init(void) {
@@ -91,9 +92,9 @@ void hdmi_init(void) {
 
 void hdmi_startup_info(void) {
   if(!hdmi_initiated) return;
-  STARTUP("Hdmi initialized\n");
-  STARTUP("Resolution: %dX%d\n", XRESOLUTION, YRESOLUTION);
-  STARTUP("Bits per pixel: %d\n", BITS_PER_PIXEL);
+  STARTUP("[STARTUP]      Hdmi initialized\n");
+  STARTUP("[HDMI]         Resolution: %dX%d\n", XRESOLUTION, YRESOLUTION);
+  STARTUP("[HDMI]         Bits per pixel: %d\n", BITS_PER_PIXEL);
 }
 
 void hdmi_end(void) {
@@ -112,13 +113,14 @@ void hdmi_refresh(void) {
 }
 
 void hdmi_draw_image(const u32 *img, u32 xres, u32 yres, u32 xpos, u32 ypos) {
+  u32 color = 0;
   if(!hdmi_initiated) return;
   for (u32 i = 0; i < xres; ++i) {
     for (u32 j = 0; j < yres; ++j) {
-      hdmi_draw_pixel(xpos+i, ypos+j, img[j*xres + i]);
+      color = rbga_to_argb(img[j*xres + i]);
+      hdmi_draw_pixel(xpos+i, ypos+j, color);
     }
   }
-  hdmi_refresh();
 }
 
 void hdmi_printf_char(char c) {
@@ -353,4 +355,11 @@ void hdmi_draw_coursor() {
       hdmi_draw_pixel(pixel_buff.xcoursor + x, pixel_buff.ycoursor + y, color);
     }
   }
+}
+
+u32 rbga_to_argb(u32 color) {
+  u32 a = color & 0xFF;
+  color >>= 8;
+  color |= (a << 24);
+  return color;
 }

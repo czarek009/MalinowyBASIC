@@ -18,8 +18,7 @@ void handle_timer_1(void) {
 }
 
 void timer_startup_info(void) {
-  STARTUP("Timer initialized\n");
-  STARTUP("System timer frequency: %ld\n", SYS_TIMER_FREQUENCY);
+  STARTUP("[STARTUP]      System timer frequency: %ld\n", SYS_TIMER_FREQUENCY);
 }
 void delay_ms(u64 ms) {
   u64 currTicks = TIMER_REGS->timer_clo;

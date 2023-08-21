@@ -18,7 +18,7 @@ void rand_init() {
 }
 
 void rand_startup_info() {
-  STARTUP("Rand initialized\n");
+  STARTUP("[STARTUP]      Rand initialized\n");
 }
 
 u32 rand(u32 min, u32 max) {

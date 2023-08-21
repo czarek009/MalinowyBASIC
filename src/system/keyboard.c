@@ -24,8 +24,8 @@ void keyboard_init(void) {
 }
 
 void keyboard_startup_info(void) {
-  STARTUP("Keyboard initialized\n");
-  STARTUP("CLOCK pin: %d, DATA pin: %d\n", CLOCK_PIN, DATA_PIN);
+  STARTUP("[STARTUP]      Keyboard initialized\n");
+  STARTUP("[KEYBOARD]     CLOCK pin: %d, DATA pin: %d\n", CLOCK_PIN, DATA_PIN);
 }
 
 char code_to_ascii(u16 code) {

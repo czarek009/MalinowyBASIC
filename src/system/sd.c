@@ -849,5 +849,5 @@ bool sd_init(void) {
 }
 
 void sd_startup_info(void) {
-  STARTUP("Sd initialized\n");
+  STARTUP("[STARTUP]      Sd initialized\n");
 }

@@ -95,6 +95,6 @@ void uart_init_gpio(void){
 }
 
 void uart_startup_info(void) {
-  STARTUP("Uart initialized\n");
-  STARTUP("TX pin: %d, RX pin: %d\n", TX, RX);
+  STARTUP("[STARTUP]      Uart initialized\n");
+  STARTUP("[UART]         TX pin: %d, RX pin: %d\n", TX, RX);
 }

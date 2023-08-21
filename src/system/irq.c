@@ -17,8 +17,8 @@ void enable_interrupt_controller(void) {
 }
 
 void irq_startup_info(void) {
-  STARTUP("Interrupts initialized\n");
-  STARTUP("Enabled interrupts: AUX_IRQ, GPIO0_IRQ\n");
+  STARTUP("[STARTUP]      Interrupts initialized\n");
+  STARTUP("[INTERRUPTS]   Enabled interrupts: AUX_IRQ, GPIO0_IRQ\n");
 }
 
 void handle_irq() {

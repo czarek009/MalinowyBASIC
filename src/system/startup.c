@@ -31,7 +31,6 @@ void initialize_all_modules(void) {
   delay_ms(10);
   hdmi_init();
   delay_ms(10);
-  timer_init();
   delay_ms(10);
   rand_init();
   sd_init();
@@ -50,8 +49,10 @@ void print_startup_info(void) {
   hdmi_draw_image(malinka, MALINKA_WIDTH, MALINKA_HEIGHT, 60, 50);
   hdmi_draw_image(napis, NAPIS_WIDTH, NAPIS_HEIGHT, 230, 90);
   hdmi_draw_image(autorzy, AUTORZY_WIDTH, AUTORZY_HEIGHT, 215, 315);
+  hdmi_refresh();
   delay_ms(5000);
   hdmi_clear();
+  timer_init();
 }
 
 /* PRIVATE FUNCTIONS DEFINITIONS */
@@ -63,14 +64,14 @@ void putc(void *p, char c) {
 }
 
 void print_greetings(void) {
-  STARTUP("MalinowyBASIC\n");
+  STARTUP("         MalinowyBASIC\n");
   int rpiv = -1;
   #if RPI_VERSION == 3
   rpiv = 3;
   #elif RPI_VERSION == 4
   rpiv = 4;
   #endif
-  STARTUP("RPi version: %d\n\n", rpiv);
+  STARTUP("         RPi version: %d\n\n", rpiv);
 }
 
 void print_modules_info(void) {

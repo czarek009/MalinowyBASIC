@@ -113,9 +113,9 @@ void mem_init(void) {
 }
 
 void mem_startup_info(void) {
-  STARTUP("Memory initialized\n");
-  STARTUP("Free memory: %ld\n", MAX_ALLOC);
-  STARTUP("Start of heap: 0x%x, End of heap:0x%x\n", (HEAP_ADDRESS + OFFSET), HEAP_END_ADDRESS);
+  STARTUP("[STARTUP]      Memory initialized\n");
+  STARTUP("[MEMORY]       Free memory: %ld\n", MAX_ALLOC);
+  STARTUP("[MEMORY]       Start of heap: 0x%x, End of heap:0x%x\n", (HEAP_ADDRESS + OFFSET), HEAP_END_ADDRESS);
 }
 
 static word_t *find_free_block(size_t size) {

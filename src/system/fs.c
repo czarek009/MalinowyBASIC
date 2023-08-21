@@ -202,8 +202,9 @@ void list_partitions(void) {
 }
 
 void fs_startup_info(void) {
-  STARTUP("Filesystem initialized\n");
-  STARTUP("Partition Size: %d\n", PARTITION_SIZE);
+  STARTUP("[STARTUP]      Files Sytem initialized\n");
+  STARTUP("[FILESYSTEM]   Partition Size: %ld\n", PARTITION_SIZE);
+  STARTUP("[FILESYSTEM]   Partitions:\n");
   list_partitions();
 }
 
