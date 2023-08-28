@@ -264,8 +264,22 @@ Dodatkowo, dla zwiększenia funkcjonalności, zaimplementowano możliwość scro
 Konieczność pisania nowych programów z każdym uruchomieniem komputera byłaby bardzo uciążliwa, dlatego system wspiera zapisywanie stworzonych programów w zewnętrznej pamięci nieulotnej. Do tego celu wykorzystana została ta sama karta SD, z której ładowany jest program. Aby rozwiązanie zadziałało na karcie prócz partycji niezbędnej do bootowania płytki musi zostać utworzona druga partycja o dowolnym typie, ponieważ dane przechowywane będą we własnościowym formacie. 
 \subsection{Komunikacja z kartą SD}
 Do komunikacji procesora z kartą posłuży wbudowany w płytkę kontroler zewnętrznej pamięci masowej (\textit{.: External Mass Media Controller, EMMC}). Aby z niego skorzystać, należy najpierw odpowiednio skonfigurować wykorzystywane piny GPIO: piny 34-39 jako \texttt{INPUT} oraz piny 48-52 jako funkcję \texttt{ALT3}. Komunikacja odbywa się za pomocą zestawu rejestrów oraz specjalnych komend wysyłanych przez te rejestry. Podstawowymi komendami są komendy nr 17 oraz 24, odpowiedzialne za odpowiednio odczyt oraz zapis bloku (512MB), a także komenda 0, która resetuje kartę i od której rozpoczyna się cała komunikacja.
-Poniższy diagram przedstawia proces łączenia się z kartą SD:
-(obrazek karodziony, należy zrobić własny (ale w sumie to zawsze się trochę kradnie))
+Poniższy diagram przedstawia proces łączenia się z kartą SD i transfery danych:
+
+\begingroup
+\centering
+\includegraphics[width=\textwidth]{sd-connection.png}
+\captionsetup{type=figure}
+\caption{Inicjalizacja i połączenie z kartą SD}
+\endgroup
+
+\begingroup
+\centering
+\includegraphics[width=\textwidth]{sd-transfer.png}
+\captionsetup{type=figure}
+\caption{Zapis i odczyt}
+\endgroup
+
 \subsection{Przechowywanie danych}
 Program nie wspiera żadnego ze standardowych systemów plików, a dane przechowuje we własnościowym formacie. Po włączeniu mikrokomputera nastąpi próba inicjalizacji systemu plików. Za partycję danych posłuży pierwsza (po partycji z systemem) partycja znaleziona w głównym rekordzie rozruchowym (textit{.: Master Boot Record, MBR}), której rozmiar będzie wynosił przynajmniej 1 gigabajt. Pierszy blok partycji danych przechowywał będzie tablicę plików, której pojedyńczy element stanowi następująca struktura:
 \begin{verbatim}
