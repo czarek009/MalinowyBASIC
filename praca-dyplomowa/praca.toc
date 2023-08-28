@@ -7,53 +7,53 @@
 \babel@toc {polish}{}\relax 
 \babel@toc {english}{}\relax 
 \babel@toc {polish}{}\relax 
-\contentsline {chapter}{\numberline {1.}Wstęp}{9}{chapter.1}%
-\contentsline {chapter}{\numberline {2.}Podstawy projektu}{11}{chapter.2}%
-\contentsline {section}{\numberline {2.1.}Budowa projektu}{11}{section.2.1}%
-\contentsline {section}{\numberline {2.2.}GPIO}{11}{section.2.2}%
-\contentsline {subsection}{\numberline {2.2.1.}Cross-compiler}{12}{subsection.2.2.1}%
-\contentsline {subsection}{\numberline {2.2.2.}Struktura katalogów}{12}{subsection.2.2.2}%
-\contentsline {subsection}{\numberline {2.2.3.}Proces budowy}{12}{subsection.2.2.3}%
-\contentsline {subsection}{\numberline {2.2.4.}Armstub}{12}{subsection.2.2.4}%
-\contentsline {section}{\numberline {2.3.}Przygotowanie karty pamięci}{13}{section.2.3}%
-\contentsline {subsection}{\numberline {2.3.1.}Niezbędne pliki}{13}{subsection.2.3.1}%
-\contentsline {section}{\numberline {2.4.}Bootowanie}{14}{section.2.4}%
-\contentsline {subsection}{\numberline {2.4.1.}Funkcja pliku config.txt}{14}{subsection.2.4.1}%
-\contentsline {subsection}{\numberline {2.4.2.}Proces bootowania RaspberryPi}{14}{subsection.2.4.2}%
-\contentsline {subsection}{\numberline {2.4.3.}Sygnalizacja statusu bootowania za pomocą LED}{14}{subsection.2.4.3}%
-\contentsline {section}{\numberline {2.5.}Debugowanie}{15}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1.}Mechanizmy obsługi przerwań i wyjątków}{15}{subsection.2.5.1}%
-\contentsline {subsection}{\numberline {2.5.2.}Deasemblacja}{15}{subsection.2.5.2}%
-\contentsline {chapter}{\numberline {3.}BASIC}{17}{chapter.3}%
-\contentsline {section}{\numberline {3.1.}Sesja}{17}{section.3.1}%
-\contentsline {subsection}{\numberline {3.1.1.}Struktury Modułu Session}{18}{subsection.3.1.1}%
-\contentsline {subsection}{\numberline {3.1.2.}Operacje na strukturze sessionS}{19}{subsection.3.1.2}%
-\contentsline {section}{\numberline {3.2.}Parser}{19}{section.3.2}%
-\contentsline {section}{\numberline {3.3.}Interpreter}{19}{section.3.3}%
-\contentsline {subsection}{\numberline {3.3.1.}Tryb bezpośredni}{20}{subsection.3.3.1}%
-\contentsline {section}{\numberline {3.4.}Ewaluator}{20}{section.3.4}%
-\contentsline {subsection}{\numberline {3.4.1.}Algorytm ewaluacji wyrażeń}{20}{subsection.3.4.1}%
-\contentsline {subsection}{\numberline {3.4.2.}Ewaluacja poszczególnych tokenów}{21}{subsection.3.4.2}%
-\contentsline {subsection}{\numberline {3.4.3.}Istotność kolejności ewaluowania wyrażeń}{21}{subsection.3.4.3}%
-\contentsline {subsection}{\numberline {3.4.4.}Sprawdzenie poprawności wyrażenia}{21}{subsection.3.4.4}%
-\contentsline {chapter}{\numberline {4.}Pamięć}{23}{chapter.4}%
-\contentsline {section}{\numberline {4.1.}Zarządzanie pamięcią}{23}{section.4.1}%
-\contentsline {subsection}{\numberline {4.1.1.}Sterta i dynamiczna alokacja pamięci}{24}{subsection.4.1.1}%
-\contentsline {subsection}{\numberline {4.1.2.}Narzędzia ułatwiające pracę z pamięcią}{24}{subsection.4.1.2}%
-\contentsline {section}{\numberline {4.2.}MMU}{25}{section.4.2}%
-\contentsline {section}{\numberline {4.3.}DMA}{25}{section.4.3}%
-\contentsline {subsection}{\numberline {4.3.1.}Proces włączenia DMA w Raspberry PI}{25}{subsection.4.3.1}%
-\contentsline {subsection}{\numberline {4.3.2.}Proces wysyłania danych przez DMA}{26}{subsection.4.3.2}%
-\contentsline {chapter}{\numberline {5.}Komunikacja}{27}{chapter.5}%
-\contentsline {section}{\numberline {5.1.}GPIO}{27}{section.5.1}%
-\contentsline {section}{\numberline {5.2.}UART}{28}{section.5.2}%
-\contentsline {section}{\numberline {5.3.}Klawiatura}{28}{section.5.3}%
-\contentsline {section}{\numberline {5.4.}HDMI}{30}{section.5.4}%
-\contentsline {subsection}{\numberline {5.4.1.}Inicjalizacja i konfiguracja HDMI}{30}{subsection.5.4.1}%
-\contentsline {subsection}{\numberline {5.4.2.}Aktualizacja bufora i wydajność}{31}{subsection.5.4.2}%
-\contentsline {section}{\numberline {5.5.}Karta SD}{31}{section.5.5}%
-\contentsline {subsection}{\numberline {5.5.1.}Komunikacja z kartą SD}{31}{subsection.5.5.1}%
-\contentsline {subsection}{\numberline {5.5.2.}Przechowywanie danych}{33}{subsection.5.5.2}%
-\contentsline {subsection}{\numberline {5.5.3.}Obsługa plików}{34}{subsection.5.5.3}%
-\contentsline {chapter}{\numberline {6.}Podsumowanie}{35}{chapter.6}%
-\contentsline {chapter}{Bibliografia}{37}{chapter*.10}%
+\contentsline {chapter}{Wstęp}{9}{chapter*.2}%
+\contentsline {chapter}{\numberline {1.}Podstawy projektu}{11}{chapter.1}%
+\contentsline {section}{\numberline {1.1.}Budowa projektu}{11}{section.1.1}%
+\contentsline {section}{\numberline {1.2.}GPIO}{11}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1.}Cross-compiler}{12}{subsection.1.2.1}%
+\contentsline {subsection}{\numberline {1.2.2.}Struktura katalogów}{12}{subsection.1.2.2}%
+\contentsline {subsection}{\numberline {1.2.3.}Proces budowy}{12}{subsection.1.2.3}%
+\contentsline {subsection}{\numberline {1.2.4.}Armstub}{12}{subsection.1.2.4}%
+\contentsline {section}{\numberline {1.3.}Przygotowanie karty pamięci}{13}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1.}Niezbędne pliki}{13}{subsection.1.3.1}%
+\contentsline {section}{\numberline {1.4.}Bootowanie}{14}{section.1.4}%
+\contentsline {subsection}{\numberline {1.4.1.}Funkcja pliku config.txt}{14}{subsection.1.4.1}%
+\contentsline {subsection}{\numberline {1.4.2.}Proces bootowania RaspberryPi}{14}{subsection.1.4.2}%
+\contentsline {subsection}{\numberline {1.4.3.}Sygnalizacja statusu bootowania za pomocą LED}{14}{subsection.1.4.3}%
+\contentsline {section}{\numberline {1.5.}Debugowanie}{15}{section.1.5}%
+\contentsline {subsection}{\numberline {1.5.1.}Mechanizmy obsługi przerwań i wyjątków}{15}{subsection.1.5.1}%
+\contentsline {subsection}{\numberline {1.5.2.}Deasemblacja}{15}{subsection.1.5.2}%
+\contentsline {chapter}{\numberline {2.}BASIC}{17}{chapter.2}%
+\contentsline {section}{\numberline {2.1.}Sesja}{17}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1.}Struktury Modułu Session}{18}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2.}Operacje na strukturze sessionS}{19}{subsection.2.1.2}%
+\contentsline {section}{\numberline {2.2.}Parser}{19}{section.2.2}%
+\contentsline {section}{\numberline {2.3.}Interpreter}{19}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1.}Tryb bezpośredni}{20}{subsection.2.3.1}%
+\contentsline {section}{\numberline {2.4.}Ewaluator}{20}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1.}Algorytm ewaluacji wyrażeń}{20}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2.}Ewaluacja poszczególnych tokenów}{21}{subsection.2.4.2}%
+\contentsline {subsection}{\numberline {2.4.3.}Istotność kolejności ewaluowania wyrażeń}{21}{subsection.2.4.3}%
+\contentsline {subsection}{\numberline {2.4.4.}Sprawdzenie poprawności wyrażenia}{21}{subsection.2.4.4}%
+\contentsline {chapter}{\numberline {3.}Pamięć}{23}{chapter.3}%
+\contentsline {section}{\numberline {3.1.}Zarządzanie pamięcią}{23}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1.}Sterta i dynamiczna alokacja pamięci}{24}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2.}Narzędzia ułatwiające pracę z pamięcią}{24}{subsection.3.1.2}%
+\contentsline {section}{\numberline {3.2.}MMU}{25}{section.3.2}%
+\contentsline {section}{\numberline {3.3.}DMA}{25}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1.}Proces włączenia DMA w Raspberry PI}{25}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2.}Proces wysyłania danych przez DMA}{26}{subsection.3.3.2}%
+\contentsline {chapter}{\numberline {4.}Komunikacja}{27}{chapter.4}%
+\contentsline {section}{\numberline {4.1.}GPIO}{27}{section.4.1}%
+\contentsline {section}{\numberline {4.2.}UART}{28}{section.4.2}%
+\contentsline {section}{\numberline {4.3.}Klawiatura}{28}{section.4.3}%
+\contentsline {section}{\numberline {4.4.}HDMI}{30}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1.}Inicjalizacja i konfiguracja HDMI}{30}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2.}Aktualizacja bufora i wydajność}{31}{subsection.4.4.2}%
+\contentsline {section}{\numberline {4.5.}Karta SD}{31}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1.}Komunikacja z kartą SD}{31}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.2.}Przechowywanie danych}{33}{subsection.4.5.2}%
+\contentsline {subsection}{\numberline {4.5.3.}Obsługa plików}{34}{subsection.4.5.3}%
+\contentsline {chapter}{Podsumowanie}{35}{chapter*.11}%
+\contentsline {chapter}{Bibliografia}{37}{chapter*.12}%

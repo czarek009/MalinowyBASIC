@@ -46,7 +46,8 @@
 
 %%%%% POCZĄTEK ZASADNICZEGO TEKSTU PRACY
 
-\chapter{Wstęp}
+\chapter*{Wstęp}
+\addcontentsline{toc}{chapter}{Wstęp}
 Dynamiczne tempo rozwoju w dziedzinie informatyki prowadzi do powstawania nowoczesnych technologii oraz narzędzi programistycznych. Niemniej jednak, fundamentalne zrozumienie działania systemów komputerowych na jak najniższej warstwie abstrakcji zachowuje swoją edukacyjną i badawczą wartość.
 Celem niniejszej pracy inżynierskiej jest zaprojektowanie oraz implementacja systemu operacyjnego działającego w środowisku bare-metal na platformie RaspberryPi, umożliwiającego tworzenie i uruchamianie programów napisanych w języku BASIC. Zainteresowanie programowaniem niskopoziomowym, systemami wbudowanymi oraz retroinformatyką wpłynęło na wybór tematu pracy.
 Przyjęty temat pracy umożliwia pogłębienie wiedzy w zakresie zarządzania sprzętem w środowisku pozbawionym klasycznego systemu operacyjnego oraz analizę wyzwań związanych z implementacją interpretera języka programowania na takim systemie.
@@ -295,7 +296,7 @@ typedef struct {
 
 Isnienie pliku w danym miejscu w tablicy wskazuje pole \texttt{type} - jeżeli jest różne od zera, plik istnieje. Póki co wspierane jest jedynie zapisywanie programów w BASICU, więc 8 bitów jest trochę na wyrost, ale jest to furtka na przyszłość do przechowywania w pamięci nieulotnej na przykład całych sesji lub obrazków. Tablica przechowuje dane o 32 plikach. Cała partycja danych dzielona jest na równe kawałki, które kolejno przyporządkowane są wpisom w tablicy plików. Pierwszy wpis jest specjalny i sygnalizuje systemowi istnienie całego systemu plików: jeżeli po wczytaniu pierwszego bloku partycji danych odnaleziony zostanie tam wpis o \texttt{id} równym 0, \texttt{type} równym 105 oraz nazwie \texttt{"SPECIAL"}, program potraktuje pierwszy blok jako gotową tablicę plików. W przeciwnym wypadku taka tablica zostanie utworzona.
 \subsection{Obsługa plików}
-Do korzystania z systemu plików udostępnione zostały następujące komendy: 
+Do korzystania z systemu plików udostępnione zostały następujące komendy:
 \begin{itemize}
  \item \texttt{LS} - wypisuje wszystkie pliki zapisane na karcie SD
  \item \texttt{SAVE name} - zapisuje program z aktualnej sesji do pliku z podaną nazwą
@@ -304,8 +305,8 @@ Do korzystania z systemu plików udostępnione zostały następujące komendy:
 \end{itemize}
 W każdej z podanych komend \texttt{name} musi być różne od \texttt{"SPECIAL"} i może mieć co najwyżej 10 znaków
 
-
-\chapter{Podsumowanie}
+\chapter*{Podsumowanie}
+\addcontentsline{toc}{chapter}{Podsumowanie}
 Realizacja projektu polegającego na stworzeniu systemu bare-metal dla platformy Raspberry Pi z interpreterem języka BASIC była nie tylko ambitnym przedsięwzięciem, ale również źródłem wielu wyzwań oraz okazją do zdobycia cennych doświadczeń. Podczas pracy nad projektem niejednokrotnie napotykano na różnego rodzaju trudności i przeszkody, które wymagały nie tylko kreatywnego myślenia, ale także głębszego zrozumienia złożonych koncepcji informatycznych.
 Prace nad takim projektem dają możliwość pogłębienia wiedzy w wielu obszarach informatyki. W tym przypadku, zdobyto doświadczenie z zakresu programowania embedded, zrozumiano głębsze aspekty działania systemów oraz mechanizmów stojących za interpreterami. Znaczący rozmiar projektu pozwolił również na naukę efektywnego zarządzania dużą ilością kodu oraz organizacji pracy w dwuosobowym zespole.
 Rezultat prezentowanej pracy nie tylko demonstruje efektywne wdrożenie założonych celów, ale również otwiera pole do przyszłej dalszej rozbudowy zaprojektowanego systemu. 
