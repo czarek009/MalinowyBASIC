@@ -14,8 +14,9 @@
 % zlamaniu wierszy w temacie pracy, zwlaszcza tego w jezyku pracy. Uzyj do tego
 % polecenia \fmlinebreak.
 \polishtitle    {Raspberry Pi BASIC}
+\englishtitle   {}
 \polishabstract {Celem niniejszej pracy jest implementacja systemu z interpreterem języka programowania BASIC działającego na mikrokomputerah z serii Raspberry Pi w wersji 3. i 4. Zaproponowany dialekt bazuje na tym wykorzystywanym w latach '80 w popularnych komputerach Commodore 64. Program nie tylko umożliwia pracę w starym stylu na współczesnym sprzęcie, ale także prezentuje możliwości jakie dają te popularne płytki i pokazuje jak wykorzystać je programując bare metal, co stanowi większe wyzwanie niż w przypadku gdy jest ona kontrolowana przez dedykowany system operacyjny Raspbian. Wykorzystując wbudowane złącza projekt wspiera obsługę karty SD oraz wyjście wideo HDMI, a także poprzez wyprowadzone piny GPIO umożliwia podłączenie zewnętrznej klawiatury ze złączem PS2 lub DIN5.}
-\englishabstract{TODO}
+\englishabstract{The aim of this thesis is to implement a system with a BASIC programming language interpreter that runs on Raspberry Pi series microcomputers versions 3. and 4. The proposed dialect is based on the one used in the '80s in the popular Commodore 64 computers. The program not only allows retro-style operation on modern hardware, but also demonstrates the capabilities of these popular boards. In addition, it presents how to take advantage of the Raspberry Pi's features by programming bare-metal, which is rather more demanding than when managed by a dedicated Raspbian operating system. Using the built-in connectors, the project provides support for SD card and HDMI video output, along with the ability to connect an external keyboard with a PS2 or DIN5 port through the derived GPIO pins.}
 % w pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
 \author         {Aleksandra Kosińska \and Cezary Stajszczyk}
 % w przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
@@ -59,7 +60,8 @@ Raspberry Pi to nazwa serii komputerów jednopłytkowych stworzonych przez bryty
 \begingroup
 \centering
 \includegraphics[width=0.75\textwidth]{rpi3b.jpg}
-\captionof{figure}{Płytka Raspberry Pi 3B}
+\captionsetup{type=figure}
+\caption{Płytka Raspberry Pi 3B}
 \endgroup
 Programowanie systemów wbudowanych, stanowi wyjątkowe wyzwanie inżynieryjne. Charakter tego typu projektów wymaga nie tylko zaawansowanej wiedzy technicznej, ale również wykorzystania odpowiednich narzędzi, które uwzględniają specyfikę docelowej platformy sprzętowej. Przy niewłaściwym podejściu istnieje ryzyko, że RaspberryPi nie uruchomi się w sposób zamierzony. W niniejszym rozdziale przedstawiona zostanie struktura oraz proces konstrukcji projektu systemu niskopoziomowego przeznaczonego dla platformy RaspberryPi.
 \subsection{Cross-compiler}
@@ -174,8 +176,9 @@ Zarządzanie pamięcią w systemach embedded znacznie różni się od podejścia
 \section{Zarządzanie pamięcią}
 \begingroup
 \centering
-\includegraphics[width=0.75\textwidth]{memorymap.png}
-\captionof{figure}{Mapa pamięci}
+\includegraphics[width=\textwidth]{memorymap.png}
+\captionsetup{type=figure}
+\caption{Mapa pamięci}
 \endgroup
 Powyższa ilustracja pokazuje jak wygląda mapa pamięci stworzonego systemu. Może zwrócić uwagę, że pewne elementy zapisywane są zaczynając od adresu 0x0, który tradycyjnie kojarzony jest z nullpointerem, na którym wykonanie jakiejkolwiek operacji zapisu lub odczyty kończy się błędem. W przypadku programowania bare metal tak się jednak nie dziaje. Ponieważ nie ma algorytmów ochrony pamięci, adres 0 traktowany jest tak jak każdy inny. Jest to w pewien sposób problematyczne, ponieważ niektóre błędy, które normalnie byłyby raportowane automatycznie, tutaj są trudniejsze do znalezienia.
 \subsection{Sterta i dynamiczna alokacja pamięci}
@@ -206,7 +209,8 @@ Płytki Raspberry Pi oprócz pokaźnego zestawu pinów GPIO wyprowadzonych na wl
 \begingroup
 \centering
 \includegraphics[width=0.5\textwidth]{gpio.png}
-\captionof{figure}{Piny GPIO na płytce RPi3/RPi4}
+\captionsetup{type=figure}
+\caption{Piny GPIO na płytce RPi3/RPi4}
 \endgroup
 
 W projekcie zaimplementowany został moduł umożliwiający wygodne korzystanie z pinów GPIO. Pozwala on na przełączanie pinów w wybrane tryby, a także odczytywanie i ustawianie stanów na wybranych pinach. Oprócz standardowych trybów \texttt{INPUT} oraz \texttt{OUTPUT} niektóre piny o specjalnym przeznaczeniu mają również tak zwane "funkcje alternatywne" - odpowiadają one za połączenie pinów z wewnętrznymi układami na przykład odpowiedzialnym za komunikację przez specjalne protokoły.
@@ -223,7 +227,8 @@ Jako samodzielne urządzenie do wprowadzania danych wybór padł na stare klawia
 \begingroup
 \centering
 \includegraphics[width=0.75\textwidth]{pinout.png}
-\captionof{figure}{Piny męskich złączy PS2 oraz DIN5}
+\captionsetup{type=figure}
+\caption{figure}{Piny męskich złączy PS2 oraz DIN5}
 \endgroup
 
 Na jeden kod wysłany przez klawiaturę składa się jedenaście bitów: osiem bitów danych, jeden bit parzystości, oraz po jednym bicie oznaczającym początek oraz koniec transmisji. W celu podłączenie klawiatury do mikrokomputera należy podłączyć przewód danych do pinu nr 5, a przewód zegarowy do pinu nr 6. Na pinie zegarowym włączone jest przerwanie aktywowane zboczem opadającym. Następne w procedurze obsługi przerwania w pętli następuje odczytanie wszystkich 11 bitów, przekonwertowanie na kod ASCII i wysłanie do odpowiedniej funkcji odpowiadającej za obsługę wejścia, tej samej co w przypadku UARTa.
@@ -231,13 +236,18 @@ Na jeden kod wysłany przez klawiaturę składa się jedenaście bitów: osiem b
 \begingroup
 \centering
 \includegraphics[width=0.75\textwidth]{signals.png}
-\captionof{figure}{Sygnały CLOCK oraz DATA}
+\captionsetup{type=figure}
+\caption{figure}{Sygnały CLOCK oraz DATA}
 \endgroup
 
 Wysyłane kody nie są jednak kodami ASCII zrozumiałymi dla języka C, należy je więc najpierw na takie przekonwerować. Oprócz kodów przypisanych do poszczególnych przycisków jest jeszcze specjalny kod o numerze 240, oznaczającymi zwonienie przycisku o kodzie wysłany jako następny. Tak więc na pojedyńcze wciśnięcie klawisza składają się trzy kody: kod wciśniętego przycisku, 240 oraz ponownie kod wciśniętego przyciusku. Dłuższe wciśnięcie jest obsługiwane przez klawiaturę poprzez wielokrotne wysyłanie kodu przycisku przed kodem 240.
 
+\begingroup
+\centering
 \includegraphics[width=\textwidth]{scancode.png}
-\captionof{figure}{Kody przycisków na klawiwturze}
+\captionsetup{type=figure}
+\caption{Kody przycisków na klawiwturze}
+\endgroup
 
 Klawiatury standardowo działają z napięciem zasilania +5V i takie też napięcie wysyłają na piny danych i zegara. Piny GPIO działają natomiast z napięciem +V. Niektóre klawiatury działają z niższym napięciem, jednak by mieć pewność, że każda klawiatura będzie działać prawidłowo, w projekcie wykorzystany został prosty konwerter poziomów logicznych bazujący na układzie BSS138.
  
@@ -289,12 +299,12 @@ Rezultat prezentowanej pracy nie tylko demonstruje efektywne wdrożenie założo
 
 \begin{thebibliography}{1}
 
-\bibitem{} Raspberry Pi documentation (\url{https://www.raspberrypi.com/documentation/})
-\bibitem{} BCM 2837 datasheet (RPi3) (\url{https://datasheets.raspberrypi.com/bcm2835/bcm2835-peripherals.pdf})
-\bibitem{} BCM 2711 datasheet (RPi4) (\url{https://datasheets.raspberrypi.com/bcm2711/bcm2711-peripherals.pdf})
-\bibitem{} 101 BASIC computer games (\url{https://annarchive.com/files/Basic_Computer_Games_Microcomputer_Edition.pdf})
+\bibitem{} Raspberry Pi documentation\\(\url{https://www.raspberrypi.com/documentation/})
+\bibitem{} BCM 2837 datasheet (RPi3)\\(\url{https://datasheets.raspberrypi.com/bcm2835/bcm2835-peripherals.pdf})
+\bibitem{} BCM 2711 datasheet (RPi4)\\(\url{https://datasheets.raspberrypi.com/bcm2711/bcm2711-peripherals.pdf})
+\bibitem{} 101 BASIC computer games\\(\url{https://annarchive.com/files/Basic_Computer_Games_Microcomputer_Edition.pdf})
 \bibitem{} Low Level Devel (\url{https://github.com/rockytriton/LLD/tree/main})
-\bibitem{} uBASIC: a really simple BASIC interpreter (\url{https://github.com/adamdunkels/ubasic})
+\bibitem{} uBASIC: a really simple BASIC interpreter\\ (\url{https://github.com/adamdunkels/ubasic})
 \bibitem{} SD and SDIO (\url{http://yannik520.github.io/sdio.html})
 \bibitem{} Bare Metal RPi4OS (\url{https://www.rpi4os.com/})
 \bibitem{} Czcionka (\url{https://github.com/dhepper/font8x8})

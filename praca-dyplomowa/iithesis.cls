@@ -160,7 +160,7 @@
 \renewcommand \maketitlehookb {
   \vfilneg
   \begin{center}\large
-  \if@pol{\selectlanguage{english}(\@englishtitle)}
+  \if@pol{}
          {\selectlanguage{polish}(\@polishtitle)}
   \end{center}
   \selectlanguage{polish}
@@ -194,7 +194,7 @@
 
 \AtBeginDocument{
   \if@pol{\selectlanguage{polish}\old@title{\bfseries\@polishtitle\mdseries}}
-         {\selectlanguage{english}\old@title{\bfseries\@englishtitle\mdseries}}
+         {}
   \let\old@nd\and
   \renewcommand \and {, }
   \hypersetup{pdfauthor={\@author},pdftitle={\@title} }

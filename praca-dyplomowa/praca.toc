@@ -1,7 +1,5 @@
 \babel@toc {english}{}\relax 
 \babel@toc {polish}{}\relax 
-\babel@toc {english}{}\relax 
-\babel@toc {polish}{}\relax 
 \babel@toc {polish}{}\relax 
 \babel@toc {polish}{}\relax 
 \babel@toc {polish}{}\relax 
@@ -40,22 +38,22 @@
 \contentsline {subsection}{\numberline {3.4.4.}Sprawdzenie poprawności wyrażenia}{21}{subsection.3.4.4}%
 \contentsline {chapter}{\numberline {4.}Pamięć}{23}{chapter.4}%
 \contentsline {section}{\numberline {4.1.}Zarządzanie pamięcią}{23}{section.4.1}%
-\contentsline {subsection}{\numberline {4.1.1.}Sterta i dynamiczna alokacja pamięci}{23}{subsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.1.1.}Sterta i dynamiczna alokacja pamięci}{24}{subsection.4.1.1}%
 \contentsline {subsection}{\numberline {4.1.2.}Narzędzia ułatwiające pracę z pamięcią}{24}{subsection.4.1.2}%
 \contentsline {section}{\numberline {4.2.}MMU}{25}{section.4.2}%
 \contentsline {section}{\numberline {4.3.}DMA}{25}{section.4.3}%
 \contentsline {subsection}{\numberline {4.3.1.}Proces włączenia DMA w Raspberry PI}{25}{subsection.4.3.1}%
-\contentsline {subsection}{\numberline {4.3.2.}Proces wysyłania danych przez DMA}{25}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.2.}Proces wysyłania danych przez DMA}{26}{subsection.4.3.2}%
 \contentsline {chapter}{\numberline {5.}Komunikacja}{27}{chapter.5}%
 \contentsline {section}{\numberline {5.1.}GPIO}{27}{section.5.1}%
 \contentsline {section}{\numberline {5.2.}UART}{28}{section.5.2}%
 \contentsline {section}{\numberline {5.3.}Klawiatura}{28}{section.5.3}%
 \contentsline {section}{\numberline {5.4.}HDMI}{30}{section.5.4}%
 \contentsline {subsection}{\numberline {5.4.1.}Inicjalizacja i konfiguracja HDMI}{30}{subsection.5.4.1}%
-\contentsline {subsection}{\numberline {5.4.2.}Aktualizacja bufora i wydajność}{30}{subsection.5.4.2}%
+\contentsline {subsection}{\numberline {5.4.2.}Aktualizacja bufora i wydajność}{31}{subsection.5.4.2}%
 \contentsline {section}{\numberline {5.5.}Karta SD}{31}{section.5.5}%
 \contentsline {subsection}{\numberline {5.5.1.}Komunikacja z kartą SD}{31}{subsection.5.5.1}%
-\contentsline {subsection}{\numberline {5.5.2.}Przechowywanie danych}{31}{subsection.5.5.2}%
+\contentsline {subsection}{\numberline {5.5.2.}Przechowywanie danych}{32}{subsection.5.5.2}%
 \contentsline {subsection}{\numberline {5.5.3.}Obsługa plików}{32}{subsection.5.5.3}%
 \contentsline {chapter}{\numberline {6.}Podsumowanie}{33}{chapter.6}%
-\contentsline {chapter}{Bibliografia}{35}{chapter*.2}%
+\contentsline {chapter}{Bibliografia}{35}{chapter*.8}%
