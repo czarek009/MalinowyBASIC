@@ -15,8 +15,8 @@
 % polecenia \fmlinebreak.
 \polishtitle    {Raspberry Pi BASIC}
 \englishtitle   {}
-\polishabstract {Celem niniejszej pracy jest implementacja systemu z~interpreterem języka programowania BASIC działającego na mikrokomputerah z~serii Raspberry Pi w~wersji 3. i~4. Zaproponowany dialekt bazuje na tym wykorzystywanym w~latach '80 w~popularnych komputerach Commodore 64. Program nie tylko umożliwia pracę w~starym stylu na współczesnym sprzęcie, ale także prezentuje możliwości jakie dają te popularne płytki i~pokazuje jak wykorzystać je programując bare-metal, co stanowi większe wyzwanie niż w~przypadku gdy jest ona kontrolowana przez dedykowany system operacyjny Raspbian. Wykorzystując wbudowane złącza projekt wspiera obsługę karty SD oraz wyjście wideo HDMI, a także poprzez wyprowadzone piny GPIO umożliwia podłączenie zewnętrznej klawiatury ze złączem PS2 lub DIN5.}
-\englishabstract{The aim of this thesis is to implement a system with a BASIC programming language interpreter that runs on Raspberry Pi series microcomputers versions 3. and 4. The proposed dialect is based on the one used in the '80s in the popular Commodore 64 computers. The program not only allows retro-style operation on modern hardware, but also demonstrates the capabilities of these popular boards. In addition, it presents how to take advantage of the Raspberry Pi's features by programming bare-metal, which is rather more demanding than when managed by a dedicated Raspbian operating system. Using the built-in connectors, the project provides support for SD card and HDMI video output, along with the ability to connect an external keyboard with a PS2 or DIN5 port through the derived GPIO pins.}
+\polishabstract {Celem niniejszej pracy jest implementacja systemu z~interpreterem języka programowania BASIC działającego na mikrokomputerah z~serii Raspberry Pi w~wersji 3. i~4. Zaproponowany dialekt bazuje na tym wykorzystywanym w~latach '80 w~popularnych komputerach Commodore 64. Program nie tylko umożliwia pracę w~starym stylu na współczesnym sprzęcie, ale także prezentuje możliwości jakie dają te popularne płytki i~pokazuje jak wykorzystać je programując bare-metal, co stanowi większe wyzwanie niż w~przypadku gdy jest ona kontrolowana przez dedykowany system operacyjny Raspbian. Wykorzystując wbudowane złącza projekt wspiera obsługę karty SD oraz wyjście wideo HDMI, a także poprzez wyprowadzone piny GPIO umożliwia podłączenie zewnętrznej klawiatury ze złączem mini-DIN6 lub DIN5.}
+\englishabstract{The aim of this thesis is to implement a system with a BASIC programming language interpreter that runs on Raspberry Pi series microcomputers versions 3. and 4. The proposed dialect is based on the one used in the '80s in the popular Commodore 64 computers. The program not only allows retro-style operation on modern hardware, but also demonstrates the capabilities of these popular boards. In addition, it presents how to take advantage of the Raspberry Pi's features by programming bare-metal, which is rather more demanding than when managed by a dedicated Raspbian operating system. Using the built-in connectors, the project provides support for SD card and HDMI video output, along with the ability to connect an external keyboard with a mini-DIN6 or DIN5 port through the derived GPIO pins.}
 % w~pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
 \author         {Aleksandra Kosińska \and Cezary Stajszczyk}
 % w~przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
@@ -172,7 +172,7 @@ Ważne jest wykrycie, czy operator obsługuje dane typy oraz czy te dwa typy mog
 
 
 \chapter{Pamięć}
-Zarządzanie pamięcią w~systemach embedded znacznie różni się od podejścia stosowanego w~maszynach, z~których korzystamy na co dzień. Jednym z~najważniejszych aspektów jest skuteczne wykorzystanie dostępnych zasobów. Zintegrowane systemy, takie jak RaspberryPi, oferują ograniczoną ilość pamięci RAM. W modelu RPi3B wynosi ona jedynie 1GB. Z tego powodu ważne jest, aby pamięć była wykorzystywana w~sposób efektywny.
+Zarządzanie pamięcią w~systemach embedded znacznie różni się od podejścia stosowanego w~maszynach, z~których korzystamy na co dzień. Jedyne co oferuje RaspberryPi zaraz po uruchomieniu to obszar fizycznej pamięci, którą zarządzać trzeba samodzielnie. Nie ma gotowego podziału na stos i stertę, nie ma dynamicznego alokatora pamięci i nie ma żadnych mechanizmów ochrony pamięci. Konieczność tworzenia wszystkiego od podstaw wymaga lepszego zrozumienia działania komputerów, niż w przypadku programowania na zwykły komputer osobisty z systemem operacyjnym.
 \section{Zarządzanie pamięcią}
 \begingroup
 \centering
@@ -192,7 +192,7 @@ W środowisku programowania embedded, gdzie dostęp do standardowych narzędzi, 
 Dodatkowo, dla celów diagnostycznych, wprowadzona została możliwość wizualizacji struktury pamięci za pomocą instrukcji \texttt{MEM}. Ta funkcjonalność pozwala na wydrukowanie elementów sterty, co znacząco ułatwiało proces identyfikacji potencjalnych problemów z~zarządzaniem pamięcią.
 
 \section{MMU}
- Domyślnie procesor wymaga, aby wszystkie dostępy do pamięci miały odpowiednio wyrównany adres. Okazało się to problematyczne, ponieważ w~niektórych przypadkach była potrzeba użycia spakowanych struktur (\texttt{\_\_attribute\_\_((\_\_packed\_\_))}). Rozwiązaniem tego problemu jest aktywowanie jednostki zarządzającej pamięcią (\textit{Memory Management Unit, MMU}). Jednak aktywacja MMU niesie za sobą konieczność utworzenia mapy pamięci. Ponieważ projekt ten działa tylko w~trybie uprzywilejowanym i~nie zachodzi potrzeba tworzenia wielu przestrzeni wirtualnych istnieje tylko jedno mapowanie - jest to proste mapowanie 1:1.
+Domyślnie procesory o architekturze AArch64 operują na pamięci w restrykcyjnym trybie \texttt{nGnRnE}. Wymaga on między innymi, aby wszystkie dostępy do pamięci były wyrównane do ich rozmiaru. Próba wykonania operacji na niewyrównanym adresie kończyła się wyjątkiem procesora. Okazało się to problematyczne, ponieważ w~niektórych przypadkach była potrzeba użycia upakowanych struktur (\texttt{\_\_attribute\_\_((\_\_packed\_\_))}). Aby zmienić tryb i rozwiązać ten problem należy aktywować jednostkę zarządzającą pamięcią (\textit{Memory Management Unit, MMU}). Jednak aktywacja MMU niesie za sobą konieczność utworzenia mapy pamięci. Ponieważ projekt ten działa tylko w~trybie uprzywilejowanym i~nie zachodzi potrzeba tworzenia wielu przestrzeni wirtualnych istnieje tylko jedno mapowanie - jest to proste mapowanie 1:1.
 
 \section{DMA}
 Direct Memory Access, znane jako DMA, odgrywa kluczową rolę w~zaawansowanych systemach komputerowych, oferując skuteczne mechanizmy przesyłu danych. W opisywanym projekcie, jednym z~głównych celów jest zapewnienie użytkownikowi doskonałej jakości interakcji wizualnej. Odbywa się to dzięki modułowi HDMI, którego wydajność jest ściśle związana z~mechanizmami przesyłu danych. Aby zoptymalizować ten proces i~zapewnić płynność działania, technologia DMA staje się niezbędna. Umożliwia ona bezpośredni transfer ustalonej ilości bajtów między pamięcią a innymi podzespołami sprzętowymi, eliminując potrzebę pośrednictwa procesora.
@@ -222,13 +222,13 @@ Mini UART posiada własne przerwania, a to właśnie na przerwaniach oparty jest
 Korzystanie z~UART'a, choć w~teorii wystarczające, bo umożliwia komunikacje w~obydwie strony, jest o~tyle uciążliwe, że wymaga drugiego komputera.
 
 \section{Klawiatura}
-Jako samodzielne urządzenie do wprowadzania danych wybór padł na stare klawiatury ze złączem PS/2 lub DIN5. Korzystają one z~prostego protokołu wykorzystującego dwa przewody - zegar i~dane. Protokół ten jest półdupleksowy, jednak na potrzeby tego projektu dwustronna komunikacja nie jest potrzebna, przyjmowanie danych od klawiatury do Raspberry jest w~zupełności wystarczające.
+Jako samodzielne urządzenie do wprowadzania danych wybór padł na stare klawiatury ze złączem mini-DIN6 lub DIN5. Korzystają one z~prostego protokołu wykorzystującego dwa przewody - zegar i~dane. Protokół ten jest półdupleksowy, jednak na potrzeby tego projektu dwustronna komunikacja nie jest potrzebna, przyjmowanie danych od klawiatury do Raspberry jest w~zupełności wystarczające.
 
 \begingroup
 \centering
 \includegraphics[width=0.75\textwidth]{pinout.png}
 \captionsetup{type=figure}
-\caption{Piny męskich złączy PS2 oraz DIN5}
+\caption{Piny męskich złączy mini-DIN6 oraz DIN5}
 \endgroup
 
 Na jeden kod wysłany przez klawiaturę składa się jedenaście bitów: osiem bitów danych, jeden bit parzystości, oraz po jednym bicie oznaczającym początek oraz koniec transmisji. W celu podłączenie klawiatury do mikrokomputera należy podłączyć przewód danych do pinu nr 5, a przewód zegarowy do pinu nr 6. Na pinie zegarowym włączone jest przerwanie aktywowane zboczem opadającym. Następne w~procedurze obsługi przerwania w~pętli następuje odczytanie wszystkich 11 bitów, przekonwertowanie na kod ASCII i~wysłanie do odpowiedniej funkcji odpowiadającej za obsługę wejścia, tej samej co w~przypadku UART'a.
@@ -240,7 +240,9 @@ Na jeden kod wysłany przez klawiaturę składa się jedenaście bitów: osiem b
 \caption{Sygnały CLOCK oraz DATA}
 \endgroup
 
-Wysyłane kody nie są jednak kodami ASCII zrozumiałymi dla języka C, należy je więc najpierw na takie przekonwertować. Oprócz kodów przypisanych do poszczególnych przycisków jest jeszcze specjalny kod o~numerze 240, oznaczającymi zwolnienie przycisku o~kodzie wysłany jako następny. Tak więc na pojedyńcze wciśnięcie klawisza składają się trzy kody: kod wciśniętego przycisku, 240 oraz ponownie kod wciśniętego przycisku. Dłuższe wciśnięcie jest obsługiwane przez klawiaturę poprzez wielokrotne wysyłanie kodu przycisku przed kodem 240.
+Wysyłane kody nie są jednak kodami ASCII zrozumiałymi dla języka C, należy je więc najpierw na takie przekonwertować. Oprócz kodów przypisanych do poszczególnych przycisków jest jeszcze specjalny kod o~numerze 240, oznaczający zwolnienie przycisku o~kodzie wysłany jako następny. Tak więc na pojedyńcze wciśnięcie klawisza zazwyczaj składają się trzy kody: kod wciśniętego przycisku, 240 oraz ponownie kod wciśniętego przycisku. Dłuższe wciśnięcie jest obsługiwane przez klawiaturę poprzez wielokrotne wysyłanie kodu przycisku przed kodem 240.
+
+Niektóre przyciski, takie jak prawy alt lub strzałki mają kody złożone z dwóch bajtów, z których pierwszy ma wartość 224. Te przyciski jednak nie mają żadnego zastosowania w projekcie, dlatego kod 224 jest pomijany. Z tego powodu wciśnięcie na przykład strzałki w prawo zostanie przeez program zrozumiane tak samo, jak wciśnięcie 6 na klawiaturze numerycznej.
 
 \begingroup
 \centering
@@ -249,8 +251,15 @@ Wysyłane kody nie są jednak kodami ASCII zrozumiałymi dla języka C, należy 
 \caption{Kody przycisków na klawiaturze}
 \endgroup
 
-Klawiatury standardowo działają z~napięciem zasilania +5V i~takie też napięcie wysyłają na piny danych i~zegara. Piny GPIO działają natomiast z~napięciem +V. Niektóre klawiatury działają z~niższym napięciem, jednak by mieć pewność, że każda klawiatura będzie działać prawidłowo, w~projekcie wykorzystany został prosty konwerter poziomów logicznych bazujący na układzie BSS138.
- 
+Klawiatury standardowo działają z~napięciem zasilania +5V i~takie też napięcie wysyłają na piny danych i~zegara. Piny GPIO używają napięcia +3.3V. Niektóre klawiatury działają z~niższym napięciem, jednak by mieć pewność, że każda klawiatura będzie działać prawidłowo, w~projekcie wykorzystany został prosty konwerter poziomów logicznych bazujący na tranzystorze BSS138.
+
+\begingroup
+\centering
+\includegraphics[width=0.5\textwidth]{bss.png}
+\captionsetup{type=figure}
+\caption{Konwerter poziomów logicznych}
+\endgroup
+
 \section{HDMI}
 W ramach rozwoju przedstawionego systemu, kluczowym wyzwaniem stało się umożliwienie użytkownikowi wizualnej interakcji z~interfejsem. W tym celu niezbędne okazało się zaprojektowanie i~wdrożenie dedykowanego modułu HDMI, który odpowiedzialny jest za przesyłanie obrazu do urządzenia wyświetlającego.
 \subsection{Inicjalizacja i~konfiguracja HDMI}

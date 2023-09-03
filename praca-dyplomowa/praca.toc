@@ -51,8 +51,8 @@
 \contentsline {subsection}{\numberline {4.4.1.}Inicjalizacja i~konfiguracja HDMI}{28}{subsection.4.4.1}%
 \contentsline {subsection}{\numberline {4.4.2.}Aktualizacja bufora i~wydajność}{29}{subsection.4.4.2}%
 \contentsline {section}{\numberline {4.5.}Karta SD}{29}{section.4.5}%
-\contentsline {subsection}{\numberline {4.5.1.}Komunikacja z~kartą SD}{29}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.1.}Komunikacja z~kartą SD}{30}{subsection.4.5.1}%
 \contentsline {subsection}{\numberline {4.5.2.}Przechowywanie danych}{31}{subsection.4.5.2}%
 \contentsline {subsection}{\numberline {4.5.3.}Obsługa plików}{32}{subsection.4.5.3}%
-\contentsline {chapter}{Podsumowanie}{33}{chapter*.11}%
-\contentsline {chapter}{Bibliografia}{35}{chapter*.12}%
+\contentsline {chapter}{Podsumowanie}{33}{chapter*.12}%
+\contentsline {chapter}{Bibliografia}{35}{chapter*.13}%
