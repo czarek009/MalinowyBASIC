@@ -15,8 +15,8 @@
 % polecenia \fmlinebreak.
 \polishtitle    {Raspberry Pi BASIC}
 \englishtitle   {}
-\polishabstract {Celem niniejszej pracy jest implementacja systemu z~interpreterem języka programowania BASIC działającego na mikrokomputerah z~serii Raspberry Pi w~wersji 3. i~4. Zaproponowany dialekt bazuje na tym wykorzystywanym w~latach '80 w~popularnych komputerach Commodore 64. Program nie tylko umożliwia pracę w~starym stylu na współczesnym sprzęcie, ale także prezentuje możliwości jakie dają te popularne płytki i~pokazuje jak wykorzystać je programując bare-metal, co stanowi większe wyzwanie niż w~przypadku gdy jest ona kontrolowana przez dedykowany system operacyjny Raspbian. Wykorzystując wbudowane złącza projekt wspiera obsługę karty SD oraz wyjście wideo HDMI, a~także poprzez wyprowadzone piny GPIO umożliwia podłączenie zewnętrznej klawiatury ze złączem mini-DIN6 lub DIN5.}
-\englishabstract{The aim of this thesis is to implement a~system with a~BASIC programming language interpreter that runs on Raspberry Pi series microcomputers versions 3. and 4. The proposed dialect is based on the one used in the '80s in the popular Commodore 64 computers. The program not only allows retro-style operation on modern hardware, but also demonstrates the capabilities of these popular boards. In addition, it presents how to take advantage of the Raspberry Pi's features by programming bare-metal, which is rather more demanding than when managed by a~dedicated Raspbian operating system. Using the built-in connectors, the project provides support for SD card and HDMI video output, along with the ability to connect an external keyboard with a~mini-DIN6 or DIN5 port through the derived GPIO pins.}
+\polishabstract {Celem niniejszej pracy jest implementacja systemu z~interpreterem języka programowania BASIC działającego na mikrokomputerah z~serii Raspberry Pi w~wersji 3. i~4. Zaproponowany dialekt bazuje na tym wykorzystywanym w~latach '80 w~popularnych komputerach Commodore 64. Program nie tylko umożliwia pracę w~starym stylu na współczesnym sprzęcie, ale także prezentuje możliwości jakie dają te popularne płytki i~pokazuje jak wykorzystać je programując \textit{bare-metal}, co stanowi większe wyzwanie niż w~przypadku gdy jest ona kontrolowana przez dedykowany system operacyjny Raspbian. Wykorzystując wbudowane złącza projekt wspiera obsługę karty SD oraz wyjście wideo HDMI, a~także poprzez wyprowadzone piny GPIO umożliwia podłączenie zewnętrznej klawiatury PS2 ze złączem mini-DIN6 lub DIN5.}
+\englishabstract{The aim of this thesis is to implement a~system with a~BASIC programming language interpreter that runs on Raspberry Pi series microcomputers versions 3. and 4. The proposed dialect is based on the one used in the '80s in the popular Commodore 64 computers. The program not only allows retro-style operation on modern hardware, but also demonstrates the capabilities of these popular boards. In addition, it presents how to take advantage of the Raspberry Pi's features by programming bare-metal, which is rather more demanding than when managed by a~dedicated Raspbian operating system. Using the built-in connectors, the project provides support for SD card and HDMI video output, along with the ability to connect an external PS2 keyboard with a~mini-DIN6 or DIN5 port through the derived GPIO pins.}
 % w~pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
 \author         {Aleksandra Kosińska \and Cezary Stajszczyk}
 % w~przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
@@ -50,7 +50,7 @@
 \addcontentsline{toc}{chapter}{Wstęp}
 Dynamiczne tempo rozwoju w~dziedzinie informatyki prowadzi do powstawania nowoczesnych technologii oraz narzędzi programistycznych. Niemniej jednak, fundamentalne zrozumienie działania systemów komputerowych na jak najniższej warstwie abstrakcji zachowuje swoją edukacyjną i~badawczą wartość.
 
-Celem niniejszej pracy inżynierskiej jest zaprojektowanie oraz implementacja systemu operacyjnego działającego w~środowisku bare-metal na platformie RaspberryPi, umożliwiającego tworzenie i~uruchamianie programów napisanych w~języku BASIC. Jest to język, a~w~zasadzie cała rodzina języków programowania, której historia rozpoczyna się w~1963 roku w~Dartmouth College. Twórcami oryginalnej wersji byli John G. Kemeny oraz Thomas E. Kurtz. 
+Celem niniejszej pracy inżynierskiej jest zaprojektowanie oraz implementacja systemu operacyjnego działającego w~środowisku \textit{bare-metal} na platformie RaspberryPi, umożliwiającego tworzenie i~uruchamianie programów napisanych w~języku BASIC. Jest to język, a~w~zasadzie cała rodzina języków programowania, której historia rozpoczyna się w~1963 roku w~Dartmouth College. Twórcami oryginalnej wersji byli John G. Kemeny oraz Thomas E. Kurtz. 
 
 BASIC w~latach 80. był swego rodzaju standardem. Język ten pełnił rolę powłoki systemowej w~mikrokomputerach, które zyskały wówczas popularność. W~przeciwieństwie do czasów obecnych, gdzie występują powłoki graficzne, komunikacja z~komputerem odbywała się właśnie za pomocą programowania w~BASIC'u.
 
@@ -60,7 +60,7 @@ Na wybór tematu pracy oprócz zamiłowania retroinformatyką wpłnęło równie
 
 
 \chapter{Podstawy projektu}
-Raspberry Pi to nazwa serii komputerów jednopłytkowych stworzonych przez brytyjską organizację charytatywną, której celem jest edukowanie ludzi w~zakresie informatyki i~ułatwianie dostępu do edukacji informatycznej. Oryginalnie Raspberry Pi zostało wyprodukowane z~myślą o~języku Python, jednak w~prezentowanej pracy obrano zupełnie inne podejście do użytkowania tego urządzenia. Skupiono się na programowaniu niskopoziomowym - tworząc kod w~języku C i~Asembler który działa na sprzęcie bezpośrednio, bez żadnej podstawowej abstrakcji, takiej jak system operacyjny.
+Raspberry Pi to nazwa serii komputerów jednopłytkowych stworzonych przez brytyjską organizację charytatywną, której celem jest edukowanie ludzi w~zakresie informatyki i~ułatwianie dostępu do edukacji informatycznej. Oryginalnie Raspberry Pi zostało wyprodukowane z~myślą o~języku Python, jednak w~prezentowanej pracy obrano zupełnie inne podejście do użytkowania tego urządzenia. Skupiono się na programowaniu niskopoziomowym --- tworząc kod w~języku C i~Asembler który działa na sprzęcie bezpośrednio, bez żadnej podstawowej abstrakcji, takiej jak system operacyjny.
 
 \section{Budowa projektu}
 Programowanie systemów wbudowanych, stanowi wyjątkowe wyzwanie inżynieryjne. Charakter tego typu projektów wymaga nie tylko zaawansowanej wiedzy technicznej, ale również wykorzystania odpowiednich narzędzi, które uwzględniają specyfikę docelowej platformy sprzętowej. Przy niewłaściwym podejściu istnieje ryzyko, że RaspberryPi nie uruchomi się w~sposób zamierzony. W~niniejszym rozdziale przedstawiona zostanie struktura oraz proces konstrukcji projektu systemu niskopoziomowego przeznaczonego dla platformy RaspberryPi.
@@ -72,7 +72,7 @@ Programowanie systemów wbudowanych, stanowi wyjątkowe wyzwanie inżynieryjne. 
 \caption{Płytka Raspberry Pi 3B}
 \endgroup
 \subsection{Cross-compiler}
-W ramach projektowania systemów niskopoziomowych dla specyficznych platform, takich jak RaspberryPi, kluczowym narzędziem jest cross-compiler (kompilator skrośny). Ze wzgędu na to, że architektura procesorów RaspberryPi różni się od konwencjonalnych komputerów, kompilacja bezpośrednio na nich byłaby nieefektywna. Cross-compiler, jak nazwa wskazuje, pozwala kompilować kod na jednej platformie tak, aby był on przeznaczony do wykonania na innej. W~niniejszym projekcie, jako kompilator skrośny został wykorzystany \texttt{aarch64-linux-gnu}, który jest dedykowany dla architektury ARM.
+W ramach projektowania systemów niskopoziomowych dla specyficznych platform, takich jak RaspberryPi, kluczowym narzędziem jest \textit{cross-compiler} (kompilator skrośny). Ze wzgędu na to, że architektura procesorów RaspberryPi różni się od konwencjonalnych komputerów, kompilacja bezpośrednio na nich byłaby nieefektywna. \textit{Cross-compiler}, jak nazwa wskazuje, pozwala kompilować kod na jednej platformie tak, aby był on przeznaczony do wykonania na innej. W~niniejszym projekcie, jako kompilator skrośny został wykorzystany \texttt{aarch64-linux-gnu}, który jest dedykowany dla architektury ARM.
 \subsection{Struktura katalogów}
 Projekt jest zorganizowany w~przejrzystą strukturę katalogów. Katalog \texttt{src} zawiera pliki źródłowe z~rozszerzeniem \texttt{.c} i~\texttt{.S}, definiujące logiczną strukturę projektu. Natomiast, katalog \texttt{include} gromadzi pliki nagłówkowe \texttt{.h}, które umożliwiają deklaracje funkcji, struktur danych oraz innych kluczowych elementów używanych w~kodzie źródłowym.
 \subsection{Proces budowy}
@@ -87,11 +87,11 @@ Aby Raspberry Pi mogło uruchomić napisany program, należy najpierw odpowiedni
 \subsection{Niezbędne pliki}
 Gdy karta SD jest już odpowiednio sformatowana, należy na partycji odpowiedzialnej za bootowanie umieścić odpowiednie pliki:
 \begin{itemize}
- \item \texttt{config.txt}  - plik z~początkową konfiguracją płytki czytany przez bootloader. W~komputerach domowych taka początkowa konfiguracja jest zazwyczaj przechowywana w~pamięci BIOSu. Raspberry Pi jednak go nie posiada, dlatego konfiguracaj przechowywana jest w~zwyczajnym pliku tekstowym;
- \item \texttt{bootcode.bin}  - zawiara kod bootloadera. Wykonuje on podstawową konfiguracje, a~następnie ładuje plik \texttt{start.elf}. Jest wymagany tylko na RPi3, a~w~nowszych wersjach płytki został zastąpiony przez kod zapisany w~pamięci EEPROM bezpośrednio na płytce. Można go pozyskać z~instalacji zwykłego Raspbiana dostępnego na stronie producenta;
- \item \texttt{start.elf}  - kod z~firmwarem, odpowiedzialny za uruchomienie GPU oraz przeczytanie i~wdrożenie konfiguracji z~pliku \texttt{config.txt}. Również dostępny z~Raspbianem;
- \item \texttt{kernel8.img}  - najważniejszy plik zawierający cały kod projektu. Ósemka na końcu nazwy oznacza, że jest to obraz 64-bitowy. Zostanie on domyślnie załadowany pod adres 0x80000 (512KB);
- \item \texttt{armstub.bin}  - ten plik w~ogólności nie jest niezbędny do uruchomienia mikrokomputera, ale jest szczególnie istotny z~perspektywy tego projektu, ponieważ w~założeniu projekt ma działać na Rasperry Pi zarówno w~wersji 3. jak i~4. Jest to dodatkowa część bootloadera ładowana pod adres 0x0, która wykonywana jest przed kodem z~kernel8.img i~ma na celu ujednolicenie stanu maszyny przed przejściem do kodu głównego, ponieważ domyślnie różne wersje płytek bootują się z~nieco innymi konfiguracjami.
+ \item \texttt{config.txt}  --- plik z~początkową konfiguracją płytki czytany przez bootloader. W~komputerach domowych taka początkowa konfiguracja jest zazwyczaj przechowywana w~pamięci BIOSu. Raspberry Pi jednak go nie posiada, dlatego konfiguracaj przechowywana jest w~zwyczajnym pliku tekstowym;
+ \item \texttt{bootcode.bin}  --- zawiara kod bootloadera. Wykonuje on podstawową konfiguracje, a~następnie ładuje plik \texttt{start.elf}. Jest wymagany tylko na RPi3, a~w~nowszych wersjach płytki został zastąpiony przez kod zapisany w~pamięci EEPROM bezpośrednio na płytce. Można go pozyskać z~instalacji zwykłego Raspbiana dostępnego na stronie producenta;
+ \item \texttt{start.elf}  --- kod z~firmwarem, odpowiedzialny za uruchomienie GPU oraz przeczytanie i~wdrożenie konfiguracji z~pliku \texttt{config.txt}. Również dostępny z~Raspbianem;
+ \item \texttt{kernel8.img}  --- najważniejszy plik zawierający cały kod projektu. Ósemka na końcu nazwy oznacza, że jest to obraz 64-bitowy. Zostanie on domyślnie załadowany pod adres 0x80000 (512KB);
+ \item \texttt{armstub.bin}  --- ten plik w~ogólności nie jest niezbędny do uruchomienia mikrokomputera, ale jest szczególnie istotny z~perspektywy tego projektu, ponieważ w~założeniu projekt ma działać na Rasperry Pi zarówno w~wersji 3. jak i~4. Jest to dodatkowa część bootloadera ładowana pod adres 0x0, która wykonywana jest przed kodem z~kernel8.img i~ma na celu ujednolicenie stanu maszyny przed przejściem do kodu głównego, ponieważ domyślnie różne wersje płytek bootują się z~nieco innymi konfiguracjami.
 \end{itemize}
 
 \section{Bootowanie}
@@ -103,20 +103,20 @@ Proces bootowania RaspberryPi rozpoczyna się od wczytania z~karty SD pliku \tex
 \subsection{Sygnalizacja statusu bootowania za pomocą LED}
 Wbudowany mechanizm diagnostyczny RaspberryPi pozwala na szybką identyfikację problemów występujących w~trakcie bootowania. Sygnalizacja odbywa się za pomocą zintegrowanej zielonej diody LED na płytce RaspberryPi. Znaczenie poszczególnych sekwencji mrugnięć jest następujące:
 \begin{itemize}
- \item ciągłe światło - wskazuje, że karta SD została prawidłowo podłączona;
- \item szybkie mruganie - oznacza aktywny odczyt lub zapis na kartę SD;
- \item trzy mrugnięcia - sygnalizują niepowodzenie procesu bootowania;
- \item cztery mrugnięcia - informują o~braku pliku \texttt{start.elf na karcie SD};
- \item siedem mrugnięć - wskazują na brak pliku \texttt{kernel.img};
- \item osiem lub dziewięć mrugnięć - sygnalizują błąd pamięci SDRAM;
- \item dziesięć mrugnięć - stan "halt", wskazujący na krytyczny błąd systemu.
+ \item ciągłe światło --- wskazuje, że karta SD została prawidłowo podłączona;
+ \item szybkie mruganie --- oznacza aktywny odczyt lub zapis na kartę SD;
+ \item trzy mrugnięcia --- sygnalizują niepowodzenie procesu bootowania;
+ \item cztery mrugnięcia --- informują o~braku pliku \texttt{start.elf na karcie SD};
+ \item siedem mrugnięć --- wskazują na brak pliku \texttt{kernel.img};
+ \item osiem lub dziewięć mrugnięć --- sygnalizują błąd pamięci SDRAM;
+ \item dziesięć mrugnięć --- stan "halt", wskazujący na krytyczny błąd systemu.
 \end{itemize}
 
 
 \section{Debugowanie}
 W środowisku embedded, diagnozowanie oraz wykrywanie błędów jest procesem niezwykle skomplikowanym ze względu na bezpośrednią interakcję napisanego systemu z~warstwą sprzętową. Kolejnym utrudnieniem jest brak wsparcia rozbudowanych mechanizmów diagnostycznych, które dostępne są w~pełnych systemach operacyjnych. 
 \subsection{Mechanizmy obsługi przerwań i~wyjątków}
-W omawianym projekcie, podczas inicjalizacji systemu ustawiany jest poziom uprzywilejowania dostępu na Exception Level 1. Mechanizmy przerwań stanowią kluczowy element w~systemach bare-metal, umożliwiając skuteczną komunikację i~reakcję na specyficzne zdarzenia generowane przez komponenty sprzętowe. Odpowiedno skonfigurowane procedury pozwalają na obsługę przerwań, które są oczekiwane.
+W omawianym projekcie, podczas inicjalizacji systemu ustawiany jest poziom uprzywilejowania dostępu na Exception Level 1. Mechanizmy przerwań stanowią kluczowy element w~systemach \textit{bare-metal}, umożliwiając skuteczną komunikację i~reakcję na specyficzne zdarzenia generowane przez komponenty sprzętowe. Odpowiedno skonfigurowane procedury pozwalają na obsługę przerwań, które są oczekiwane.
 
 Sytuacje nieprzewidziane, które również mogą wystąpić, prowadzą do generowania przerwań niespodziewanych. W~takim wypadku, procedura diagnostyczna systemu reaguje poprzez wyświetlenie identyfikatora danego przerwania oraz wartości zawartych w~rejestrach \texttt{elr\_el1} oraz \texttt{esr\_el1}. Rejestr \texttt{elr\_el1}, będący skrótem od "Exception Link Register", przechowuje adres powrotu po zakończeniu obsługi wyjątku. Z~kolei \texttt{esr\_el1} (Exception Syndrome Register) zawiera informacje na temat przyczyn wystąpienia konkretnego zdarzenia. Dzięki interpretacji danych z~tych rejestrów, możliwe jest precyzyjne zidentyfikowanie i~rozwiązanie źródła problemu.
 \subsection{Deasemblacja}
@@ -169,9 +169,9 @@ Instrukcje programu są przechowywane w~formie listy dwukierunkowej. Każdy węz
 Zarządzanie sesją w~opisywanym module nie ogranicza się wyłącznie do przechowywania danych. Zawiera on również różnego rodzaju funkcje, które umożliwiają efektywne operowanie na tej strukturze. Funkcje w~"Session" dają możliwość dodawania, modyfikowania i~usuwania elementów takich jak: zmienne, funkcje oraz instrukcje. Umożliwiają także przeprowadzanie operacji na kolejce danych zgodnie z~wymaganiami języka BASIC. Co więcej, moduł pozwala na uruchomienie całego programu, co jest jego najważniejszą czynnością. Wszystkie operacje dostępne w~module tworzą pełny zestaw fundamentów, niezbędny do przetwarzania i~wykonywania kodu w~języku BASIC.
 
 \section{Parser}
-Moduł parsera jest zdecydowanie mniejszy i~prostszy od pozostałych. Jego główna funkcja \texttt{get\_next\_token()} ma za zadanie dla podanego ciągu znaków zwrócić ID tokenu występującego na początku i~przesunięcie wskaźnika za przeczytany token. W~przypadku niektórych tokenów (na przykład liczby lub nazwy zmiennych) oprócz ID  tokenu niezbędna jest również znajomość jego dokładnej wartości, dlatego przeczytany ciąg znaków jest kopiowany do bufora podanego jako argument funkcji. Kolejność sprawdzania tokenów jest następująca: znak końca linii, liczby (również te w~formacie szesnastkowym), słowa kluczowe i~operatory, a~na końcu nazwy zmiennych i~funkcji. Kolejność ta powoduje, że stworzenie zmiennej o~nazwie będącej słowem kluczowym jest niemożliwe - parser nigdy nie rozpozna tego jako nazwę zmiennej.
+Moduł parsera jest zdecydowanie mniejszy i~prostszy od pozostałych. Jego główna funkcja \texttt{get\_next\_token()} ma za zadanie dla podanego ciągu znaków zwrócić ID tokenu występującego na początku i~przesunięcie wskaźnika za przeczytany token. W~przypadku niektórych tokenów (na przykład liczby lub nazwy zmiennych) oprócz ID  tokenu niezbędna jest również znajomość jego dokładnej wartości, dlatego przeczytany ciąg znaków jest kopiowany do bufora podanego jako argument funkcji. Kolejność sprawdzania tokenów jest następująca: znak końca linii, liczby (również te w~formacie szesnastkowym), słowa kluczowe i~operatory, a~na końcu nazwy zmiennych i~funkcji. Kolejność ta powoduje, że stworzenie zmiennej o~nazwie będącej słowem kluczowym jest niemożliwe --- parser nigdy nie rozpozna tego jako nazwę zmiennej.
 
-Parser ma również wbudowaną funkcjonalność zgłaszania błędów - gdy użytkownik wie, jakiego konkretnego tokenu się spodziewa, może podać jego ID jako argument funkcji. Jeżeli odnaleziony token nie będzie pasować, parser sam zgłosi błąd.
+Parser ma również wbudowaną funkcjonalność zgłaszania błędów --- gdy użytkownik wie, jakiego konkretnego tokenu się spodziewa, może podać jego ID jako argument funkcji. Jeżeli odnaleziony token nie będzie pasować, parser sam zgłosi błąd.
 
 \section{Interpreter}
 Zadaniem interpretera jest wykonanie instrukcji na podstawie ciągu tokenów zwracanych mu przez parser. Skutkiem wykonania instrukcji mogą być dwie rzeczy: zmiana struktury sesji (zdecydowana większość przypadków) lub wydrukowanie czegoś na ekranie (na przykład z~pomocą instrukcji \texttt{PRINT}, ale mogą to też być informacje o~błędach). Do wykonania każdej z~dostępnych instrukcji napisana została osobna funkcja. Konstrukcja BASIC'a jest na tyle prosta, że już po pierwszym przeczytanym tokenie wiadomo jakiej instrukcji sie spodziewać. Główna funkcja czyta pierwszy token, a~następnie na jego podstawie wybiera odpowiednią funkcję i~przekazuje jej ciąg znaków będący pozostałą częścią instrukcji.
@@ -181,7 +181,7 @@ Oprócz możliwości pisania całych programów możliwe jest również wykonywa
 \section{Ewaluator}
 Język BASIC dopuszcza używanie wyrażeń arytmetyczno-logicznych jako argument słów kluczowych. Oznacza to, że tak jak w~większości innych języków programowania, możemy np. zdefiniować zmienną za pomocą działania arytmetycznego (\texttt{LET x = 1+1}). Z~tego powodu w~projekcie potrzebny jest moduł odpowiedzialny za obliczanie wartości wyrażeń.
 \subsection{Algorytm ewaluacji wyrażeń}
-Evaluator jako jeden z~argumentów - w~postaci ciągu znaków - otrzymuje wyrażenie do obliczenia. Korzystając z~funkcji Parsera \texttt{get\_next\_token} pobiera kolejno tokeny z~danego działania.
+Ewaluator jako jeden z~argumentów (w~postaci ciągu znaków) otrzymuje wyrażenie do obliczenia. Korzystając z~funkcji Parsera \texttt{get\_next\_token} pobiera kolejno tokeny z~danego działania.
 
 Następnie na podstawie zwróconego ciągu znaków oraz odpowiedniego mu tokena określa ich typ oraz je ewaluuje. Wówczas sprawdzany jest wyznaczony typ. Jeżeli jest operatorem to przechodzi przez ciąg instrukcji sprawdzający, czy należy go przerzucić na stos wynikowy. Gdy warunek jest spełniony to ze stosu ściągana jest odpowiednio jedna lub dwie wartości w~zależności czy jest to operator jedno lub dwuargumentowy.
 
@@ -190,7 +190,7 @@ Następnie wyliczany jest wynik wyrażenia z~jego udziałem. Obliczona wartość
 Algorytm wykonuje się dopóki otrzymywane tokeny są dopuszczalne w~wyrażeniach lub gdy zostanie wykryty błąd. Po zakończeniu ciągu instrukcji obliczona wartość wyrażenia jako jedyna znajduje się na stosie.
 
 \subsection{Ewaluacja poszczególnych tokenów}
-W zależności od otrzymanego tokenu należy użyć innych metod do ewaluowania wartości pozyskanego od Parsera ciągu znaków. Przykładowo, gdy token wskazuje na numer, używana jest własna funkcja zmieniająca string na liczbę. Niezwykle istotne było w~tym momencie wykrycie, czy jest to liczba zmiennoprzecinkowa, czy też całkowita, aby zapisać ewaluowane wartości do odpowiedniego typu danych. Należało zwrócić również uwagę na to, czy liczby są ujemne - łatwo to osiągnąć sprawdzając czy pierwszy znak bufora jest równy \texttt{'-'}.
+W zależności od otrzymanego tokenu należy użyć innych metod do ewaluowania wartości pozyskanego od Parsera ciągu znaków. Przykładowo, gdy token wskazuje na numer, używana jest własna funkcja zmieniająca string na liczbę. Niezwykle istotne było w~tym momencie wykrycie, czy jest to liczba zmiennoprzecinkowa, czy też całkowita, aby zapisać ewaluowane wartości do odpowiedniego typu danych. Należało zwrócić również uwagę na to, czy liczby są ujemne --- łatwo to osiągnąć sprawdzając czy pierwszy znak bufora jest równy \texttt{'-'}.
 
 Token będący nazwą zmiennej powodował, że konieczne było zajrzenie do środowiska i~pobranie wartości z~listy zapisanych zmiennych. Gdy token okazał się funkcją lub tablicą to należało rekurencyjnie wywołać się odpowiednio na argumentach lub indeksach tych struktur, które mogły być również wyrażeniami. Ważne jest aby poprawnie obsłużyć każdy przypadek tokenu, ponieważ wszystkie mają unikalne sposoby ich ewaluowania.
 
@@ -212,7 +212,7 @@ Zarządzanie pamięcią w~systemach embedded znacznie różni się od podejścia
 \captionsetup{type=figure}
 \caption{Mapa pamięci}
 \endgroup
-Powyższa ilustracja pokazuje jak wygląda mapa pamięci stworzonego systemu. Może zwrócić uwagę, że pewne elementy zapisywane są zaczynając od adresu 0x0, który tradycyjnie kojarzony jest z~nullpointer'em, na którym wykonanie jakiejkolwiek operacji zapisu lub odczyty kończy się błędem. W~przypadku programowania bare-metal tak się jednak nie dzieje. Ponieważ nie ma algorytmów ochrony pamięci, adres 0 traktowany jest tak, jak każdy inny. Jest to w~pewien sposób problematyczne, ponieważ niektóre błędy, które normalnie byłyby raportowane automatycznie, tutaj są trudniejsze do znalezienia.
+Powyższa ilustracja pokazuje jak wygląda mapa pamięci stworzonego systemu. Może zwrócić uwagę, że pewne elementy zapisywane są zaczynając od adresu 0x0, który tradycyjnie kojarzony jest z~nullpointer'em, na którym wykonanie jakiejkolwiek operacji zapisu lub odczyty kończy się błędem. W~przypadku programowania \textit{bare-metal} tak się jednak nie dzieje. Ponieważ nie ma algorytmów ochrony pamięci, adres 0 traktowany jest tak, jak każdy inny. Jest to w~pewien sposób problematyczne, ponieważ niektóre błędy, które normalnie byłyby raportowane automatycznie, tutaj są trudniejsze do znalezienia.
 \subsection{Sterta i~dynamiczna alokacja pamięci}
 Alokator pamięci w~tym projekcie został zaprojektowany z~naciskiem na prostotę i~efektywność. Jego konstrukcja opiera się na liście, składającej się z~trzech segmentów: header'a, payload'u oraz footer'a. Header i~footer zajmują po 4 bajty i~przechowują informacje o~rozmiarze danego bloku pamięci oraz jego statusie (zaalokowany czy wolny). Natomiast payload to miejsce, w~którym przechowywane są faktyczne dane. Dzięki takiej konstrukcji, alokator jest w~stanie skutecznie i~efektywnie zarządzać przestrzenią pamięci. Co ważne, cała lista znajduje się bezpośrednio w~przestrzeni RAM przeznaczonej na stertę, co pozwala na minimalizację zajmowania miejsca na stosie. 
 
@@ -229,7 +229,7 @@ W środowisku programowania embedded, gdzie dostęp do standardowych narzędzi, 
 Dodatkowo, dla celów diagnostycznych, wprowadzona została możliwość wizualizacji struktury pamięci za pomocą instrukcji \texttt{MEM}. Ta funkcjonalność pozwala na wydrukowanie elementów sterty, co znacząco ułatwiało proces identyfikacji potencjalnych problemów z~zarządzaniem pamięcią.
 
 \section{MMU}
-Domyślnie procesory o architekturze AArch64 operują na pamięci w~restrykcyjnym trybie \texttt{nGnRnE}. Wymaga on między innymi, aby wszystkie dostępy do pamięci były wyrównane do ich rozmiaru. Próba wykonania operacji na niewyrównanym adresie kończyła się wyjątkiem procesora. Okazało się to problematyczne, ponieważ w~niektórych przypadkach była potrzeba użycia upakowanych struktur (\texttt{\_\_attribute\_\_((\_\_packed\_\_))}). Aby zmienić tryb i rozwiązać ten problem należy aktywować jednostkę zarządzającą pamięcią (\textit{Memory Management Unit, MMU}). Jednak aktywacja MMU niesie za sobą konieczność utworzenia mapy pamięci. Ponieważ projekt ten działa tylko w~trybie uprzywilejowanym i~nie zachodzi potrzeba tworzenia wielu przestrzeni wirtualnych istnieje tylko jedno mapowanie - jest to proste mapowanie 1:1.
+Domyślnie procesory o architekturze AArch64 operują na pamięci w~restrykcyjnym trybie \texttt{nGnRnE}. Wymaga on między innymi, aby wszystkie dostępy do pamięci były wyrównane do ich rozmiaru. Próba wykonania operacji na niewyrównanym adresie kończyła się wyjątkiem procesora. Okazało się to problematyczne, ponieważ w~niektórych przypadkach była potrzeba użycia upakowanych struktur (\texttt{\_\_attribute\_\_((\_\_packed\_\_))}). Aby zmienić tryb i rozwiązać ten problem należy aktywować jednostkę zarządzającą pamięcią (\textit{Memory Management Unit, MMU}). Jednak aktywacja MMU niesie za sobą konieczność utworzenia mapy pamięci. Ponieważ projekt ten działa tylko w~trybie uprzywilejowanym i~nie zachodzi potrzeba tworzenia wielu przestrzeni wirtualnych istnieje tylko jedno mapowanie --- jest to proste mapowanie 1:1.
 
 \section{DMA}
 Direct Memory Access, znane jako DMA, odgrywa kluczową rolę w~zaawansowanych systemach komputerowych, oferując skuteczne mechanizmy przesyłu danych. W~opisywanym projekcie, jednym z~głównych celów jest zapewnienie użytkownikowi doskonałej jakości interakcji wizualnej. Odbywa się to dzięki modułowi HDMI, którego wydajność jest ściśle związana z~mechanizmami przesyłu danych. Aby zoptymalizować ten proces i~zapewnić płynność działania, technologia DMA staje się niezbędna. Umożliwia ona bezpośredni transfer ustalonej ilości bajtów między pamięcią a~innymi podzespołami sprzętowymi, eliminując potrzebę pośrednictwa procesora.
@@ -240,7 +240,7 @@ Przesyłanie danych za pomocą DMA odbywa się poprzez skonfigurowane kanały, k
 
 
 \chapter{Komunikacja}
-Płytki Raspberry Pi, oprócz pokaźnego zestawu pinów GPIO wyprowadzonych na wlutowane w~płytkę złącza goldpin, posiadają również gotowe porty, takie jak HDMI, USB czy slot na kartę micro SD, które można wykorzystać do komunikacji z~mikrokomputerem. Niektóre z~dostępnych pinów można skonfigurować tak, by obługiwały pewne popularne protokoły komunikacyjne, takie jak na przykład I2C lub UART. Te rozwiązania znacznie ułatwiają stworzenie insterfejsu do komunikacji człowiek - komputer.
+Płytki Raspberry Pi, oprócz pokaźnego zestawu pinów GPIO wyprowadzonych na wlutowane w~płytkę złącza goldpin, posiadają również gotowe porty, takie jak HDMI, USB czy slot na kartę micro SD, które można wykorzystać do komunikacji z~mikrokomputerem. Niektóre z~dostępnych pinów można skonfigurować tak, by obługiwały pewne popularne protokoły komunikacyjne, takie jak na przykład I2C lub UART. Te rozwiązania znacznie ułatwiają stworzenie insterfejsu do komunikacji człowiek-komputer.
 
 \section{GPIO}
 \begingroup
@@ -262,7 +262,7 @@ Mini UART posiada własne przerwania, a~to właśnie na przerwaniach oparty jest
 Korzystanie z~UART'a, choć w~teorii wystarczające, bo umożliwia komunikacje w~obydwie strony, jest o~tyle uciążliwe, że wymaga drugiego komputera.
 
 \section{Klawiatura}
-Jako samodzielne urządzenie do wprowadzania danych wybór padł na stare klawiatury ze złączem mini-DIN6 lub DIN5. Korzystają one z~prostego protokołu wykorzystującego dwa przewody - zegar i~dane. Protokół ten jest półdupleksowy, jednak na potrzeby tego projektu dwustronna komunikacja nie jest potrzebna, przyjmowanie danych od klawiatury do Raspberry jest w~zupełności wystarczające.
+Jako samodzielne urządzenie do wprowadzania danych wybór padł na stare klawiatury PS2 ze złączem mini-DIN6 lub DIN5. Korzystają one z~prostego protokołu wykorzystującego dwa przewody --- zegar i~dane. Protokół ten jest półdupleksowy, jednak na potrzeby tego projektu dwustronna komunikacja nie jest potrzebna, przyjmowanie danych od klawiatury do Raspberry jest w~zupełności wystarczające.
 
 \begingroup
 \centering
@@ -348,20 +348,20 @@ typedef struct {
 } fileS;
 \end{verbatim}
 
-Istnienie pliku w~danym miejscu w~tablicy wskazuje pole \texttt{type} - jeżeli jest różne od zera, plik istnieje. Póki co, wspierane jest jedynie zapisywanie programów w~BASICU, więc 8 bitów jest trochę na wyrost, ale jest to furtka na przyszłość do przechowywania w~pamięci nieulotnej na przykład całych sesji lub obrazków. Tablica przechowuje dane o~32 plikach. Cała partycja danych dzielona jest na równe kawałki, które kolejno przyporządkowane są wpisom w~tablicy plików. Pierwszy wpis jest specjalny i~sygnalizuje systemowi istnienie całego systemu plików: jeżeli po wczytaniu pierwszego bloku partycji danych odnaleziony zostanie tam wpis o~\texttt{id} równym 0, \texttt{type} równym 105 oraz nazwie \texttt{"SPECIAL"}, program potraktuje pierwszy blok jako gotową tablicę plików. W~przeciwnym wypadku taka tablica zostanie utworzona.
+Istnienie pliku w~danym miejscu w~tablicy wskazuje pole \texttt{type} --- jeżeli jest różne od zera, plik istnieje. Póki co, wspierane jest jedynie zapisywanie programów w~BASICU, więc 8 bitów jest trochę na wyrost, ale jest to furtka na przyszłość do przechowywania w~pamięci nieulotnej na przykład całych sesji lub obrazków. Tablica przechowuje dane o~32 plikach. Cała partycja danych dzielona jest na równe kawałki, które kolejno przyporządkowane są wpisom w~tablicy plików. Pierwszy wpis jest specjalny i~sygnalizuje systemowi istnienie całego systemu plików: jeżeli po wczytaniu pierwszego bloku partycji danych odnaleziony zostanie tam wpis o~\texttt{id} równym 0, \texttt{type} równym 105 oraz nazwie \texttt{"SPECIAL"}, program potraktuje pierwszy blok jako gotową tablicę plików. W~przeciwnym wypadku taka tablica zostanie utworzona.
 \subsection{Obsługa plików}
 Do korzystania z~systemu plików udostępnione zostały następujące komendy:
 \begin{itemize}
- \item \texttt{LS} - wypisuje wszystkie pliki zapisane na karcie SD;
- \item \texttt{SAVE name} - zapisuje program z~aktualnej sesji do pliku z~podaną nazwą;
- \item \texttt{LOAD name} - ładuje program o~podanej nazwie z~kadty SD do adkutalnej sesji;
- \item \texttt{DELETE name} - usuwa podany program z~karty SD.
+ \item \texttt{LS} --- wypisuje wszystkie pliki zapisane na karcie SD;
+ \item \texttt{SAVE name} --- zapisuje program z~aktualnej sesji do pliku z~podaną nazwą;
+ \item \texttt{LOAD name} --- ładuje program o~podanej nazwie z~kadty SD do adkutalnej sesji;
+ \item \texttt{DELETE name} --- usuwa podany program z~karty SD.
 \end{itemize}
 W każdej z~podanych komend \texttt{name} musi być różne od \texttt{"SPECIAL"} i~może mieć co najwyżej 10 znaków
 
 \chapter*{Podsumowanie}
 \addcontentsline{toc}{chapter}{Podsumowanie}
-Realizacja projektu polegającego na stworzeniu systemu bare-metal dla platformy Raspberry Pi z~interpreterem języka BASIC była nie tylko ambitnym przedsięwzięciem, ale również źródłem wielu wyzwań oraz okazją do zdobycia cennych doświadczeń. Podczas pracy nad projektem niejednokrotnie napotykano na różnego rodzaju trudności i~przeszkody, które wymagały nie tylko kreatywnego myślenia, ale także głębszego zrozumienia złożonych koncepcji informatycznych.
+Realizacja projektu polegającego na stworzeniu systemu \textit{bare-metal} dla platformy Raspberry Pi z~interpreterem języka BASIC była nie tylko ambitnym przedsięwzięciem, ale również źródłem wielu wyzwań oraz okazją do zdobycia cennych doświadczeń. Podczas pracy nad projektem niejednokrotnie napotykano na różnego rodzaju trudności i~przeszkody, które wymagały nie tylko kreatywnego myślenia, ale także głębszego zrozumienia złożonych koncepcji informatycznych.
 Prace nad takim projektem dają możliwość pogłębienia wiedzy w~wielu obszarach informatyki. W~tym przypadku, zdobyto doświadczenie z~zakresu programowania embedded, zrozumiano głębsze aspekty działania systemów oraz mechanizmów stojących za interpreterami. Znaczący rozmiar projektu pozwolił również na naukę efektywnego zarządzania dużą ilością kodu oraz organizacji pracy w~dwuosobowym zespole.
 Rezultat prezentowanej pracy nie tylko demonstruje efektywne wdrożenie założonych celów, ale również otwiera pole do przyszłej dalszej rozbudowy zaprojektowanego systemu. 
 %%%%% BIBLIOGRAFIA
@@ -371,6 +371,7 @@ Rezultat prezentowanej pracy nie tylko demonstruje efektywne wdrożenie założo
 \bibitem{} Raspberry Pi documentation\\(\url{https://www.raspberrypi.com/documentation/})
 \bibitem{} BCM 2837 datasheet (RPi3)\\(\url{https://datasheets.raspberrypi.com/bcm2835/bcm2835-peripherals.pdf})
 \bibitem{} BCM 2711 datasheet (RPi4)\\(\url{https://datasheets.raspberrypi.com/bcm2711/bcm2711-peripherals.pdf})
+\bibitem{} ARM Documentation \\(\url{https://developer.arm.com/documentation/})
 \bibitem{} 101 BASIC computer games\\(\url{https://annarchive.com/files/Basic_Computer_Games_Microcomputer_Edition.pdf})
 \bibitem{} Low Level Devel (\url{https://github.com/rockytriton/LLD/tree/main})
 \bibitem{} uBASIC: a~really simple BASIC interpreter\\ (\url{https://github.com/adamdunkels/ubasic})
