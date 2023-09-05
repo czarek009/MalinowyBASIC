@@ -1,6 +1,8 @@
 #include "hdmi.h"
 #include "mailbox.h"
 #include "printf.h"
+#include "fonts.h"
+#include "mm.h"
 
 struct mailboxFbSizeS {
   mailboxTagS tag;
@@ -37,11 +39,28 @@ struct hdmiInfoS {
   u32 yres;
   u32 pitch;
   u32 bpp;
+  u32 xcoursor;
+  u32 ycoursor;
+  u32 font_color;
   u8 *frame_buffer;
 } typedef hdmiInfoS;
 
 static hdmiInfoS fb;
 
+/* PRIVATE FUNCTIONS DECLARATIONS */
+void hdmi_draw_pixel(u32 x, u32 y, u32 color);
+void hdmi_draw_char(char c, u32 xpos, u32 ypos, u32 color);
+void increment_xcoursor();
+void increment_ycoursor();
+void reset_xcoursor();
+void new_line();
+void backspace();
+bool check_font_fit_width();
+bool check_font_fit_height();
+void scroll_down();
+void hdmi_erase_char(u32 xpos, u32 ypos);
+
+/* GLOBAL FUNCTIONS DEFINITIONS*/
 void hdmi_init(u32 xres, u32 yres, u32 bits_per_pixel) {
   mailboxFbReqS fb_req = {0};
 
@@ -79,11 +98,43 @@ void hdmi_init(u32 xres, u32 yres, u32 bits_per_pixel) {
   fb.yres = fb_req.vres.yres;
   fb.pitch = fb_req.pitch.pitch;
   fb.bpp = fb_req.depth.bits_per_pixel;
+  fb.xcoursor = 0;
+  fb.ycoursor = 0;
+  fb.font_color = 0xFFFFFFFF;
   fb.frame_buffer = (u8 *)(((u64)fb_req.buff.ptr | 0x40000000) & ~0xC0000000);
-
-  printf("HDMI init, ptr = %ld, xres = %d, yres = %d\n", (u64)fb.frame_buffer, fb.xres, fb.yres);
 }
 
+void hdmi_printf_char(char c) {
+  if(c == '\n') {
+    new_line();
+    return;
+  }
+  if (c == 127 || c == 8) {
+    backspace();
+    return;
+  }
+  if (!check_font_fit_width()){
+    new_line();
+  }
+  hdmi_draw_char(c, fb.xcoursor, fb.ycoursor, fb.font_color);
+  increment_xcoursor();
+}
+
+void hdmi_printf_string(const char *str) {
+  for (u32 i = 0; str[i] != '\0'; i++) {
+    hdmi_printf_char(str[i]);
+  }
+}
+
+void hdmi_draw_image(const u32 *img, u32 xres, u32 yres, u32 xpos, u32 ypos) {
+  for (u32 i = 0; i < xres; ++i) {
+    for (u32 j = 0; j < yres; ++j) {
+      hdmi_draw_pixel(xpos+i, ypos+j, img[j*xres + i]);
+    }
+  }
+}
+
+/* PRIVATE FUNCTIONS DEFINITIONS*/
 void hdmi_draw_pixel(u32 x, u32 y, u32 color) {
   volatile u8 *frame_buffer = fb.frame_buffer;
   u32 pixel_offset = (x * 4) + (y * fb.pitch);
@@ -104,10 +155,72 @@ void hdmi_draw_pixel(u32 x, u32 y, u32 color) {
   }
 }
 
-void hdmi_draw_image(const u32 *img, u32 xres, u32 yres, u32 xpos, u32 ypos) {
-  for (int i = 0; i < xres; ++i) {
-    for (int j = 0; j < yres; ++j) {
-      hdmi_draw_pixel(xpos+i, ypos+j, img[j*xres + i]);
+void hdmi_draw_char(char c, u32 xpos, u32 ypos, u32 color) {
+  for (u32 i = 0; i < FONT_HEIGHT; i++) {
+    for (u32 j = 0; j < FONT_WIDTH; j++) {
+      if((font8x8_basic[(u8)c][i] >> j) & 1) {
+        hdmi_draw_pixel(xpos + j, ypos + i, color);
+      }
     }
   }
+}
+
+void increment_ycoursor() {
+  if(check_font_fit_height()) {
+    fb.ycoursor += FONT_HEIGHT;
+    return;
+  }
+  scroll_down();
+}
+
+void increment_xcoursor() {
+  if (check_font_fit_width()) {
+    fb.xcoursor += FONT_WIDTH;
+    return;
+  }
+  new_line();
+}
+
+void reset_xcoursor() {
+  fb.xcoursor = 0;
+}
+
+bool check_font_fit_width() {
+  return ((FONT_WIDTH + fb.xcoursor) < fb.xres);
+}
+
+bool check_font_fit_height() {
+  return ((FONT_HEIGHT + fb.ycoursor) < fb.yres);
+}
+
+void new_line() {
+  reset_xcoursor();
+  increment_ycoursor();
+}
+
+void backspace() {
+  if(fb.xcoursor >= PROMPT_WIDTH + FONT_WIDTH) {
+    fb.xcoursor -= FONT_WIDTH;
+    hdmi_erase_char(fb.xcoursor, fb.ycoursor);
+  }
+}
+
+void hdmi_erase_char(u32 xpos, u32 ypos) {
+  for (u32 i = 0; i < FONT_HEIGHT; i++) {
+    for (u32 j = 0; j < FONT_WIDTH; j++) {
+      hdmi_draw_pixel(xpos + j, ypos + i, 0x00000000);
+    }
+  }
+}
+
+void erease_last_line() {
+  for(u32 i = 0; i < fb.xres; i += FONT_WIDTH) {
+    hdmi_erase_char(i, fb.ycoursor);
+  }
+}
+
+void scroll_down() {
+  u32 line_font_bytes = (FONT_HEIGHT * fb.pitch);
+  memcpy(fb.frame_buffer, (fb.frame_buffer + line_font_bytes), (fb.yres * fb.pitch) - line_font_bytes);
+  erease_last_line();
 }

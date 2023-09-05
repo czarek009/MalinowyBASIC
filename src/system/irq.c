@@ -38,7 +38,7 @@ void handle_irq() {
     if (irq1 & TIMER_CS_M1) {
       irq1 &= ~TIMER_CS_M1;
       handle_timer_1();
-      hdmi_blink_coursor();
+      // hdmi_blink_coursor();
     }
 
     if (irq2 & GPIO0_IRQ) {

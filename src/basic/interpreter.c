@@ -188,7 +188,7 @@ sessionErrorCodeE interpreter_execute_command(sessionS* env, char* cmd, u64 line
         out = SESSION_INVALID_INSTRUCTION;
         break;
       }
-      hdmi_clear();
+      // hdmi_clear();
       break;
 
     case TOK_SESSEND:

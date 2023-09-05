@@ -19,7 +19,7 @@ sessionErrorCodeE font_instr(sessionS* env, char* cmd) {
   tokenE tok = TOK_NONE;
   tok = get_next_token(&cmd, buf, TOK_NONE);
   if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
-  hdmi_change_font_color(value.integer);
+  // hdmi_change_font_color(value.integer);
   return SESSION_NO_ERROR;
 }
 
@@ -34,6 +34,6 @@ sessionErrorCodeE background_instr(sessionS* env, char* cmd) {
   tokenE tok = TOK_NONE;
   tok = get_next_token(&cmd, buf, TOK_NONE);
   if (tok == TOK_ERROR) return SESSION_PARSING_ERROR; // PARSING ERROR
-  hdmi_change_bg_color(value.integer);
+  // hdmi_change_bg_color(value.integer);
   return SESSION_NO_ERROR;
 }

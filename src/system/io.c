@@ -2,6 +2,8 @@
 #include "irq.h"
 #include "uart.h"
 #include "utils.h"
+#include "hdmi.h"
+#include "printf.h"
 
 volatile static char line_buffer[255];
 volatile static bool refresh;
@@ -36,7 +38,7 @@ void io_read_char(char c) {
   if (c == 13 || c == 10) {
     // enter
     eol = true;
-    hdmi_printf_char(c);
+    // hdmi_printf_char(c);
   } else if (c == 96) {
     // alternative enter `
     // because enter doesn't always work on my keyboard :(
@@ -46,27 +48,29 @@ void io_read_char(char c) {
     c -= 32;
     line_buffer[idx] = c;
     idx++;
-    hdmi_printf_char(c);
+    // hdmi_printf_char(c);
   } else if (c > 31 && c < 127) {
     // regular character
     line_buffer[idx] = c;
     idx++;
-    hdmi_printf_char(c);
+    // hdmi_printf_char(c);
   } else if (c == 127 || c == 8) {
     // backspace
     if (idx > 0) {
       idx--;
       line_buffer[idx] = ' ';
-      hdmi_printf_char(c);
+      // hdmi_printf_char(c);
     }
   }
+  hdmi_printf_char(c);
   refresh = true;
 }
 
-void readline(char* restrict dest, const char* prompt) {
+void readline(char* restrict dest, char* prompt) {
   io_reset();
   uart_send('\r');
-  uart_send_string(prompt);
+  // uart_send_string(prompt);
+  printf(prompt);
   while (!eol) {
     while(!refresh);
     clear_line();
@@ -81,6 +85,7 @@ void readline(char* restrict dest, const char* prompt) {
   dest[idx] = '\0';
   irq_enable();
 
-  uart_send('\r');
-  uart_send('\n');
+  // uart_send('\r');
+  // uart_send('\n');
+  printf("\n");
 }
