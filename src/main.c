@@ -34,7 +34,6 @@ void putc(void *p, char c) {
   if (c == '\n')
     uart_send('\r');
   uart_send(c);
-  hdmi_printf_char(c);
 }
 
 
@@ -49,11 +48,12 @@ void main(void) {
 
   mem_init();
   delay_ms(10);
-  hdmi_init();
+  // hdmi_init();
   delay_ms(10);
   timer_init();
   delay_ms(10);
   rand_init();
+  hdmi_init(320, 200, 32);
   sd_init();
   delay_ms(10);
   fs_init();
@@ -81,8 +81,6 @@ void main(void) {
       }
     }
     session_end(current_session);
+    lickitung_check();
   }
-  /* hdmi allocates buffer - lickitung will show memory leak untill we call hdmi_end() */
-  hdmi_end();
-  lickitung_check();
 }

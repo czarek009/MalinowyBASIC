@@ -15,7 +15,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 #include "printf.h"
-#include "hdmi.h"
 
 #define PRINTF_LONG_SUPPORT 1
 
@@ -232,7 +231,6 @@ void tfp_format(void* putp,putcf putf,char *fmt, va_list va) {
       }
     }
   }
-  hdmi_refresh();
   abort:;
 }
 
